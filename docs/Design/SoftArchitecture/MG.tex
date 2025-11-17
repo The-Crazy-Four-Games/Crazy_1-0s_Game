@@ -16,6 +16,9 @@
     urlcolor=blue
 }
 
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
 \input{../../Comments}
 \input{../../Common}
 
@@ -684,8 +687,6 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
 \end{table}
 
 
-%%add
-
 \begin{table}[H]
 \centering
 \caption{Trace Between Anticipated Changes and Modules (TblACT)}
@@ -708,7 +709,98 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
 \noindent\textit{Notes:} Each AC above corresponds to a ``secret'' that should be implemented and documented within the named module(s).  When an AC is realized, the owning module's MIS (or submodule docs) should be updated so that the secret is well described and the code-to-docs trace remains intact.
 
 
-\section{Use Hierarchy} \label{SecUse}
+\section{Use Hierarchy Between Modules (Uses Relation)} \label{SecUse}
+
+% The uses hierarchy is represented as a DAG. This figure is best rendered with
+% the tikz package. If your main preamble does not include tikz, add:
+%   \usepackage{tikz}
+% The layout below intentionally favors readability; node names use the mref macros.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+  [node distance=22mm, auto, >=latex,
+  module/.style={rectangle,draw=black,rounded corners,fill=white,inner sep=6pt,font=\small},
+  level1/.style={module,fill=gray!15},
+  level2/.style={module,fill=gray!5},
+  arrow/.style={->, thick}
+  ]
+
+% Hardware
+\node[level1] (DB) {\shortstack{\mref{mDB}\\Database}};
+\node[level1, right=16mm of DB] (OS) {\shortstack{\mref{mOS}\\Server OS}};
+\node[level1, right=16mm of OS] (Browser) {\shortstack{\mref{mBrowser}\\Client Runtime}};
+
+% Behaviour / Core logic (center)
+\node[level2, above=18mm of OS] (GameEngine) {\shortstack{\mref{mGameEngine}\\Game Engine}};
+\node[level2, left=24mm of GameEngine] (Rules) {\shortstack{\mref{mRules}\\Rules}};
+\node[level2, right=24mm of GameEngine] (Scoring) {\shortstack{\mref{mScoring}\\Scoring}};
+\node[level2, above=18mm of Rules] (BaseConv) {\shortstack{\mref{mBaseConversion}\\Base Conversion}};
+\node[level2, above=18mm of Scoring] (GameActions) {\shortstack{\mref{mGameActions}\\Game Actions}};
+
+% Backend decision / services
+\node[level2, above=30mm of GameEngine] (RealtimeGW) {\shortstack{\mref{mRealtimeGateway}\\Real-time GW}};
+\node[level2, left=28mm of RealtimeGW] (API) {\shortstack{\mref{mAPI}\\API}};
+\node[level2, right=28mm of RealtimeGW] (Matchmaking) {\shortstack{\mref{mMatchmaking}\\Matchmaking}};
+\node[level2, above=30mm of API] (Auth) {\shortstack{\mref{mAuth}\\Auth}};
+\node[level2, left=28mm of API] (Repo) {\shortstack{\mref{mRepository}\\Repository}};
+\node[level2, right=28mm of Matchmaking] (Audit) {\shortstack{\mref{mAudit}\\Audit}};
+
+% Frontend
+\node[level2, below=18mm of GameEngine] (RealtimeClient) {\shortstack{\mref{mRealtimeClient}\\Realtime Client}};
+\node[level2, left=18mm of RealtimeClient] (AppShell) {\shortstack{\mref{mAppShell}\\App Shell}};
+\node[level2, right=18mm of RealtimeClient] (GameBoard) {\shortstack{\mref{mGameBoardView}\\Game Board}};
+\node[level2, below=18mm of AppShell] (AuthClient) {\shortstack{\mref{mAuthClient}\\Auth Client}};
+\node[level2, below=18mm of GameBoard] (MoveCtrl) {\shortstack{\mref{mMoveController}\\Move Controller}};
+\node[level2, right=22mm of GameBoard] (ProfileView) {\shortstack{\mref{mProfileView}\\Profile View}};
+\node[level2, left=22mm of AppShell] (LobbyView) {\shortstack{\mref{mLobbyView}\\Lobby View}};
+\node[level2, below=10mm of GameBoard] (Scoreboard) {\shortstack{\mref{mScoreboardView}\\Scoreboard}};
+
+% Draw arrows (uses relations) - top-down authoritative flow
+\draw[arrow] (AppShell) -- (AuthClient);
+\draw[arrow] (AuthClient) -- (API);
+\draw[arrow] (Auth) -- (API);
+\draw[arrow] (API) -- (Repo);
+\draw[arrow] (API) -- (Auth);
+\draw[arrow] (API) -- (Audit);
+
+\draw[arrow] (RealtimeClient) -- (RealtimeGW);
+\draw[arrow] (RealtimeGW) -- (GameEngine);
+\draw[arrow] (RealtimeGW) -- (Repo);
+\draw[arrow] (RealtimeGW) -- (Audit);
+
+\draw[arrow] (Matchmaking) -- (RealtimeGW);
+\draw[arrow] (Matchmaking) -- (Repo);
+
+\draw[arrow] (GameEngine) -- (Rules);
+\draw[arrow] (GameEngine) -- (Scoring);
+\draw[arrow] (Rules) -- (BaseConv);
+\draw[arrow] (Scoring) -- (BaseConv);
+\draw[arrow] (GameActions) -- (GameEngine);
+
+\draw[arrow] (GameBoard) -- (MoveCtrl);
+\draw[arrow] (MoveCtrl) -- (RealtimeClient);
+\draw[arrow] (MoveCtrl) -- (Rules);
+
+\draw[arrow] (GameBoard) -- (Scoreboard);
+\draw[arrow] (Scoreboard) -- (BaseConv);
+
+\draw[arrow] (Repo) -- (DB);
+\draw[arrow] (RealtimeGW) -- (OS);
+\draw[arrow] (API) -- (OS);
+\draw[arrow] (RealtimeClient) -- (Browser);
+
+% end tikzpicture
+\end{tikzpicture}
+% END tikzpicture
+\caption{Use hierarchy (DAG) showing primary ``uses'' relations between modules.}
+\label{FigUsesDAG}
+\end{figure}
+
+\bigskip
+\noindent\textbf{Design rationale:} The DAG above shows the server-authoritative pattern: Realtime gateway owns live interactions and forwards validated moves to the Game Engine; the Game Engine uses the Rules and Scoring modules, and persistence is abstracted via the Repository to the Database. Frontend views rely on the Realtime client for live updates and the API for non-realtime operations (profile, auth, lobby listing).
+
+\newpage
 %\includegraphics[width=0.7\textwidth]{UsesHierarchy.png}
 
 
