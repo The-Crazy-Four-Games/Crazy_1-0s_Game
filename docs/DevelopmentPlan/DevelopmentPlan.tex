@@ -2,21 +2,26 @@
 
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{float}
+
 
 \title{Development Plan\\The Crazy Eights}
 
-\author{Ruida Chen \\ Alvin Qian \\ Ammar, Sharbat \\ Jiaming Li}
-
-
-\date{September 2025}
+\title{Problem Statement and Goals\\\SE Software Engineering}
+\author{
+    Team \#25, The Crazy Four \\[1ex]
+    Ruida Chen \\
+    Ammar Sharbat \\
+    Alvin Qian \\
+    Jiaming Li \\
+}
+\date{22.09.2025}
 
 \input{../Comments}
 \input{../Common}
 
 \begin{document}
-
 \maketitle
-
 \begin{table}[hp]
 \caption{Revision History} \label{TblRevisionHistory}
 \begin{tabularx}{\textwidth}{llX}
@@ -25,7 +30,7 @@
 \midrule
 Sep 21 & Ruida Chen & Worked on section 8-12 of dev plan and first half of appendix\\
 Sep 22 & Alvin Qian & Worked on section 1-7 of dev plan and second half of appendix\\
-... & ... & ...\\
+Nov 3 & Ammar Sharbat & Updated Title Page\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -214,13 +219,24 @@ PoC Demonstration Goals \\In our PoC demonstration, we will address these risks 
 \section{Expected Technology}
 
 
-\begin{itemize}
-\item JavaScript, TypeScript
-\item PostgreSQL
-\item Github, git, Github projects
-\item Node.js,  React
-\item Jest
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Expected Technologies and Their Roles}
+\begin{tabular}{|p{3cm}|p{8cm}|p{3cm}|}
+\hline
+\textbf{Technology} & \textbf{Purpose / Usage} & \textbf{Category} \\ \hline
+React & Builds the user interface for the game, including card rendering, score display, and animations. Provides strong typing and maintainability. & Frontend \\ \hline
+Node.js & Handles backend logic, API endpoints, and rule validation. Responsible for communication between frontend and database. & Backend \\ \hline
+PostgreSQL & Stores user accounts, scores, and game history in a relational database for persistent data management. & Database \\ \hline
+WebSocket / Socket.io & Enables real-time synchronization of turns and game state between players. & Networking \\ \hline
+GitHub + GitHub Actions & Provides version control, issue tracking, and CI/CD automation for testing and deployment. & Version Control / CI-CD \\ \hline
+Jest / React Testing Library & Frameworks for automated unit and integration testing of frontend and backend components. & Testing \\ \hline
+ESLint / Prettier & Ensures consistent coding style and detects syntax or logic errors early in development. & Code Quality \\ \hline
+Discord & Used for real-time team communication, coordination, and meeting discussions. & Collaboration \\ \hline
+LaTeX & Used for professional documentation, including SRS, VnV Plan, and Development Plan deliverables. & Documentation \\ \hline
+\end{tabular}
+\end{table}
+
 
 
 \section{Coding Standard}
