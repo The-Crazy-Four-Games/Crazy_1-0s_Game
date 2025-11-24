@@ -2,21 +2,18 @@
 
 \usepackage{booktabs}
 \usepackage{tabularx}
-
-\title{Development Plan\\The Crazy Eights}
-
-\author{Ruida Chen \\ Alvin Qian \\ Ammar, Sharbat \\ Jiaming Li}
+\usepackage{float}
 
 
-\date{September 2025}
+\title{Development Plan for \progname{}}
+\author{\authname}
+\date{22.09.2025}
 
 \input{../Comments}
 \input{../Common}
 
 \begin{document}
-
 \maketitle
-
 \begin{table}[hp]
 \caption{Revision History} \label{TblRevisionHistory}
 \begin{tabularx}{\textwidth}{llX}
@@ -25,7 +22,8 @@
 \midrule
 Sep 21 & Ruida Chen & Worked on section 8-12 of dev plan and first half of appendix\\
 Sep 22 & Alvin Qian & Worked on section 1-7 of dev plan and second half of appendix\\
-... & ... & ...\\
+Nov 3 & Ammar Sharbat & Updated Title Page\\
+Nov 24 & Ruida Chen	& Updated poc section, make it consistent with our plan\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -34,7 +32,7 @@ Sep 22 & Alvin Qian & Worked on section 1-7 of dev plan and second half of appen
 
 \section{Introduction}
 
-This Development Plan defines how the Crazy Eights project will be organized and executed. It establishes scope, objectives, team structure, communication methods, workflow conventions, schedule, risk mitigation focus, technology stack, and coding standards.
+This Development Plan defines how the Crazy Tens project will be organized and executed. It establishes scope, objectives, team structure, communication methods, workflow conventions, schedule, risk mitigation focus, technology stack, and coding standards.
 
 \section{Confidential Information}
 
@@ -46,7 +44,7 @@ There is no external partner IP and the team does not plan to pursue patents. Al
 
 \section{Copyright License}
 
-The project is released under the MIT License. All source code and documents may be used, modified, and redistributed in accordance with that license.
+The project is released under the \href{https://github.com/The-Crazy-Four-Games/Crazy-Eights-Game/blob/main/LICENSE}{MIT} License. All source code and documents may be used, modified, and redistributed in accordance with that license.
 
 \section{Team Meeting Plan}
 
@@ -198,29 +196,41 @@ All project tasks are tracked through GitHub Issues and a Kanban board using Git
 
 \section{Proof of Concept Demonstration Plan}
 
-Main Risk
+\subsection*{Main Risk}
 
 \begin{itemize}
 	\item Implementation Complexity: Correctly enforcing the gameplay mechanism (e.g. turn-taking,  rule variation, base-12)
 	\item Ensuring required libraries and frameworks install and integrate smoothly across team members’ environments.
 	
 \end{itemize}
-PoC Demonstration Goals \\In our PoC demonstration, we will address these risks by showing:
+\subsection*{PoC Demonstration Goals} 
+In our PoC demonstration, we will address these risks by showing:
 \begin{itemize}
-	\item A working prototype of Crazy Eights where players can take turns, match cards by suit/rank, and play an "8" as a special 
-	\item Successful integration between frontend and backend for real-time gameplay.
+	\item A working prototype of Crazy Tens where players can take turns, match cards by suit/rank, and play an "10" as a special 
+	\item Successful integration between server and client for real-time gameplay.
 \end{itemize}
 
 \section{Expected Technology}
 
 
-\begin{itemize}
-\item JavaScript, TypeScript
-\item PostgreSQL
-\item Github, git, Github projects
-\item Node.js,  React
-\item Jest
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Expected Technologies and Their Roles}
+\begin{tabular}{|p{3cm}|p{8cm}|p{3cm}|}
+\hline
+\textbf{Technology} & \textbf{Purpose / Usage} & \textbf{Category} \\ \hline
+React & Builds the user interface for the game, including card rendering, score display, and animations. Provides strong typing and maintainability. & Frontend \\ \hline
+Node.js & Handles backend logic, API endpoints, and rule validation. Responsible for communication between frontend and database. & Backend \\ \hline
+PostgreSQL & Stores user accounts, scores, and game history in a relational database for persistent data management. & Database \\ \hline
+WebSocket / Socket.io & Enables real-time synchronization of turns and game state between players. & Networking \\ \hline
+GitHub + GitHub Actions & Provides version control, issue tracking, and CI/CD automation for testing and deployment. & Version Control / CI-CD \\ \hline
+Jest / React Testing Library & Frameworks for automated unit and integration testing of frontend and backend components. & Testing \\ \hline
+ESLint / Prettier & Ensures consistent coding style and detects syntax or logic errors early in development. & Code Quality \\ \hline
+Discord & Used for real-time team communication, coordination, and meeting discussions. & Collaboration \\ \hline
+LaTeX & Used for professional documentation, including SRS, VnV Plan, and Development Plan deliverables. & Documentation \\ \hline
+\end{tabular}
+\end{table}
+
 
 
 \section{Coding Standard}
@@ -242,7 +252,7 @@ PoC Demonstration Goals \\In our PoC demonstration, we will address these risks 
     \item In your opinion, what are the advantages and disadvantages of using
     CI/CD?\\ Advantages: CI/CD automates testing and deployment,  it reduces human errors and improves code quality.  Since it encourages frequent integration, problems are detected early. \\Disadvantages: Setting up CI/CD pipelines can be time-consuming, especially for small teams, it may introduce overhead if the project scope is small or team members are not familiar with this tool.
     \item What disagreements did your group have in this deliverable, if any,
-    and how did you resolve them?\\One disagreement our group had was whether to focus solely on developing the Crazy Eights card game, or to make it into a product line that could support multiple card games/number systems,  some members felt that the product line idea would make the project impressive and ambitious, while others were concerned about the limited timeline and feasibility. After a team discussion and seeking advice from the professor and supervisor, we resolved this by agreeing to prioritize Crazy Eights as the core deliverable, ensuring we can deliver a complete and functional game. At the same time, we left the product line concept as a stretch goal that could be pursued if time and resources permit. This compromise allowed us to balance ambition with practicality, while keeping the team aligned.
+    and how did you resolve them?\\One disagreement our group had was whether to focus solely on developing the Crazy Tens card game, or to make it into a product line that could support multiple card games/number systems,  some members felt that the product line idea would make the project impressive and ambitious, while others were concerned about the limited timeline and feasibility. After a team discussion and seeking advice from the professor and supervisor, we resolved this by agreeing to prioritize Crazy Tens as the core deliverable, ensuring we can deliver a complete and functional game. At the same time, we left the product line concept as a stretch goal that could be pursued if time and resources permit. This compromise allowed us to balance ambition with practicality, while keeping the team aligned.
 \end{enumerate}
 
 \newpage{}

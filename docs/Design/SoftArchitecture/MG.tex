@@ -33,8 +33,14 @@
 
 \begin{document}
 
-\title{Module Guide for \progname{}} 
-\author{\authname}
+\title{Module Guide for The Crazy Four} 
+\author{
+    Team \#25, The Crazy Four \\[1ex]
+    Ruida Chen \\
+    Ammar Sharbat \\
+    Alvin Qian \\
+    Jiaming Li
+}
 \date{\today}
 
 \maketitle
@@ -46,8 +52,12 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
+Nov 6 & Alvin, Ammar, Ruida, Jim & Initial draft of basic MG (not in report)\\
+Nov 7 & Above \& Chris Schankula & Review and feedback of basic MG\\
+Nov 8 & Alvin & Module Hierarchy and decomposition\\
+Nov 9 & Alvin & Updated API's for game action modules\\
+Nov 13 & Alvin & modified module decomposition to remove incorrect content\\
+Nov 13 & Ammar & added ACs, AC Traceability, Use Hierarchy, UI, Design of CPs; WebSocket, Timeline\\
 \bottomrule
 \end{tabularx}
 
@@ -65,16 +75,27 @@ This section records information for easy reference.
   \textbf{symbol} & \textbf{description}\\
   \midrule 
   AC & Anticipated Change\\
+  ACID & Atomicity, Consistency, Isolation, Durability\\
+  API & Application Programming Interface\\
+  CSS & Cascading Style Sheets\\
   DAG & Directed Acyclic Graph \\
+  DOM & Document Object Model\\
+  FR & Functional Requirement\\
+  HTTP & Hypertext Transfer Protocol\\
+  JSON & JavaScript Object Notation\\
+  JWT & JSON Web Token\\
   M & Module \\
   MG & Module Guide \\
+  NFR & Non-Functional Requirement\\
   OS & Operating System \\
   R & Requirement\\
+  REST & Representational State Transfer\\
   SC & Scientific Computing \\
+  SR & Safety Requirement\\
   SRS & Software Requirements Specification\\
-  \progname & Explanation of program name\\
+  SQL & Structured Query Language\\
   UC & Unlikely Change \\
-  \wss{etc.} & \wss{...}\\
+  UI & User Interface\\
   \bottomrule
 \end{tabular}\\
 
@@ -141,47 +162,9 @@ the completeness of the design against the requirements provided in the SRS. The
 other shows the relation between anticipated changes and the modules. Section
 \ref{SecUse} describes the use relation between modules.
 
+
+%%add
 \section{Anticipated and Unlikely Changes} \label{SecChange}
-
-This section lists possible changes to the system. According to the likeliness
-of the change, the possible changes are classified into two
-categories. Anticipated changes are listed in Section \ref{SecAchange}, and
-unlikely changes are listed in Section \ref{SecUchange}.
-
-\subsection{Anticipated Changes} \label{SecAchange}
-
-Anticipated changes are the source of the information that is to be hidden
-inside the modules. Ideally, changing one of the anticipated changes will only
-require changing the one module that hides the associated decision. The approach
-adapted here is called design for
-change.
-
-\begin{description}
-\item[\refstepcounter{acnum} \actheacnum \label{acHardware}:] The specific
-  hardware on which the software is running.
-\item[\refstepcounter{acnum} \actheacnum \label{acInput}:] The format of the
-  initial input data.
-\item ...
-\end{description}
-
-\wss{Anticipated changes relate to changes that would be made in requirements,
-design or implementation choices.  They are not related to changes that are made
-at run-time, like the values of parameters.}
-
-\subsection{Unlikely Changes} \label{SecUchange}
-
-The module design should be as general as possible. However, a general system is
-more complex. Sometimes this complexity is not necessary. Fixing some design
-decisions at the system architecture stage can simplify the software design. If
-these decision should later need to be changed, then many parts of the design
-will potentially need to be modified. Hence, it is not intended that these
-decisions will be changed.
-
-\begin{description}
-\item[\refstepcounter{ucnum} \uctheucnum \label{ucIO}:] Input/Output devices
-  (Input: File and/or Keyboard, Output: File, Memory, and/or Screen).
-\item ...
-\end{description}
 
 \section{Module Hierarchy} \label{SecMH}
 
@@ -190,35 +173,157 @@ in a hierarchy decomposed by secrets in Table \ref{TblMH}. The modules listed
 below, which are leaves in the hierarchy tree, are the modules that will
 actually be implemented.
 
+
 \begin{description}
-\item [\refstepcounter{mnum} \mthemnum \label{mHH}:] Hardware-Hiding Module
-\item ...
+% --- Backend Modules ---
+\item [\refstepcounter{mnum} \mthemnum \label{mAPI}:] API Module
+    \begin{itemize}
+        \item Provides stateless HTTP (REST) endpoints for auth and profile management.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mRealtimeGateway}:] Real-time Gateway Module
+    \begin{itemize}
+        \item Manages stateful WebSocket connections for live gameplay and state syncing.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mMatchmaking}:] Matchmaking Module
+    \begin{itemize}
+        \item Handles game lobby creation, joining, and starting a match.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mAuth}:] Authentication Module
+    \begin{itemize}
+        \item Manages user identity, password hashing, and session token generation.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mRepository}:] Repository Module
+    \begin{itemize}
+        \item Abstracts all database queries (SQL) for creating, reading, updating, and deleting data.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mAudit}:] Audit Module
+    \begin{itemize}
+        \item Logs important server-side events for debugging and security.
+    \end{itemize}
+
+% --- Frontend Modules ---
+\item [\refstepcounter{mnum} \mthemnum \label{mRealtimeClient}:] Real-time Client Module
+    \begin{itemize}
+        \item Establishes and maintains the client-side WebSocket connection; sends/receives game events.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mAppShell}:] Application Shell Module
+    \begin{itemize}
+        \item The main React component providing global layout, navigation, and state.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mAuthClient}:] Authentication Client Module
+    \begin{itemize}
+        \item Provides the UI and logic for login/signup forms.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mLobbyView}:] Lobby View Module
+    \begin{itemize}
+        \item UI component for displaying, creating, and joining game lobbies.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mGameBoardView}:] Game Board View Module
+    \begin{itemize}
+        \item UI component that renders the main game interface (hands, deck, discard pile).
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mMoveController}:] Move Controller Module
+    \begin{itemize}
+        \item Manages user input (e.g., card clicks) and highlights valid moves.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mScoreboardView}:] Scoreboard View Module
+    \begin{itemize}
+        \item UI component for displaying end-of-round scores in decimal and Dozenal.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mProfileView}:] Profile View Module
+    \begin{itemize}
+        \item UI component for displaying user statistics and game history.
+    \end{itemize}
+
+% --- Core/Behaviour Modules ---
+\item [\refstepcounter{mnum} \mthemnum \label{mGameEngine}:] Game Engine Module
+    \begin{itemize}
+        \item Manages the core game state (deck, hands) and turn progression.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mRules}:] Rules Module
+    \begin{itemize}
+        \item Stateless logic to validate moves (e.g., match suit, rank, or Dozenal sum).
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mScoring}:] Scoring Module
+    \begin{itemize}
+        \item Calculates scores at the end of a round.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mBaseConversion}:] Base Conversion Module
+    \begin{itemize}
+        \item Utility to convert numbers between decimal and Dozenal.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mGameActions}:] Game Actions Module
+    \begin{itemize}
+        \item Defines types and structure for player actions (play card, draw, declare suit, submit score tally).
+    \end{itemize}
+
+% --- Hardware Hiding ---
+\item [\refstepcounter{mnum} \mthemnum \label{mOS}:] Operating System Module
+    \begin{itemize}
+        \item Represents the server's OS, providing the Node.js runtime environment.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mBrowser}:] Browser Runtime Module
+    \begin{itemize}
+        \item Represents the client's web browser, providing the React runtime environment.
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mDB}:] Database Module
+    \begin{itemize}
+        \item Represents the PostgreSQL software that handles physical data storage.
+    \end{itemize}
 \end{description}
 
-
-\begin{table}[h!]
+\begin{table}[H]
 \centering
-\begin{tabular}{p{0.3\textwidth} p{0.6\textwidth}}
+\begin{tabular}{p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}}
 \toprule
-\textbf{Level 1} & \textbf{Level 2}\\
+\textbf{Level 1} & \textbf{Level 2} & \textbf{Level 3 (Leaf Modules)}\\
 \midrule
 
-{Hardware-Hiding Module} & ~ \\
+\multirow{3}{0.3\textwidth}{Hardware-Hiding Module} & ~ & \mref{mOS} (Server OS) \\
+& ~ & \mref{mBrowser} (Client Runtime) \\
+& ~ & \mref{mDB} (PostgreSQL) \\
 \midrule
 
-\multirow{7}{0.3\textwidth}{Behaviour-Hiding Module} & ?\\
-& ?\\
-& ?\\
-& ?\\
-& ?\\
-& ?\\
-& ?\\ 
-& ?\\
+\multirow{5}{0.3\textwidth}{Behaviour-Hiding Module} & (Core Domain Logic) & \mref{mGameEngine} \\
+& & \mref{mRules} \\
+& & \mref{mScoring} \\
+& & \mref{mBaseConversion} \\
+& & \mref{mGameActions} \\
 \midrule
 
-\multirow{3}{0.3\textwidth}{Software Decision Module} & {?}\\
-& ?\\
-& ?\\
+\multirow{15}{0.3\textwidth}{Software Decision Module} & \multirow{6}{0.3\textwidth}{Backend (Server)} & \mref{mAPI} \\
+& & \mref{mRealtimeGateway} \\
+& & \mref{mMatchmaking} \\
+& & \mref{mAuth} \\
+& & \mref{mRepository} \\
+& & \mref{mAudit} \\
+\cmidrule{2-3}
+& \multirow{9}{0.3\textwidth}{Frontend (Client)} & \mref{mRealtimeClient} \\
+& & \mref{mAppShell} \\
+& & \mref{mAuthClient} \\
+& & \mref{mLobbyView} \\
+& & \mref{mGameBoardView} \\
+& & \mref{mMoveController} \\
+& & \mref{mScoreboardView} \\
+& & \mref{mProfileView} \\
 \bottomrule
 
 \end{tabular}
@@ -230,14 +335,14 @@ actually be implemented.
 
 The design of the system is intended to satisfy the requirements developed in
 the SRS. In this stage, the system is decomposed into modules. The connection
-between requirements and modules is listed in Table~\ref{TblRT}.
+between requirements and modules is listed in Table~\ref{TblRT}.\\
 
-\wss{The intention of this section is to document decisions that are made
-  ``between'' the requirements and the design.  To satisfy some requirements,
-  design decisions need to be made.  Rather than make these decisions implicit,
-  they are explicitly recorded here.  For instance, if a program has security
-  requirements, a specific design decision may be made to satisfy those
-  requirements with a password.}
+
+The design of the system is intended to satisfy the requirements developed in
+the SRS. In this stage, the system is decomposed into modules. The connection
+between requirements and modules is listed in the Traceability Matrix in Section \ref{SecTM} (Table \ref{TblRT}). This decomposition ensures that each Functional Requirement (FR), Non-functional Requirement (NFR), and Safety Requirement (SR) has a clear owner in the design, facilitating implementation and verification.
+
+For example, core gameplay logic (FR-1 to FR-5) is satisfied by the \mref{mGameEngine} and \mref{mRules} modules, while the user-facing presentation (FR-7, FR-9) is handled by frontend modules like \mref{mScoreboardView} and \mref{mGameBoardView}. Security and data persistence requirements (FR-10 to FR-17, SR-3, SR-8) are satisfied by the backend's \mref{mAuth} and \mref{mRepository} modules.
 
 \section{Module Decomposition} \label{SecMD}
 
@@ -246,66 +351,237 @@ proposed by \citet{ParnasEtAl1984}. The \emph{Secrets} field in a module
 decomposition is a brief statement of the design decision hidden by the
 module. The \emph{Services} field specifies \emph{what} the module will do
 without documenting \emph{how} to do it. For each module, a suggestion for the
-implementing software is given under the \emph{Implemented By} title. If the
-entry is \emph{OS}, this means that the module is provided by the operating
-system or by standard programming language libraries.  \emph{\progname{}} means the
-module will be implemented by the \progname{} software.
+implementing software is given under the \emph{Implemented By} title.
 
-Only the leaf modules in the hierarchy have to be implemented. If a dash
-(\emph{--}) is shown, this means that the module is not a leaf and will not have
-to be implemented.
+Only the leaf modules in the hierarchy have to be implemented.
 
-\subsection{Hardware Hiding Modules (\mref{mHH})}
+\subsection{Hardware Hiding Modules}
 
+\subsubsection{Operating System Module (\mref{mOS})}
+\begin{quote}
 \begin{description}
-\item[Secrets:]The data structure and algorithm used to implement the virtual
-  hardware.
-\item[Services:]Serves as a virtual hardware used by the rest of the
-  system. This module provides the interface between the hardware and the
-  software. So, the system can use it to display outputs or to accept inputs.
-\item[Implemented By:] OS
+  \item[Secrets:] Process scheduling, filesystem, Node.js runtime environment, network stack.
+  \item[Services:] Provides the execution environment for the backend server.
+  \item[Implemented By:] OS (such as Linux)
+  \item[Type of Module:] Hardware
 \end{description}
+\end{quote}
+
+\subsubsection{Browser Runtime Module (\mref{mBrowser})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] DOM rendering, event loop, TypeScript (React) execution, WebSocket/HTTP client implementation.
+  \item[Services:] Provides the execution environment for the frontend client.
+  \item[Implemented By:] Browser (Chrome, Firefox, Edge)
+  \item[Type of Module:] Hardware
+\end{description}
+\end{quote}
+
+\subsubsection{Database Module (\mref{mDB})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Data storage on disk, indexing, transaction (ACID) implementation, SQL query optimization.
+  \item[Services:] Provides persistent storage for user and game data.
+  \item[Implemented By:] PostgreSQL
+  \item[Type of Module:] Hardware
+\end{description}
+\end{quote}
 
 \subsection{Behaviour-Hiding Module}
 
+\subsubsection{Game Engine Module (\mref{mGameEngine})}
+\begin{quote}
 \begin{description}
-\item[Secrets:]The contents of the required behaviours.
-\item[Services:]Includes programs that provide externally visible behaviour of
-  the system as specified in the software requirements specification (SRS)
-  documents. This module serves as a communication layer between the
-  hardware-hiding module and the software decision module. The programs in this
-  module will need to change if there are changes in the SRS.
-\item[Implemented By:] --
+  \item[Secrets:] Internal representations of the cards, deck, discard pile, players, and the turn-management state machine.
+  \item[Services:] Creates new matches, enforces turn order, applies validated moves, and determines when a round or match is finished.
+  \item[Implemented By:] The Crazy Four (TypeScript)
+  \item[Type of Module:] Abstract Object
 \end{description}
+\end{quote}
 
-\subsubsection{Input Format Module (\mref{mInput})}
-
+\subsubsection{Rules Module (\mref{mRules})}
+\begin{quote}
 \begin{description}
-\item[Secrets:]The format and structure of the input data.
-\item[Services:]Converts the input data into the data structure used by the
-  input parameters module.
-\item[Implemented By:] [Your Program Name Here]
-\item[Type of Module:] [Record, Library, Abstract Object, or Abstract Data Type]
-  [Information to include for leaf modules in the decomposition by secrets tree.]
+  \item[Secrets:] Exact move-validation criteria, including how matching ranks, suits, dozenal sums, and special cards are handled.
+  \item[Services:] Confirms whether a proposed move is legal and enumerates valid moves for a player based on the current game situation.
+  \item[Implemented By:] The Crazy Four (TypeScript)
+  \item[Type of Module:] Abstract Object
 \end{description}
+\end{quote}
 
-\subsubsection{Etc.}
-
-
-\subsection{Software Decision Module}
-
+\subsubsection{Scoring Module (\mref{mScoring})}
+\begin{quote}
 \begin{description}
-\item[Secrets:] The design decision based on mathematical theorems, physical
-  facts, or programming considerations. The secrets of this module are
-  \emph{not} described in the SRS.
-\item[Services:] Includes data structure and algorithms used in the system that
-  do not provide direct interaction with the user. 
-  % Changes in these modules are more likely to be motivated by a desire to
-  % improve performance than by externally imposed changes.
-\item[Implemented By:] --
+  \item[Secrets:] The scoring equation that converts remaining cards into round points and aggregates them over a match.
+  \item[Services:] Produces the score summary for each player whenever a round ends.
+  \item[Implemented By:] The Crazy Four (TypeScript)
+  \item[Type of Module:] Abstract Object
 \end{description}
+\end{quote}
 
-\subsubsection{Etc.}
+\subsubsection{Base Conversion Module (\mref{mBaseConversion})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] The mapping of digits and symbols used to move between decimal and dozenal numbers.
+  \item[Services:] Translates numeric values to and from dozenal form for scoring logic and UI presentation.
+  \item[Implemented By:] The Crazy Four (TypeScript)
+  \item[Type of Module:] Abstract Data Type
+\end{description}
+\end{quote}
+
+\subsubsection{Game Actions Module (\mref{mGameActions})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] The canonical data structures and serialization format that represent every move a player can make.
+  \item[Services:] Defines and validates the action payloads that flow between client and server, keeping both sides in sync on network contracts.
+  \item[Implemented By:] The Crazy Four (TypeScript shared library)
+  \item[Type of Module:] Abstract Data Type
+\end{description}
+\end{quote}
+
+\subsection{Software Decision Module - Backend}
+
+\subsubsection{API Module (\mref{mAPI})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] REST endpoint structure, payload schemas, and HTTP conventions for every backend capability.
+  \item[Services:] Exposes stateless HTTP routes for authentication, profile management, and bootstrapping new games as defined in the SRS.
+  \item[Implemented By:] The Crazy Four (Node.js, Express)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Real-time Gateway Module (\mref{mRealtimeGateway})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Real-time messaging strategy, room management, and conflict-resolution logic for server-authoritative play.
+  \item[Services:] Hosts WebSocket connections, validates incoming moves, and pushes synchronized game state updates to every participant.
+  \item[Implemented By:] The Crazy Four (Node.js, Socket.io)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Matchmaking Module (\mref{mMatchmaking})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] The pairing heuristics, lobby data structures, and invitation policies for assembling tables.
+  \item[Services:] Creates, lists, and manages lobbies so players can host private games or enter matchmaking queues.
+  \item[Implemented By:] The Crazy Four (Node.js)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Authentication Module (\mref{mAuth})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Password hashing configuration, credential storage details, and token-signing keys.
+  \item[Services:] Creates accounts, validates logins, manages guest sessions, and issues/verifies tokens used by the rest of the backend.
+  \item[Implemented By:] The Crazy Four (Node.js)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Repository Module (\mref{mRepository})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Schema design, optimized SQL queries, and database access strategies.
+  \item[Services:] Offers a clean persistence interface for storing players, credentials, match history, and statistics while shielding callers from database details.
+  \item[Implemented By:] The Crazy Four (Node.js, node-postgres)
+  \item[Type of Module:] Abstract Data Type
+\end{description}
+\end{quote}
+
+\subsubsection{Audit Module (\mref{mAudit})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] The exact event schema, retention policy, and storage targets for operational logs.
+  \item[Services:] Captures authentication, gameplay, and system events to support debugging, compliance, and user inquiries.
+  \item[Implemented By:] The Crazy Four (Node.js, Winston)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsection{Software Decision Module - Frontend}
+
+\subsubsection{Real-time Client Module (\mref{mRealtimeClient})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Connection lifecycle logic, buffering strategy, and reconnection heuristics for the browser client.
+  \item[Services:] Establishes WebSocket links to the \mref{mRealtimeGateway}, relays user actions, and applies server updates to the local UI state.
+  \item[Implemented By:] The Crazy Four (TypeScript, Socket.io-client)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Application Shell Module (\mref{mAppShell})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] App-wide navigation plan, shared layout primitives, and global state wiring (theme, auth awareness).
+  \item[Services:] Hosts the consistent chrome of the site and orchestrates routing between major views.
+  \item[Implemented By:] The Crazy Four (React)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Authentication Client Module (\mref{mAuthClient})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Decisions about secure token storage and the flows for refreshing or clearing credentials in the browser.
+  \item[Services:] Presents login, signup, and logout experiences while coordinating with the \mref{mAPI} for authentication calls.
+  \item[Implemented By:] The Crazy Four (React)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Lobby View Module (\mref{mLobbyView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Layout, styling, and interaction patterns for discovering or hosting lobbies.
+  \item[Services:] Shows available rooms, lets players create or join sessions, and triggers matchmaking calls via \mref{mAPI} and \mref{mRealtimeClient}.
+  \item[Implemented By:] The Crazy Four (React)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Game Board View Module (\mref{mGameBoardView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Visual composition of the board, card animations, and responsive behavior across devices.
+  \item[Services:] Draws the playable surface, displays player hands and discard piles, and highlights valid actions per the rule engine.
+  \item[Implemented By:] The Crazy Four (React)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Move Controller Module (\mref{mMoveController})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Gesture-handling patterns and UX rules for how players select cards or declare suits.
+  \item[Services:] Interprets user intent on the board, performs light validation, and forwards structured actions through the \mref{mRealtimeClient}.
+  \item[Implemented By:] The Crazy Four (React hooks and event handlers)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Scoreboard View Module (\mref{mScoreboardView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Presentation choices for multi-base score displays and animations for round summaries.
+  \item[Services:] Shows standings after each round, presenting both decimal and dozenal scores in a clear, accessible format.
+  \item[Implemented By:] The Crazy Four (React)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Profile View Module (\mref{mProfileView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Layout decisions for profile cards, statistics summaries, and sensitive account actions.
+  \item[Services:] Displays player history, stats, and account-management controls, including export or deletion requests tied to FR-15..17.
+  \item[Implemented By:] The Crazy Four (React)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
 
 \section{Traceability Matrix} \label{SecTM}
 
@@ -316,100 +592,91 @@ requirements and between the modules and the anticipated changes.
 % like fref
 \begin{table}[H]
 \centering
-\begin{tabular}{p{0.2\textwidth} p{0.6\textwidth}}
-\toprule
-\textbf{Req.} & \textbf{Modules}\\
-\midrule
-R1 & \mref{mHH}, \mref{mInput}, \mref{mParams}, \mref{mControl}\\
-R2 & \mref{mInput}, \mref{mParams}\\
-R3 & \mref{mVerify}\\
-R4 & \mref{mOutput}, \mref{mControl}\\
-R5 & \mref{mOutput}, \mref{mODEs}, \mref{mControl}, \mref{mSeqDS}, \mref{mSolver}, \mref{mPlot}\\
-R6 & \mref{mOutput}, \mref{mODEs}, \mref{mControl}, \mref{mSeqDS}, \mref{mSolver}, \mref{mPlot}\\
-R7 & \mref{mOutput}, \mref{mEnergy}, \mref{mControl}, \mref{mSeqDS}, \mref{mPlot}\\
-R8 & \mref{mOutput}, \mref{mEnergy}, \mref{mControl}, \mref{mSeqDS}, \mref{mPlot}\\
-R9 & \mref{mVerifyOut}\\
-R10 & \mref{mOutput}, \mref{mODEs}, \mref{mControl}\\
-R11 & \mref{mOutput}, \mref{mODEs}, \mref{mEnergy}, \mref{mControl}\\
-\bottomrule
-\end{tabular}
-\caption{Trace Between Requirements and Modules}
+\caption{Trace Between Requirements and Modules (TblRT)}
 \label{TblRT}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Requirement (FR/NFR/SR)} & \textbf{Primary Modules}\\
+\midrule
+FR-1 Start new game & \mref{mAPI}, \mref{mMatchmaking}, \mref{mGameEngine}, \mref{mRepository}\\
+FR-2 Turn management & \mref{mGameEngine}, \mref{mRules}, \mref{mGameActions}, \mref{mRealtimeGateway}, \mref{mRealtimeClient}, \mref{mMoveController}, \mref{mGameBoardView}\\
+FR-3 Rule validation & \mref{mRules}, \mref{mGameEngine}, \mref{mGameActions}, \mref{mMoveController}, \mref{mGameBoardView}\\
+FR-4 Special cards & \mref{mRules}, \mref{mGameEngine}, \mref{mGameActions}, \mref{mMoveController}, \mref{mGameBoardView}\\
+FR-5 End of game & \mref{mGameEngine}, \mref{mScoring}, \mref{mScoreboardView}, \mref{mRepository}\\
+FR-6 Calculate score & \mref{mScoring}, \mref{mBaseConversion}, \mref{mGameActions}, \mref{mScoreboardView}\\
+FR-7 Display score & \mref{mScoreboardView}, \mref{mBaseConversion}\\
+FR-9 Highlight valid moves & \mref{mMoveController}, \mref{mGameBoardView}, \mref{mRules}\\
+FR-10 Account creation & \mref{mAPI}, \mref{mAuth}, \mref{mRepository}, \mref{mAuthClient}\\
+FR-11 Login or Logout & \mref{mAPI}, \mref{mAuth}, \mref{mRepository}, \mref{mAuthClient}\\
+FR-12 Guest mode & \mref{mAPI}, \mref{mAuth}, \mref{mAuthClient}\\
+FR-13 Credential validation & \mref{mAuth}, \mref{mAPI}, \mref{mRepository}\\
+FR-14 Data storage & \mref{mRepository}, \mref{mAPI}, \mref{mAudit}\\
+FR-15 Data retrieval & \mref{mRepository}, \mref{mAPI}, \mref{mProfileView}\\
+FR-16 Data update & \mref{mRepository}, \mref{mAPI}, \mref{mProfileView}\\
+FR-17 Data deletion & \mref{mRepository}, \mref{mAPI}, \mref{mProfileView}\\
+\midrule
+NFR (Performance) & \mref{mRealtimeGateway}, \mref{mGameEngine}, \mref{mRealtimeClient}, \mref{mGameBoardView}\\
+NFR (Usability) & \mref{mGameBoardView}, \mref{mAppShell}\\
+NFR (Robustness) & \mref{mRealtimeClient}, \mref{mRealtimeGateway}, \mref{mRepository}\\
+NFR (Maintainability) & \mref{mRules}, \mref{mScoring}, \mref{mAPI}, \mref{mAudit}\\
+\midrule
+SR-1 (Dozenal validation) & \mref{mRules}, \mref{mBaseConversion}, \mref{mGameEngine}\\
+SR-2 (UI feedback) & \mref{mGameBoardView}, \mref{mAppShell}\\
+SR-3 (Data persistence) & \mref{mRepository}, \mref{mAPI}\\
+SR-4 (Accurate scoring) & \mref{mScoring}, \mref{mBaseConversion}\\
+SR-5 (Session recovery) & \mref{mRealtimeClient}, \mref{mRealtimeGateway}, \mref{mAuth}\\
+SR-7 (Encrypted transmit) & (Hardware-Hiding: TLS Layer), \mref{mAPI}, \mref{mRealtimeGateway}\\
+SR-8 (Secure storage) & \mref{mRepository}, \mref{mAuth} \\
+SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveController}\\
+\bottomrule
+\end{tabularx}
 \end{table}
+
+
+%%add
 
 \begin{table}[H]
 \centering
-\begin{tabular}{p{0.2\textwidth} p{0.6\textwidth}}
+\caption{Trace Between Anticipated Changes and Modules (TblACT)}
+\label{TblACT}
+\begin{tabularx}{\textwidth}{p{0.2\textwidth} X}
 \toprule
 \textbf{AC} & \textbf{Modules}\\
 \midrule
-\acref{acHardware} & \mref{mHH}\\
-\acref{acInput} & \mref{mInput}\\
-\acref{acParams} & \mref{mParams}\\
-\acref{acVerify} & \mref{mVerify}\\
-\acref{acOutput} & \mref{mOutput}\\
-\acref{acVerifyOut} & \mref{mVerifyOut}\\
-\acref{acODEs} & \mref{mODEs}\\
-\acref{acEnergy} & \mref{mEnergy}\\
-\acref{acControl} & \mref{mControl}\\
-\acref{acSeqDS} & \mref{mSeqDS}\\
-\acref{acSolver} & \mref{mSolver}\\
-\acref{acPlot} & \mref{mPlot}\\
+\acref{acRules} & \mref{mRules}, \mref{mGameEngine} \\
+\acref{acBases} & \mref{mBaseConversion}, \mref{mScoring}, \mref{mRules}, \mref{mScoreboardView} \\
+\acref{acScoring} & \mref{mScoring}, \mref{mScoreboardView} \\
+\acref{acUI} & \mref{mAppShell}, \mref{mGameBoardView}, \mref{mScoreboardView}, \mref{mLobbyView}, \mref{mProfileView} \\
+\acref{acSchema} & \mref{mRepository}, \mref{mAPI}, \mref{mProfileView} \\
+\acref{acRealtime} & \mref{mRealtimeGateway}, \mref{mRealtimeClient} \\
+\acref{acAuth} & \mref{mAuth}, \mref{mAuthClient}, \mref{mAPI} \\
 \bottomrule
-\end{tabular}
-\caption{Trace Between Anticipated Changes and Modules}
-\label{TblACT}
+\end{tabularx}
 \end{table}
 
-\section{Use Hierarchy Between Modules} \label{SecUse}
 
-In this section, the uses hierarchy between modules is
-provided. \citet{Parnas1978} said of two programs A and B that A {\em uses} B if
-correct execution of B may be necessary for A to complete the task described in
-its specification. That is, A {\em uses} B if there exist situations in which
-the correct functioning of A depends upon the availability of a correct
-implementation of B.  Figure \ref{FigUH} illustrates the use relation between
-the modules. It can be seen that the graph is a directed acyclic graph
-(DAG). Each level of the hierarchy offers a testable and usable subset of the
-system, and modules in the higher level of the hierarchy are essentially simpler
-because they use modules from the lower levels.
-
-\wss{The uses relation is not a data flow diagram.  In the code there will often
-be an import statement in module A when it directly uses module B.  Module B
-provides the services that module A needs.  The code for module A needs to be
-able to see these services (hence the import statement).  Since the uses
-relation is transitive, there is a use relation without an import, but the
-arrows in the diagram typically correspond to the presence of import statement.}
-
-\wss{If module A uses module B, the arrow is directed from A to B.}
-
-\begin{figure}[H]
-\centering
+\section{Use Hierarchy} \label{SecUse}
 %\includegraphics[width=0.7\textwidth]{UsesHierarchy.png}
-\caption{Use hierarchy among modules}
-\label{FigUH}
-\end{figure}
 
-%\section*{References}
+
+
+%%add
 
 \section{User Interfaces}
 
-\wss{Design of user interface for software and hardware.  Attach an appendix if
-needed. Drawings, Sketches, Figma}
+%%add
 
 \section{Design of Communication Protocols}
 
-\wss{If appropriate}
+%%add
 
 \section{Timeline}
 
-\wss{Schedule of tasks and who is responsible}
+%%add
 
-\wss{You can point to GitHub if this information is included there}
+\newpage
 
 \bibliographystyle {plainnat}
 \bibliography{../../../refs/References}
-
-\newpage{}
 
 \end{document}

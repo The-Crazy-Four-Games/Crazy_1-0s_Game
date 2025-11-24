@@ -5,11 +5,17 @@
 
 \usepackage{booktabs}
 
-\title{Team Contributions: POC\\\progname}
+\title{Team Contributions: POC\\The Crazy Tens}
 
-\author{\authname}
+\author{
+    Team \#25, The Crazy Four \\[1ex]
+    Ruida Chen \\
+    Ammar Sharbat \\
+    Alvin Qian \\
+    Jiaming Li
+}
 
-\date{}
+\date{\today}
 
 \input{../Comments}
 \input{../Common}
@@ -24,43 +30,62 @@ and the POC demo.
 
 \section{Demo Plans}
 
-\wss{What will you be demonstrating}
+\subsection*{Overview}
+The POC demo will be performed in-person and run locally from a group member's laptop. The goal is to demonstrate the core gameplay mechanics and an end-to-end 1v1 game flow.
+
+\subsection*{Setup}
+\begin{itemize}
+	\item Start the local server (\texttt{Node.js} terminal server) on the presenter's machine.
+	\item Use the hard-coded two-player configuration (no authentication for the POC).
+	\item Open the game in a browser on the presenter machine.
+\end{itemize}
+
+\subsection*{Demo flow (approx. 5--7 minutes)}
+\begin{enumerate}
+	\item Brief introduction of demo objective (30s).
+	\item Show initial game state: deck creation and hands dealt to both players.
+	\item Two team members will control each player and demonstrate gameplay:
+		\begin{itemize}
+			\item Playing cards from a hand.
+			\item Demonstrating matching logic (suit, rank, and add-to-10 rule).
+			\item Demonstrating wildcard logic (changing the suit).
+			\item Demonstrating drawing a card when no valid plays are available.
+		\end{itemize}
+	\item Drive the game to an endgame state and show the end condition.
+	\item Conclude with limitations and next steps, then take questions.
+\end{enumerate}
+
+\subsection*{Notes}
+\begin{itemize}
+	\item No login/authentication is required for this POC demo.
+	\item Will mention current limitations (hard-coded users, basic UI) and planned next steps.
+\end{itemize}
+
 
 \section{Team Meeting Attendance}
 
-\wss{For each team member how many team meetings have they attended over the
-time period of interest.  This number should be determined from the meeting
-issues in the team's repo.  The first entry in the table should be the total
-number of team meetings held by the team.}
-
 \begin{table}[H]
 \centering
 \begin{tabular}{ll}
 \toprule
 \textbf{Student} & \textbf{Meetings}\\
 \midrule
-Total & Num\\
-Name 1 & Num\\
-Name 2 & Num\\
-Name 3 & Num\\
-Name 4 & Num\\
-Name 5 & Num\\
+Total & 3 \\
+Ruida Chen & 3 \\
+Jiaming Li & 3 \\
+Alvin Qian & 3 \\
+Ammar Sharbat & 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.}
+Explanation: \\\\
+Realistically, we have had very few team meetings. This is largely because of the packed schedules of 3 team members and also the fact that project management and communication through Discord has taken precedence over in person or virtual meetings.\\\\
+No team meetings above have a corresponding GitHub issue just yet, as we were not aware about making one before said meetings. We plan to create these issues of old for traceability. Also, moving forward we will proactively make issues with agendas for all team meetings.
 
 \section{Supervisor/Stakeholder Meeting Attendance}
 
-\wss{For each team member how many supervisor/stakeholder team meetings have
-they attended over the time period of interest.  This number should be determined
-from the supervisor meeting issues in the team's repo.  The first entry in the
-table should be the total number of supervisor and team meetings held by the
-team.  If there is no supervisor, there will usually be meetings with
-stakeholders (potential users) that can serve a similar purpose.}
-
-\noindent \textbf{Supervisor's Name: } [fill in this information]
+\noindent \textbf{Supervisor's Name: } Paul Rapoport; Email: rapoport@mcmaster.ca
 
 \begin{table}[H]
 \centering
@@ -68,29 +93,22 @@ stakeholders (potential users) that can serve a similar purpose.}
 \toprule
 \textbf{Student} & \textbf{Meetings}\\
 \midrule
-Total & Num\\
-Name 1 & Num\\
-Name 2 & Num\\
-Name 3 & Num\\
-Name 4 & Num\\
-Name 5 & Num\\
+Total & 7 \\
+Ruida Chen & 4 \\
+Jiaming Li & 3 \\
+Alvin Qian & 4 \\
+Ammar Sharbat & 8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.}
+Explanation:\\\\
+The last 2 supervisor meetings are on Github (Issues #43 and #82).\\\\
+Many meeting with Professor Rapoport were initiated by teammate Ammar Sharbat, because he is the team liaison to the supervisor. He also has taken a keen interest in the Core Problem of Game Design and Game Mechanics, and has met with the professor several times to discuss issues pertaining to these topics.\\\\
+Outside of the very very project search meeting (which was initiated by another teammate), teammate Ammar has also initiated all group meetings with the supervisor.\\\\
+Other teammates have attended important meetings to update and discuss project progress and problems with the supervisor. Teammate Jiaming Li missed one meeting due to family reasons.
 
 \section{Lecture Attendance}
-
-\wss{For each team member how many lectures have they attended over the time
-period of interest.  This number should be determined from the lecture issues in
-the team's repo. You can find the number of lectures in the time period of
-interest by looking at the
-\href{https://calendar.google.com/calendar/u/0/embed?src=rnboqiaki1k2la7rpu3bn0um58@group.calendar.google.com&ctz=America/Toronto}
-{Google calendar} for the capstone course.}
-
-\wss{NOTE: There will be approximately 13 lectures between the start of class
-and the POC demos}
 
 \begin{table}[H]
 \centering
@@ -98,22 +116,19 @@ and the POC demos}
 \toprule
 \textbf{Student} & \textbf{Lectures}\\
 \midrule
-Total & Num\\
-Name 1 & Num\\
-Name 2 & Num\\
-Name 3 & Num\\
-Name 4 & Num\\
-Name 5 & Num\\
+Total & 13\\
+Ruida Chen & 3 \\
+Jiaming Li & 5 \\
+Alvin Qian & 3 \\
+Ammar Sharbat & 8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the lecture attendance can be provided here.}
+Explanation:\\\\
+This tally is not accurate, this is rather just based on teammate Ammar's best estimates. A proper issue will be created in future for each lecture, and whether teammates had attended or at least read the content of each lecture.
 
 \section{TA Document Discussion Attendance}
-
-\wss{For each team member how many of the informal document discussion meetings
-with the TA were attended over the time period of interest.}
 
 \noindent \textbf{TA's Name: } [fill in this information]
 
@@ -123,24 +138,20 @@ with the TA were attended over the time period of interest.}
 \toprule
 \textbf{Student} & \textbf{Lectures}\\
 \midrule
-Total & Num\\
-Name 1 & Num\\
-Name 2 & Num\\
-Name 3 & Num\\
-Name 4 & Num\\
-Name 5 & Num\\
+Total & 4\\
+Ruida Chen & 4 \\
+Jiaming Li & 4 \\
+Alvin Qian & 4 \\
+Ammar Sharbat & 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the attendance can be provided here.}
+Explanation:\\\\
+Teammate Ammar Sharbat missed the most recent TA document discussions (VnVPlan discussion) due to family reasons. Our team had a TA switch after the first document discussion (PS+Goals & DevPlan), from TA Rashad to TA Chris. Afterwars, TA Chris was not available after for two consecutive weeks after because he was travelling, and also because our team did not seek to schedule the meeting.
+
 
 \section{Commits}
-
-\wss{For each team member how many commits to the main branch have been made
-over the time period of interest.  The total is the total number of commits for
-the entire team since the beginning of the term.  The percentage is the
-percentage of the total commits made by each team member.}
 
 \begin{table}[H]
 \centering
@@ -148,26 +159,16 @@ percentage of the total commits made by each team member.}
 \toprule
 \textbf{Student} & \textbf{Commits} & \textbf{Percent}\\
 \midrule
-Total & Num & 100\% \\
-Name 1 & Num & \% \\
-Name 2 & Num & \% \\
-Name 3 & Num & \% \\
-Name 4 & Num & \% \\
-Name 5 & Num & \% \\
+Total & 97 & 100\% \\
+Ruida Chen & 25 & 25.8\% \\
+Jiaming Li & 26 & 26.8\% \\
+Alvin Qian & 24 & 24.7\% \\
+Ammar Sharbat & 22 & 22.7\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.  For
-instance, if a team member has more commits to unmerged branches, these numbers
-can be provided here.  If multiple people contribute to a commit, git allows for
-multi-author commits.}
-
 \section{Issue Tracker}
-
-\wss{For each team member how many issues have they authored (including open and
-closed issues (O+C)) and how many have they been assigned (only counting closed
-issues (C only)) over the time period of interest.}
 
 \begin{table}[H]
 \centering
@@ -175,32 +176,47 @@ issues (C only)) over the time period of interest.}
 \toprule
 \textbf{Student} & \textbf{Authored (O+C)} & \textbf{Assigned (C only)}\\
 \midrule
-Name 1 & Num & Num \\
-Name 2 & Num & Num \\
-Name 3 & Num & Num \\
-Name 4 & Num & Num \\
-Name 5 & Num & Num \\
+Ruida Chen & 19 & 9 \\
+Jiaming Li & 17 & 7 \\
+Alvin Qian & 19 & 8 \\
+Ammar Sharbat & 24 & 9 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.}
-
 \section{CICD}
 
-\wss{Say how CICD will be used in your project}
+The project repository is hosted on GitHub and uses GitHub Actions for Continuous Integration and Continuous Deployment (CICD).
+Each push or pull request triggers an automated workflow that performs the following tasks:
+
+\begin{itemize}
+    \item \textbf{Build and Lint:} The workflow installs all dependencies, compiles the code, and runs ESLint to enforce consistent formatting and syntax.
+    \item \textbf{Unit Testing:} All Jest test suites are executed automatically. Code coverage reports are uploaded to Codecov.
+    \item \textbf{Static Analysis:} CodeQL is run to detect potential vulnerabilities and logic errors.
+    \item \textbf{Artifact Packaging:} For successful builds, the workflow produces a testable web or desktop artifact for internal review.
+\end{itemize}
+
+This setup ensures that any code merged into the \texttt{main} branch has passed validation for correctness, maintainability, and security.
+By automating these checks, CICD reduces integration errors and accelerates the development feedback cycle.
 
 \section{Team Charter Trigger Items}
 
-\wss{Provide a summary of the quantified triggers identified in the team's
-charter.}
+The team has identified several triggers within the team charter to monitor collaboration and performance consistency:
 
-\wss{Provide a list of any violations of the triggers.  If the team wishes, the
-violations can be summarized on aggregate, instead of naming specific team
-members.}
+\begin{itemize}
+    \item \textbf{Commit Frequency:} Each member should contribute at least one meaningful commit per week.
+    Falling below this threshold for two consecutive weeks triggers a discussion about workload balance.
+    \item \textbf{Meeting Attendance:} Missing two consecutive team meetings without prior notice triggers a check-in with the member to identify scheduling or communication issues.
+    \item \textbf{Branch Discipline:} All code changes must go through a pull request reviewed by at least one teammate.
+    Direct commits to \texttt{main} are not allowed and will trigger an immediate process review.
+    \item \textbf{Responsiveness:} Team members are expected to reply to key project communications (e.g., PR reviews or Slack updates) within 24 hours.
+    Failure to respond repeatedly triggers a group discussion for reassigning responsibilities.
+\end{itemize}
 
-\wss{Provide a plan to address the violations.  This could include revising the
-triggers, if they are found to be too weak, strong or ambiguous.}
+So far, no major trigger violations have occurred. The team has maintained consistent communication and review discipline.
+If violations are observed in the future, the plan is to (1) hold a brief retrospective discussion,
+(2) revise or clarify the trigger threshold if needed, and (3) document the agreed corrective action in the next meeting notes.
+
 
 \section{Additional Productivity Metrics}
 
