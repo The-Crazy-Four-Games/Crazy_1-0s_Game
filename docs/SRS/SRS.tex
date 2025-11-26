@@ -370,10 +370,10 @@ These are the key entities and relationships involved in the Crazy Eights game w
 The product to be developed is a digital card game application based on the traditional \textit{Crazy 8s} rules, modified to integrate the \textbf{Dozenal (base-12) number system}.
 The system boundary includes:
 \begin{itemize}
-    \item A game engine that supports core Crazy 8s mechanics (drawing, discarding, turn-taking, winning conditions).
-    \item Adaptations of rules, card values, and scoring to incorporate Dozenal arithmetic and representations.
-    \item A user interface allowing players to interact with the game (play cards, view scores, receive feedback).
-    \item Educational prompts or visual aids to help players understand Dozenal concepts.
+    \item A game engine that supports core Crazy 8s mechanics (drawing, discarding, turn-taking, winning conditions). Supported by BUC-2 (Play Card), BUC-3 (Draw Card), BUC-4 (Turn Handling)
+    \item Adaptations of rules, card values, and scoring to incorporate Dozenal arithmetic and representations. Supported by BUC-5 (Score Calculation), BUC-6 (Dozenal Conversion)
+    \item A user interface allowing players to interact with the game (play cards, view scores, receive feedback). Supported by BUC-1 (Join Game), BUC-7 (UI Rendering), BUC-8 (Real-time Updates)
+    \item Educational prompts or visual aids to help players understand Dozenal concepts. Supported by BUC-9 (Educational Tips Display)
 \end{itemize}
 External systems not included in the boundary are: general learning platforms, multiplayer servers beyond basic peer-to-peer/local play, and integrations with unrelated educational tools.
 
@@ -489,61 +489,91 @@ The following table summarizes the primary product use cases (PUCs):
 \subsection{Game Manager}
 
 \begin{enumerate}
-    \item \textbf{Start new game:} Game manager shall allow the player to start a new Crazy 8s game with a Dozenal-enabled deck. (FR-1) \\
-    \textbf{Rationale:} Players need a way to initialize the game state; starting a new game is the foundation for all other gameplay functions.
+    \item \textbf{Start new game:} The system shall allow the player to start a new Crazy 8s game with a Dozenal-enabled deck. (FR-1) \\
+    \textbf{Rationale:} Players need a way to initialize the game state; starting a new game is the basis for all other gameplay functions. \\
+    \textbf{Fit Criterion:} The system initializes a new game state within 2 seconds, with deck, players, and discard pile correctly initialized.
 
-    \item \textbf{Turn management:} Game manager shall manage player turns, ensuring that each player either discards a valid card or draws a card. (FR-2) \\
-    \textbf{Rationale:} Turn-taking enforces fairness and ensures game flow consistency.
+    \item \textbf{Turn management:} The system shall manage player turns, ensuring each player either discards a valid card or draws a card. (FR-2) \\
+    \textbf{Rationale:} Turn-taking enforces fairness and ensures consistent game flow. \\
+    \textbf{Fit Criterion:} In 20 consecutive turns, the system enforces correct turn order with zero invalid transitions.
 
-    \item \textbf{Rule validation:} Game manager shall validate that each played card is legal under Dozenal rules. A valid move is defined as either: (a) same suit as the previous card, (b) same Dozenal value as the previous card, or (c) the sum of the two card values equals 12 in Dozenal. (FR-3) \\
-    \textbf{Rationale:} Prevents illegal moves, guarantees consistency, and introduces the core educational mechanic of Dozenal arithmetic.
+    \item \textbf{Rule validation:} The system shall validate that each played card is legal under Dozenal rules. A valid move is defined as either: (a) same suit, (b) same Dozenal value, or (c) sum of the values equals 12 in Dozenal. (FR-3) \\
+    \textbf{Rationale:} Prevents illegal moves and integrates Dozenal arithmetic as a core learning mechanic. \\
+    \textbf{Fit Criterion:} For 100 randomized test card pairs, the system correctly identifies valid/invalid moves with 100\% accuracy.
 
-    \item \textbf{Special cards:} Game manager shall implement special card effects (e.g., 10s are wild) while supporting extensions with Dozenal-specific effects. (FR-4) \\
-    \textbf{Rationale:} Special cards increase engagement and add flexibility in teaching Dozenal-based rules.
+    \item \textbf{Special cards:} The system shall implement special card effects (e.g., wild cards) and allow future extension for Dozenal-specific effects. (FR-4) \\
+    \textbf{Rationale:} Special cards improve gameplay depth and user engagement. \\
+    \textbf{Fit Criterion:} All 10 predefined special card scenarios behave correctly during system tests.
 
-    \item \textbf{End of game:} Game manager shall determine when the game ends (e.g., when a player runs out of cards) and declare the winner. (FR-5) \\
-    \textbf{Rationale:} A clear end condition is required for meaningful gameplay and reinforcement of learning objectives.
+    \item \textbf{End of game:} The system shall detect game-ending conditions (e.g., a player runs out of cards) and declare the winner. (FR-5) \\
+    \textbf{Rationale:} A clear end condition is required for meaningful gameplay and learning outcomes. \\
+    \textbf{Fit Criterion:} The system correctly detects the end-of-game and winner in 20/20 test rounds.
 \end{enumerate}
-
 
 \subsection{Score Manager}
 
 \begin{enumerate}
-    \item \textbf{Calculate score:} Score manager shall calculate points for each round in both decimal and Dozenal. (FR-6) \\
-    \textbf{Rationale:} Displaying scores in both systems reinforces learning by encouraging comparison between familiar decimal and new Dozenal formats.
+    \item \textbf{Calculate score:} The system shall calculate scores for each round in both decimal and Dozenal. (FR-6) \\
+    \textbf{Rationale:} Displaying both formats reinforces learning through system comparison. \\
+    \textbf{Fit Criterion:} For 50 random hands, decimal and Dozenal score calculations show zero errors.
 
-    \item \textbf{Display score:} Score manager shall display both decimal and Dozenal results on the user interface. (FR-7) \\
-    \textbf{Rationale:} Visual feedback supports player understanding and helps users internalize Dozenal representations.
+    \item \textbf{Display score:} The system shall display scores in both decimal and Dozenal. (FR-7) \\
+    \textbf{Rationale:} Visual feedback supports user understanding and helps internalize Dozenal values. \\
+    \textbf{Fit Criterion:} Updated scores appear within 300ms of a scoring event and are identical across both formats.
 \end{enumerate}
-
 
 \subsection{Education Support}
 
 \begin{enumerate}
-    \item \textbf{Hints:} System shall provide hints or explanations when a player performs an action involving Dozenal arithmetic. (FR-8) \\
-    \textbf{Rationale:} On-demand guidance lowers the learning curve and supports players with varying levels of familiarity.
+    \item \textbf{Hints:} The system shall provide hints or explanations when a player performs an action involving Dozenal arithmetic. (FR-8) \\
+    \textbf{Rationale:} On-demand guidance lowers the learning curve and supports players with varying familiarity. \\
+    \textbf{Fit Criterion:} Hints appear within 500ms in at least 95\% of test interactions.
 
-    \item \textbf{Highlight valid moves:} System shall visually highlight valid moves based on Dozenal rules. (FR-9) \\
-    \textbf{Rationale:} Reduces frustration, ensures players stay engaged, and reinforces Dozenal rules through visual learning.
+    \item \textbf{Highlight valid moves:} The system shall visually highlight valid moves based on Dozenal rules. (FR-9) \\
+    \textbf{Rationale:} Reduces user frustration and reinforces learning through visual cues. \\
+    \textbf{Fit Criterion:} Valid move highlighting is 100\% correct across 30 test board configurations.
 \end{enumerate}
 
 \subsection{Login Manager}
+
 \begin{enumerate}
-    \item \textbf{Account creation:} The system shall allow players to create a new account with a unique username and password. (FR-10)
-    \item \textbf{Login/Logout:} The system shall allow players to log in and log out at any time without losing progress. (FR-11)
-    \item \textbf{Guest mode:} The system shall allow players to start a temporary session without login. (FR-12)
-    \item \textbf{Credential validation:} The system shall validate player credentials against stored records before granting access. (FR-13)
-    \item \textbf{Rationale:} Ensures users can have persistent profiles for tracking progress and enables multiplayer authentication.
+    \item \textbf{Account creation:} The system shall allow players to create a new account with a unique username and password. (FR-10) \\
+    \textbf{Rationale:} Enables persistent profiles for user progress tracking. \\
+    \textbf{Fit Criterion:} Account creation completes within 3 seconds and stored credentials validate correctly in all test cases.
+
+    \item \textbf{Login/Logout:} The system shall allow players to log in and log out at any time without losing progress. (FR-11) \\
+    \textbf{Rationale:} Ensures smooth user experience and session continuity. \\
+    \textbf{Fit Criterion:} Login completes within 2 seconds with zero false accepts/rejects in 50 tests.
+
+    \item \textbf{Guest mode:} The system shall allow players to start a temporary session without login. (FR-12) \\
+    \textbf{Rationale:} Reduces entry barriers and improves accessibility. \\
+    \textbf{Fit Criterion:} Guest sessions start within 1 second and do not interact with persistent storage.
+
+    \item \textbf{Credential validation:} The system shall validate player credentials against stored records. (FR-13) \\
+    \textbf{Rationale:} Prevents unauthorized access and ensures account security. \\
+    \textbf{Fit Criterion:} Credential validation has 0 false positives and 0 false negatives in 50 trials.
 \end{enumerate}
 
 \subsection{Data Manager}
+
 \begin{enumerate}
-    \item \textbf{Data storage:} The system shall securely store user data, including usernames, game history, and Dozenal scores. (FR-14)
-    \item \textbf{Data retrieval:} The system shall allow retrieval of stored user data when logging in or viewing profiles. (FR-15)
-    \item \textbf{Data update:} The system shall update stored data after each game or when profile information changes. (FR-16)
-    \item \textbf{Data deletion:} The system shall allow players to delete their data permanently upon request. (FR-17)
-    \item \textbf{Rationale:} Supports persistent user experience, analytics, and compliance with data privacy expectations.
+    \item \textbf{Data storage:} The system shall securely store user data, including usernames, game history, and Dozenal scores. (FR-14) \\
+    \textbf{Rationale:} Persistence is required for progress tracking and analytics. \\
+    \textbf{Fit Criterion:} User data remains uncorrupted across 200 consecutive write operations.
+
+    \item \textbf{Data retrieval:} The system shall allow retrieval of stored data when logging in or viewing profiles. (FR-15) \\
+    \textbf{Rationale:} Enables personalized gameplay and profile review. \\
+    \textbf{Fit Criterion:} Profile loading completes within 2 seconds with 0 data mismatches.
+
+    \item \textbf{Data update:} The system shall update stored data after each game or profile change. (FR-16) \\
+    \textbf{Rationale:} Ensures player profiles remain accurate and up to date. \\
+    \textbf{Fit Criterion:} Updates propagate to persistent storage within 2 seconds and remain consistent on reload.
+
+    \item \textbf{Data deletion:} The system shall allow players to permanently delete their data. (FR-17) \\
+    \textbf{Rationale:} Supports user privacy expectations and legal compliance. \\
+    \textbf{Fit Criterion:} Deleted profiles cannot be recovered through UI or API in 100\% of test attempts.
 \end{enumerate}
+
 
 \section{Look and Feel Requirements}
 \subsection{Appearance Requirements}

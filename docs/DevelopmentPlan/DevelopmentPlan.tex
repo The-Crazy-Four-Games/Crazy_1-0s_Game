@@ -24,6 +24,7 @@ Sep 21 & Ruida Chen & Worked on section 8-12 of dev plan and first half of appen
 Sep 22 & Alvin Qian & Worked on section 1-7 of dev plan and second half of appendix\\
 Nov 3 & Ammar Sharbat & Updated Title Page\\
 Nov 24 & Ruida Chen	& Updated poc section, make it consistent with our plan\\
+Nov 26 & Ammar Sharbat & Updated Team Meeting Plan, Team Communication Plan, Team Member Roles, Appendix - Team Charter\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -50,28 +51,31 @@ The project is released under the \href{https://github.com/The-Crazy-Four-Games/
 
 \subsection*{Meeting Frequency}
 \begin{itemize}
-  \item Regular weekly meetings:
+  \item Meet as required/appropriate
   \begin{itemize}
-    \item One in-person meeting during scheduled tutorial time
-    \item One online meeting via Discord (time TBD by team availability)
+    \item Once or twice before major deliverables (e.g., SRS, V\&V Plan, Design Document)
+    \item Most work will be done and delegated through GitHub project management and via Discord server.\\
+    On days prior to oncoming deadlines, teammates will express availability to make time to perform document and/or code review on Discord.
   \end{itemize}
-  \item Additional ad hoc meetings scheduled as needed for deadlines or unblocking issues
-  \item Bi-weekly supervisor meetings with Dr.~Paul Rapoport (virtual or in-person)
+  \item Additional ad hoc meetings scheduled as needed for deadlines or unblocking issues.
+  \item After Spectember, monthly supervisor meetings with Dr. Paul Rapoport (virtual or in-person).
+  Individual team members can meet with supervisor when needed for consultation.
 \end{itemize}
 
 \subsection*{Meeting Format}
 \begin{itemize}
-  \item Primary format: Virtual meetings via Discord (voice channel)
-  \item Secondary format: In-person meetings during class/tutorials
+  \item Primary format: Online virtual meetings via MS Teams.
+  \item Secondary format: In-person meetings in campus group study rooms when all members are available.
+  \item Tertiary format: Voice channels on Discord for informal discussions / clarifications.
   \item Meeting roles (rotating):
   \begin{itemize}
-    \item \textbf{Chair}: Responsible for
+    \item \textbf{Chair - Ammar}: Responsible for
     \begin{itemize}
       \item Preparing and sharing agenda (12+ hours in advance)
       \item Managing time allocation
       \item Facilitating inclusive discussion
     \end{itemize}
-  \item \textbf{Note-taker}: Records
+  \item \textbf{Note-taker - Ammar}: Records
     \begin{itemize}
       \item Key decisions
       \item Action items with owners and deadlines
@@ -93,8 +97,10 @@ We will use multiple coordinated channels to ensure clear, persistent, and effic
 
 \begin{itemize}
   \item \textbf{GitHub}: Version control, issue tracking, pull request review, and Kanban board management. 
-  \item \textbf{Discord}: Primary platform for quick text and voice communication. Daily informal updates, coordination of short-term tasks, and quick problem-solving occur here. Urgent blockers are first raised in Discord.
-  \item \textbf{In-Person (Tutorial / Scheduled Check-ins)}: Used for structured milestone work, live demonstrations, and supervisor touchpoints.
+  \item \textbf{Discord}: Primary platform for quick text communication. Daily informal updates, coordination of short-term tasks, and quick problem-solving occur here. Urgent blockers are first raised in Discord.
+  \item \textbf{Email}: Formal communications, for external correspondence with the supervisor or course staff.
+  \item \textbf{MS Teams}: Used for scheduled team meetings. Happen as needed for in-depth discussions, coordination of long term planning, and document/design/code reviews.
+  \item \textbf{In-Person (Tutorial / Scheduled Check-ins)}: Used for structured milestone work, live demonstrations, and project progress feedback.
 \end{itemize}
 
 \section{Team Member Roles}
@@ -104,7 +110,7 @@ Roles are rotational to ensure balanced workload distribution, broaden experienc
   \item \textbf{Team Liaison (Ammar Sharbat)}: Primary point of contact with the supervisor and course staff; coordinates meeting requests and relays external feedback.
   \item \textbf{Developer (All members)}: Implements assigned features, writes and maintains tests, and updates related documentation.
   \item \textbf{Reviewer (All members)}: Performs code reviews for pull requests, checks alignment with coding standards, and leaves comments if needed before approval.
-  \item \textbf{Meeting Chair/Note-taker (All members rotate)}: Facilitates meetings, ensures agenda is followed, and documents key discussion points and action items.
+  \item \textbf{Meeting Chair/Note-taker (Ammar Sharbat)}: Facilitates meetings, ensures agenda is followed, and documents key discussion points and action items.
 \end{itemize}
 
 
@@ -199,14 +205,14 @@ All project tasks are tracked through GitHub Issues and a Kanban board using Git
 \subsection*{Main Risk}
 
 \begin{itemize}
-	\item Implementation Complexity: Correctly enforcing the gameplay mechanism (e.g. turn-taking,  rule variation, base-12)
+	\item Implementation Complexity: Correctly enforcing the gameplay mechanism (e.g. game sessions, turn-taking, rule validation, base-12)
 	\item Ensuring required libraries and frameworks install and integrate smoothly across team members’ environments.
 	
 \end{itemize}
 \subsection*{PoC Demonstration Goals} 
 In our PoC demonstration, we will address these risks by showing:
 \begin{itemize}
-	\item A working prototype of Crazy Tens where players can take turns, match cards by suit/rank, and play an "10" as a special 
+	\item A working prototype of Crazy 10s where players can take turns, match cards by suit/rank, and play an "10" as a wild card to change suit.
 	\item Successful integration between server and client for real-time gameplay.
 \end{itemize}
 
@@ -226,8 +232,8 @@ WebSocket / Socket.io & Enables real-time synchronization of turns and game stat
 GitHub + GitHub Actions & Provides version control, issue tracking, and CI/CD automation for testing and deployment. & Version Control / CI-CD \\ \hline
 Jest / React Testing Library & Frameworks for automated unit and integration testing of frontend and backend components. & Testing \\ \hline
 ESLint / Prettier & Ensures consistent coding style and detects syntax or logic errors early in development. & Code Quality \\ \hline
-Discord & Used for real-time team communication, coordination, and meeting discussions. & Collaboration \\ \hline
-LaTeX & Used for professional documentation, including SRS, VnV Plan, and Development Plan deliverables. & Documentation \\ \hline
+Discord \& MS Teams & Used for real-time team communication, coordination, discussions and team meetings. & Collaboration \\ \hline
+LaTeX & Used for professional documentation, including Development Plan, SRS, and VnV Plan deliverables. & Documentation \\ \hline
 \end{tabular}
 \end{table}
 
@@ -273,11 +279,11 @@ LaTeX & Used for professional documentation, including SRS, VnV Plan, and Develo
 
 \subsubsection*{Expectations}
 
-Team members are expected to attend scheduled meetings(in-person or via Discord) on time and stay until the meeting is concluded.  Consistent attendance is essential to maintain good communication and progress.
+Team members are expected to attend scheduled meetings(in-person or via MS Teams) on time and stay until the meeting is concluded.  Consistent attendance is essential to maintain good communication and progress.
 
 \subsubsection*{Acceptable Excuse}
 
-Acceptable excuses for missing a meeting or a deadline include illness, family emergencies, or unavoidable academic conflicts.Unacceptable excuses include forgetting, oversleeping, etc.
+Acceptable excuses for missing a meeting or a deadline include illness, family emergencies, or unavoidable academic conflicts. Unacceptable excuses include forgetting, oversleeping, etc.
 
 \subsubsection*{In Case of Emergency}
 
@@ -309,9 +315,9 @@ If a team member experiences an emergency, they should notify the team as soon a
 
 \begin{itemize}
   \item \textbf{Respect and Inclusion:} Listen actively and avoid interrupting. Credit ideas to originators; disagreements focus on the idea, never the person.
-  \item \textbf{Communication Responsiveness:} Weekday Discord messages acknowledged within 24 hours (a reaction or short reply). If unavailable (midterms, travel), communicate ahead of time if possible.
+  \item \textbf{Communication Responsiveness:} Weekday Discord messages acknowledged within 48 hours (a reaction or short reply). If unavailable (midterms, travel), communicate ahead of time if possible.
   \item \textbf{Constructive Feedback:} Use specific, friendly, actionable language and pair it with reasoning.
-  \item \textbf{Conflict of Ideas:} Healthy debate is encouraged, and once a decision is recorded, team members support it unless new evidence emerges.
+  \item \textbf{Conflict of Ideas:} Healthy debate is encouraged, and once a decision is recorded, team members support it unless new issues or evidence emerge.
   \item \textbf{Inclusivity:} Zero tolerance for harassment, discrimination, or disparaging language. Maintain a commitment to inclusivity across backgrounds and experience levels.
 \end{itemize}
 
@@ -327,8 +333,12 @@ The team will use clear metrics and regular check-ins to ensure progress and acc
 
 \paragraph{Metrics Tracked}
 \begin{itemize}
-  \item Meeting attendance (tutorials, scheduled meetings, supervisor check-ins)
+  \item Meeting attendance (lectures, tutorial check-ins, scheduled team meetings, supervisor check-ins)
+  \item Number of issues added and number of issues closed
+  \item Number of commits made
   \item Number of pull requests made and contributions to reviewing PRs
+  \item Potential metric: Number of lines of code written (with context)
+  \item Potential metric: Code quality (e.g., number of linter warnings/errors, test coverage)
 \end{itemize}
 
 \paragraph{Recognition}
