@@ -30,6 +30,9 @@ io.on('connection', (socket) => {
         gameManager.handleDisconnect(socket);
     });
     socket.on("requestRestart", () => {
-    gameManager.handleRestart(socket);
-  });
+        gameManager.handleRestart(socket);
+    });
+    socket.on("declineRestart", () => {
+        gameManager.handleDecline(socket);
+    });
 });

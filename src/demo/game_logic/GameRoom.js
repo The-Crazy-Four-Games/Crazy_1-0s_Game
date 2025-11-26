@@ -19,7 +19,7 @@ class GameRoom {
         this.restartVotes = new Set();
     }
     _getScoringValue(rank) {
-        if (['J', 'Q', 'K','C','X'].includes(rank)) return 10;
+        if (['J', 'Q', 'K', 'C', 'X'].includes(rank)) return 10;
         if (rank === 'A') return 1;
         if (rank === 'Y') return 11;
         if (rank === '10') return 12;
@@ -287,7 +287,17 @@ class GameRoom {
             this.resetGame();
         }
     }
+    declineRestart(socketId) {
+        if (this.state.status !== "finished") return;
 
+        console.log(`[Game ${this.roomId}] Player ${socketId} declined restart.`);
+
+        
+        this.io.to(this.roomId).emit("restartDeclined", "Opponent declined to play again. Game closing.");
+
+        
+        this.restartVotes.clear();
+    }
 
     resetGame() {
         console.log(`[Game ${this.roomId}] both players agreed to restart. Resetting game...`);

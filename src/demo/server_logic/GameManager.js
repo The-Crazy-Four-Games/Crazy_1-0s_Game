@@ -43,6 +43,15 @@ class GameManager {
             }
         }
     }
+    handleDecline(socket) {
+        const roomId = this.socketToRoom.get(socket.id);
+        if (roomId) {
+            const game = this.games.get(roomId);
+            if (game) {
+                game.declineRestart(socket.id);
+            }
+        }
+    }
     handleGameAction(socket, actionType, data) {
         const roomId = this.socketToRoom.get(socket.id);
         const game = this.games.get(roomId);

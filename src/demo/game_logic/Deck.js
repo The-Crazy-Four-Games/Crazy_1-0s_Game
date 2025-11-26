@@ -8,7 +8,7 @@ const SUITS = ["H", "D", "C", "S"]; // Hearts, Diamonds, Clubs, Spades
 const getCardValue = (rank) => {
     const value = parseInt(rank, 10);
     if (rank === "A") return 1;
-    if (rank === "X") return 9; // dozenal card X
+    if (rank === "X") return 10; // dozenal card X
     if (rank === "Y") return 11; // dozenal card Y
     if (rank === "10") return 12; // 10 is treated as 12 in dozenal
     if (value >= 2 && value < 10) return value;

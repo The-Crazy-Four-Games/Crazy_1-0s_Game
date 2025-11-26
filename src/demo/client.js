@@ -143,18 +143,35 @@ socket.on("gameOver", (message) => {
     console.log("\n!!!!!!!!!!!!!!!!!!!!");
     console.log(`Game is over: ${message}`);
     console.log("!!!!!!!!!!!!!!!!!!!!");
-    rl.question("Start a new game? (enter 'yes' or 'y' to restart, otherwise quit) > ", (input) => {
+    rl.question("Start a new game? (enter 'yes' or 'y' to restart, 'no' or 'n' to quit) > ", (input) => {
         const answer = input.toLowerCase().trim();
         if (answer === 'yes' || answer === 'y') {
+            console.log("Waiting for opponent...");
             socket.emit("requestRestart");
-        } else {
-            console.log("Thanks for playing！");
+        }
+        else if(answer === 'no' || answer === 'n'){
+            console.log("You declined. Quitting game...");
+            socket.emit("declineRestart");
+            socket.disconnect();
+            rl.close();
+        }
+    
+        else {
+            console.log("Invalid input, quitting...");
+            socket.emit("declineRestart");
             socket.disconnect();
             rl.close();
         }
     });
 });
-
+socket.on("restartDeclined", (message) => {
+    console.log("\n----------------");
+    console.log(message); // "Opponent declined the restart."
+    console.log("Quitting game...");
+    console.log("----------------");
+    socket.disconnect();
+    rl.close();
+});
 // Monitor error events
 socket.on("error", (message) => {
     console.error(`\n!!! Server error: ${message} !!!`);
