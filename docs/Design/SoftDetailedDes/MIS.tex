@@ -61,6 +61,8 @@ Nov 13th & Rev-1 & Fix consistency\\
 Jan 14th & Rev0 & Remove module 20,21,22\\ 
 Jan 17th & Rev0 & update m1,4,5,6,9,13,16,17,18\\
 Jan 18th & Rev0 & update the remaining part\\
+Jan 21th & Rev0 & update notation table, fix some errors from feedback\\
+Jan 21th & Rev0 & fixed a table format error\\
 \bottomrule
 \end{tabularx}
 
@@ -110,14 +112,19 @@ character & char & a single symbol or digit\\
 integer & $\mathbb{Z}$ & a number without a fractional component in (-$\infty$, $\infty$) \\
 natural number & $\mathbb{N}$ & a number without a fractional component in [1, $\infty$) \\
 real & $\mathbb{R}$ & any number in (-$\infty$, $\infty$)\\
+string & string & an ordered list of characters of any length \\
+List of type $T$ & list($T$) & a finite ordered list of elements of type $T$ (order matters) \\
+Set of type $T$ & set($T$) & a collection of distinct elements of type $T$ (order does not matter) \\
+Map of type $K$ to $V$ & map($K$, $V$) & a mapping from keys of type $K$ to values of type $V$ \\
+Tuple of types $T_1, T_2, \ldots$ & tuple($T_1, T_2, \ldots$) & a finite ordered collection of elements of the specified types \\
+Optional type $T$ & $T?$ & a value of type $T$ or \textit{None}/null (i.e., the value may be absent) \\
 \bottomrule
 \end{tabular} 
 \end{center}
 
 \noindent
 The specification of \progname \ uses some derived data types: sequences, strings, and
-tuples. Sequences are lists filled with elements of the same data type. Strings
-are sequences of characters. Tuples contain a list of values, potentially of
+tuples. Sequences are lists filled with elements of the same data type. Strings are sequences of characters. Tuples contain a list of values, potentially of
 different types. In addition, \progname \ uses functions, which
 are defined by the data types of their inputs and outputs. Local functions are
 described by giving their type signature followed by their specification.
@@ -128,15 +135,15 @@ The following table is taken directly from the Module Guide document for this pr
 
 \begin{table}[H]
 \centering
-\begin{tabular}{p{0.3\textwidth} p{0.3\textwidth} p{0.3\textwidth}}
+\begin{tabular}{p{0.26\textwidth} p{0.26\textwidth} p{0.44\textwidth}}
 \toprule
 \textbf{Level 1} & \textbf{Level 2} & \textbf{Level 3 (Leaf Modules)}\\
 \midrule
 
-\multirow{3}{0.3\textwidth}{Hardware-Hiding Module} & ~ & (None) \\
+\multirow{1}{0.3\textwidth}{Hardware-Hiding Module} & ~ & (None) \\
 \midrule
 
-\multirow{4}{0.3\textwidth}{Behaviour-Hiding Module} & (Core Domain Logic) & \hyperref[sec:game-engine-module]{M15} \\
+\multirow{5}{0.3\textwidth}{Behaviour-Hiding Module} & (Core Domain Logic) & \hyperref[sec:game-engine-module]{M15} \\
 & & \hyperref[sec:rules-module]{M16} \\
 & & \hyperref[sec:scoring-module]{M17} \\
 & & \hyperref[sec:base-conversion-module]{M18} \\
@@ -153,7 +160,7 @@ The following table is taken directly from the Module Guide document for this pr
 \cmidrule{2-3}
 & \multirow{8}{0.3\textwidth}{Frontend (Client)} & \hyperref[sec:realtime-client-module]{M7} \\
 & & \hyperref[sec:app-shell-module]{M8} \\
-& & \hyperref[sec:auth-client-module]{M9} \\
+& & \hyperref[sec:authentication-client-module]{M9} \\
 & & \hyperref[sec:lobby-view-module]{M10} \\
 & & \hyperref[sec:game-board-view-module]{M11} \\
 & & \hyperref[sec:move-controller-module]{M12} \\
@@ -1005,7 +1012,7 @@ None.
         \toprule
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
-        Render & props: ReactProps & JSX.Element & RouteNotFound \\
+        Render & route: Route, auth: AuthState & ViewModel & RouteNotFound \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -1014,32 +1021,36 @@ None.
 
 \subsubsection{State Variables}
 \begin{itemize}
-    \item \textbf{currentUser}: User | null --- Stores the currently authenticated user (if any).
-    \item \textbf{currentRoute}: string --- The active route derived from the browser URL.
+    \item \textbf{currentUser}: User? --- The currently authenticated user, if any.
+    \item \textbf{currentRoute}: Route --- The currently selected navigation route.
 \end{itemize}
 
 \subsubsection{Environment Variables}
 \begin{itemize}
-    \item \textbf{BrowserRuntime}: The client browser environment that provides the DOM and URL/History APIs.
+    \item \textbf{NavigationContext}: An external source of navigation state that provides the current route (e.g., a URL path or navigation stack).
 \end{itemize}
 
 \subsubsection{Assumptions}
 \begin{itemize}
-    \item Authentication state (logged in vs. guest vs. logged out) is obtained exclusively through M9.
+    \item Authentication state (logged-in vs. guest vs. logged-out) is obtained exclusively through M9.
     \item Route selection and access gating are based on \textbf{currentUser} and \textbf{currentRoute}.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
-\noindent\textbf{Render}(\textit{props})
+\noindent\textbf{Render}(\textit{route, auth})
 \begin{itemize}
     \item transition:
     \begin{itemize}
-        \item Reads the current URL path from \textbf{BrowserRuntime} and updates \textbf{currentRoute}.
-        \item Uses M9 (e.g., token presence / auth state) to update \textbf{currentUser}.
-        \item Selects which page/view to render based on \textbf{currentRoute} and \textbf{currentUser} (e.g., unauthenticated users are redirected to the login route).
+        \item Updates \textbf{currentRoute} $\leftarrow$ \textit{route}.
+        \item Updates \textbf{currentUser} based on \textit{auth} (obtained via M9).
+        \item Applies access control rules to determine the effective route:
+              if \textbf{currentUser} is absent and \textbf{currentRoute} requires authentication,
+              then \textbf{currentRoute} is set to the login route.
     \end{itemize}
-    \item output: Returns a \texttt{JSX.Element} that renders the global layout (e.g., header/footer) and the active page contents.
+    \item output:
+    Returns a \textit{ViewModel} describing the global application layout (e.g., header/footer)
+    and the active page/view corresponding to \textbf{currentRoute}.
     \item exception: \texttt{RouteNotFound} if \textbf{currentRoute} does not match any entry in the routing table.
 \end{itemize}
 
@@ -1052,7 +1063,6 @@ None.
     \item \textbf{Service:} provides the top-level structure for the client application and enforces authentication gating by relying only on M9 for auth state.
     \item This module contains no gameplay logic; it only coordinates navigation and top-level rendering.
 \end{itemize}
-
 
 \newpage
 \section{MIS of Authentication Client Module (M9)}\label{sec:authentication-client-module}
@@ -1646,13 +1656,13 @@ None.
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-    \begin{tabular}{p{4.5cm} p{4.5cm} p{3.5cm} p{3.5cm}}
+    \begin{tabular}{p{4.5cm} p{5.2cm} p{3.1cm} p{3.2cm}}
         \toprule
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
-        Render & props: ReactProps & JSX.Element & None \\
-        loadProfile & None & void & NetworkError, Unauthorized \\
-        updateProfile & data: ProfileUpdateData & void & NetworkError, InvalidInput, Unauthorized \\
+        Render & state: ProfileViewState & ViewModel & None \\
+        loadProfile & session: SessionToken & void & NetworkError, Unauthorized \\
+        updateProfile & session: SessionToken, data: ProfileUpdateData & void & NetworkError, InvalidInput, Unauthorized \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -1661,42 +1671,55 @@ None.
 
 \subsubsection{State Variables}
 \begin{itemize}
-    \item \textbf{profileData}: ProfileData --- Cached profile information of the current user.
+    \item \textbf{profileData}: ProfileData? --- Cached profile information of the current user, if available.
     \item \textbf{isLoading}: boolean --- Indicates whether a profile request is in progress.
-    \item \textbf{errorMessage}: string | None --- Error message displayed in the UI.
+    \item \textbf{errorMessage}: string? --- Error message to be displayed, if any.
 \end{itemize}
 
 \subsubsection{Environment Variables}
 \begin{itemize}
-    \item \textbf{BrowserRuntime (M21)}: Provides DOM rendering and user interaction events.
+    \item \textbf{InputEvents}: External user interaction events (e.g., edit actions, save action).
 \end{itemize}
 
 \subsubsection{Assumptions}
 \begin{itemize}
-    \item The user is authenticated and a valid session token is available on the client.
+    \item A valid session token is available when invoking \textbf{loadProfile} and \textbf{updateProfile}.
     \item Profile data is accessed exclusively through M1; this module does not access persistent storage directly.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
-\noindent\textbf{Render}(\textit{props})
+\noindent\textbf{Render}(\textit{state})
 \begin{itemize}
-    \item transition: Reads \textbf{profileData}, \textbf{isLoading}, and \textbf{errorMessage} from state.
-    \item output: Returns a \texttt{JSX.Element} that renders the user's profile information (e.g., username, avatar, statistics summary) and profile-editing controls.
+    \item transition: None.
+    \item output:
+    Returns a \textit{ViewModel} that presents the user's profile information (e.g., username, avatar, statistics summary)
+    and indicates whether editing controls are enabled, based on \textbf{isLoading} and \textbf{errorMessage}.
+    \item exception: None.
 \end{itemize}
 
-\noindent\textbf{loadProfile}()
+\noindent\textbf{loadProfile}(\textit{session})
 \begin{itemize}
-    \item transition: Sets \textbf{isLoading} to \texttt{true}. Sends an authenticated request to \texttt{M1.getProfile}. On success, stores the returned data in \textbf{profileData}. Clears \textbf{errorMessage}.
+    \item transition:
+    Sets \textbf{isLoading} $\leftarrow$ \texttt{true}. Requests the current user's profile via M1.
+    On success, sets \textbf{profileData} to the returned profile and clears \textbf{errorMessage}.
+    Sets \textbf{isLoading} $\leftarrow$ \texttt{false}.
     \item output: \texttt{void}.
-    \item exception: \texttt{Unauthorized} if the session token is invalid or expired. \texttt{NetworkError} if the API request fails.
+    \item exception:
+    \texttt{Unauthorized} if \textit{session} is invalid or expired.
+    \texttt{NetworkError} if the request to M1 fails.
 \end{itemize}
 
-\noindent\textbf{updateProfile}(\textit{data})
+\noindent\textbf{updateProfile}(\textit{session, data})
 \begin{itemize}
-    \item transition: Validates \textit{data} on the client. Sends an authenticated request to \texttt{M1.putProfile} with updated profile fields. On success, updates \textbf{profileData}.
+    \item transition:
+    Validates \textit{data}. If valid, submits the update request to M1.
+    On success, updates \textbf{profileData} to reflect the returned/updated profile and clears \textbf{errorMessage}.
     \item output: \texttt{void}.
-    \item exception: \texttt{InvalidInput} if client-side validation fails. \texttt{Unauthorized} if the session token is invalid. \texttt{NetworkError} if the API request fails.
+    \item exception:
+    \texttt{InvalidInput} if \textit{data} fails validation.
+    \texttt{Unauthorized} if \textit{session} is invalid or expired.
+    \texttt{NetworkError} if the request to M1 fails.
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -1704,9 +1727,9 @@ None.
 
 \subsubsection{Considerations}
 \begin{itemize}
-    \item \textbf{Secret:} UI layout decisions and client-side state handling for profile rendering and editing.
-    \item \textbf{Service:} provides a user interface for viewing and updating profile information by delegating all data access to M1.
-    \item This module contains no business logic and no persistence logic; it is a pure presentation and interaction layer.
+    \item \textbf{Secret:} presentation layout decisions and interaction flow for profile rendering and editing.
+    \item \textbf{Service:} provides an interface for viewing and updating profile information by delegating all data access to M1.
+    \item This module contains no business logic and no persistence logic; it is a presentation and interaction layer.
 \end{itemize}
 
 \newpage
