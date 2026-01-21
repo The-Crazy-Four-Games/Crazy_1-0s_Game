@@ -672,11 +672,13 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    node distance=1.5cm and 1.5cm, % Vertical and Horizontal spacing
+    scale=0.85, transform shape,  % Scale down to fit on page
+    xshift=-3.5cm,  % Shift graph to the left
+    node distance=2cm and 2cm, % Increased vertical and horizontal spacing
     auto, >=latex, thick,
     module/.style={
         rectangle, draw=black, rounded corners, fill=white,
-        align=center, minimum height=1cm, minimum width=2.5cm,
+        align=center, minimum height=0.9cm, minimum width=2.2cm,
         font=\small
     },
     % Group styles for visual distinction
@@ -688,40 +690,40 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
     % --- LEVEL 1: Persistence & External (Top) ---
     % Placing Repository centrally at top left-ish
     \node[env] (Repo) {\shortstack{\mref{mRepository}\\Repository}};
-    \node[env] (Auth) [right=3cm of Repo] {\shortstack{\mref{mAuth}\\Auth}};
-    \node[module] (Audit) [right=1cm of Auth] {\shortstack{\mref{mAudit}\\Audit}};
+    \node[env] (Auth) [right=2.5cm of Repo] {\shortstack{\mref{mAuth}\\Auth}};
+    \node[module] (Audit) [right=1.5cm of Auth] {\shortstack{\mref{mAudit}\\Audit}};
 
     % --- LEVEL 2: Server Entry Points ---
     % API uses Repo and Auth, so place it below them
-    \node[module] (API) [below left=1.5cm and -1cm of Auth] {\shortstack{\mref{mAPI}\\API}};
-    \node[module] (Matchmaking) [right=3cm of API] {\shortstack{\mref{mMatchmaking}\\Matchmaking}};
+    \node[module] (API) [below=1.8cm of Auth] {\shortstack{\mref{mAPI}\\API}};
+    \node[module] (Matchmaking) [right=2cm of API] {\shortstack{\mref{mMatchmaking}\\Matchmaking}};
+    \node[logic] (GameActions) [right=1.5cm of Matchmaking] {\shortstack{\mref{mGameActions}\\Game Actions}};
     
     % Realtime GW is central
-    \node[module] (RealtimeGW) [below right=1.5cm and -1cm of API] {\shortstack{\mref{mRealtimeGateway}\\Real-time GW}};
+    \node[module] (RealtimeGW) [below=1.8cm of API] {\shortstack{\mref{mRealtimeGateway}\\Real-time GW}};
 
     % --- LEVEL 3: Core Game Logic (Server) ---
     \node[logic] (GameEngine) [below=2cm of RealtimeGW] {\shortstack{\mref{mGameEngine}\\Game Engine}};
-    \node[logic] (Rules) [left=1.5cm of GameEngine] {\shortstack{\mref{mRules}\\Rules}};
-    \node[logic] (Scoring) [right=1.5cm of GameEngine] {\shortstack{\mref{mScoring}\\Scoring}};
-    \node[logic] (GameActions) [right=1cm of Matchmaking] {\shortstack{\mref{mGameActions}\\Game Actions}};
+    \node[logic] (Rules) [left=2cm of GameEngine] {\shortstack{\mref{mRules}\\Rules}};
+    \node[logic] (Scoring) [right=2cm of GameEngine] {\shortstack{\mref{mScoring}\\Scoring}};
     
     % Base Conversion is a utility used by Rules/Scoring, place below them
-    \node[logic] (BaseConv) [below=1.5cm of GameEngine] {\shortstack{\mref{mBaseConversion}\\Base Conversion}};
+    \node[logic] (BaseConv) [below=1.8cm of GameEngine] {\shortstack{\mref{mBaseConversion}\\Base Conversion}};
 
     % --- LEVEL 4: Frontend Network Layer ---
     \node[ui] (RealtimeClient) [below=2.5cm of BaseConv] {\shortstack{\mref{mRealtimeClient}\\Realtime Client}};
-    \node[ui] (AuthClient) [left=4cm of RealtimeClient] {\shortstack{\mref{mAuthClient}\\Auth Client}};
 
     % --- LEVEL 5: Frontend UI Views ---
-    \node[ui] (AppShell) [left=1.5cm of RealtimeClient] {\shortstack{\mref{mAppShell}\\App Shell}};
-    \node[ui] (LobbyView) [left=1.5cm of AppShell] {\shortstack{\mref{mLobbyView}\\Lobby View}};
+    \node[ui] (AppShell) [left=2cm of RealtimeClient] {\shortstack{\mref{mAppShell}\\App Shell}};
+    \node[ui] (AuthClient) [left=0.8cm of AppShell] {\shortstack{\mref{mAuthClient}\\Auth Client}};
+    \node[ui] (LobbyView) [left=0.8cm of AuthClient] {\shortstack{\mref{mLobbyView}\\Lobby View}};
     
-    \node[ui] (GameBoard) [right=1.5cm of RealtimeClient] {\shortstack{\mref{mGameBoardView}\\Game Board}};
-    \node[ui] (ProfileView) [right=1.5cm of GameBoard] {\shortstack{\mref{mProfileView}\\Profile View}};
+    \node[ui] (GameBoard) [right=2cm of RealtimeClient] {\shortstack{\mref{mGameBoardView}\\Game Board}};
+    \node[ui] (ProfileView) [right=2cm of GameBoard] {\shortstack{\mref{mProfileView}\\Profile View}};
 
     % --- LEVEL 6: Frontend Interactions ---
-    \node[ui] (MoveCtrl) [below=1.5cm of GameBoard] {\shortstack{\mref{mMoveController}\\Move Controller}};
-    \node[ui] (Scoreboard) [below right=1cm and -1cm of GameBoard] {\shortstack{\mref{mScoreboardView}\\Scoreboard}};
+    \node[ui] (MoveCtrl) [below=1.8cm of RealtimeClient] {\shortstack{\mref{mMoveController}\\Move Controller}};
+    \node[ui] (Scoreboard) [right=1.5cm of MoveCtrl] {\shortstack{\mref{mScoreboardView}\\Scoreboard}};
 
 
     % --- EDGES (Arrows) ---
@@ -731,11 +733,11 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
     \draw[->] (API) -- (Auth);
     \draw[->] (API) -- (Audit);
     
-    \draw[->] (RealtimeGW) -- (Repo);
-    \draw[->] (RealtimeGW) edge[bend right=20] (Audit);
+    \draw[->] (RealtimeGW) edge[bend left=15] (Repo);
+    \draw[->] (RealtimeGW) edge[bend right=30] (Audit);
     \draw[->] (RealtimeGW) -- (GameEngine);
     
-    \draw[->] (Matchmaking) -- (Repo);
+    \draw[->] (Matchmaking) edge[bend right=15] (Repo);
     \draw[->] (Matchmaking) -- (RealtimeGW);
 
     % Game Logic Edges
@@ -743,7 +745,7 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
     \draw[->] (GameEngine) -- (Scoring);
     \draw[->] (Rules) -- (BaseConv);
     \draw[->] (Scoring) -- (BaseConv);
-    \draw[->] (GameActions) -- (GameEngine);
+    \draw[->] (GameActions) edge[bend right=20] (GameEngine);
 
     % Frontend -> Backend Cross-over
     % We use loose dashed lines or standard lines for network calls
@@ -752,17 +754,17 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
 
     % Frontend Internal Edges
     \draw[->] (AppShell) -- (AuthClient);
-    \draw[->] (LobbyView) -- (RealtimeClient);
-    \draw[->] (LobbyView) |- (API); % Lobby uses API to list rooms
+    \draw[->] (LobbyView) -- (AuthClient);
+    \draw[->] (LobbyView) edge[bend right=20] (API); % Lobby uses API to list rooms
     
-    \draw[->] (GameBoard) -- (MoveCtrl);
+    \draw[->] (GameBoard) -- (RealtimeClient);
     \draw[->] (GameBoard) -- (Scoreboard);
     
     \draw[->] (MoveCtrl) -- (RealtimeClient);
     % MoveCtrl locally validates with rules (optional arrow if client-side validation exists)
-    \draw[->] (MoveCtrl) edge[bend left=45] (Rules); 
+    \draw[->] (MoveCtrl) edge[bend left=60] (Rules); 
 
-    \draw[->] (Scoreboard) edge[bend left=20] (BaseConv);
+    \draw[->] (Scoreboard) edge[bend left=30] (BaseConv);
     \draw[->] (ProfileView) |- (API);
 
 \end{tikzpicture}
