@@ -8,9 +8,10 @@
 Verify Node and npm are available:
 
 ## 2) Clone the Repository
+    ```bash
 git clone <REPO_URL>
 cd Crazy-Tens-Game
-
+```
 
 ## 3) Install Dependencies
 
