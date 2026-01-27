@@ -9,6 +9,9 @@ lerna-debug.log*
 
 node_modules
 dist
+build/
+.out/
+coverage/
 dist-ssr
 *.local
 
@@ -22,3 +25,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+Thumbs.db
+
+*.tsbuildinfo
+frontend/.vite/
+
+.env
+.env.*
+!.env.example
