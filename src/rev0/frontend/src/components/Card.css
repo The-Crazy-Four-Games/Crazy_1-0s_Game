@@ -44,6 +44,77 @@
   border: 3px solid #2196f3;
 }
 
+/* Wildcard (rank 10) styling */
+.card.wildcard {
+  background: linear-gradient(135deg, #fff8e1, #ffecb3);
+  border: 2px solid #ffc107;
+}
+
+.card.wildcard.playable {
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+  border: 2px solid #ffc107;
+}
+
+.card.wildcard.playable:hover {
+  box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+}
+
+/* Skip card (rank 6) styling */
+.card.skip-card {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border: 2px solid #2196f3;
+}
+
+.card.skip-card.playable {
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.7);
+  border: 2px solid #2196f3;
+}
+
+.card.skip-card.playable:hover {
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.5);
+}
+
+/* Card badges for special cards */
+.card-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 14px;
+  z-index: 10;
+  background: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.card-small .card-badge {
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  top: -5px;
+  right: -5px;
+}
+
+.card-large .card-badge {
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  top: -10px;
+  right: -10px;
+}
+
+.wildcard-badge {
+  background: linear-gradient(135deg, #fff8e1, #ffc107);
+}
+
+.skip-badge {
+  background: linear-gradient(135deg, #e3f2fd, #2196f3);
+}
+
 .card-corner {
   display: flex;
   flex-direction: column;

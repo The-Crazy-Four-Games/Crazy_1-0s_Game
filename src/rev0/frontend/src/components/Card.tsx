@@ -9,6 +9,8 @@ interface CardProps {
   onClick?: () => void;
   isPlayable?: boolean;
   isSelected?: boolean;
+  isWildcard?: boolean;
+  isSkipCard?: boolean;
   size?: 'small' | 'medium' | 'large';
 }
 
@@ -18,6 +20,8 @@ export const Card: React.FC<CardProps> = ({
   onClick,
   isPlayable = false,
   isSelected = false,
+  isWildcard = false,
+  isSkipCard = false,
   size = 'medium',
 }) => {
   const suitSymbol = SUIT_SYMBOLS[card.suit];
@@ -40,12 +44,25 @@ export const Card: React.FC<CardProps> = ({
     );
   }
 
+  const cardClasses = [
+    'card',
+    `card-${size}`,
+    isPlayable ? 'playable' : '',
+    isSelected ? 'selected' : '',
+    isWildcard ? 'wildcard' : '',
+    isSkipCard ? 'skip-card' : '',
+  ].filter(Boolean).join(' ');
+
   return (
     <div
-      className={`card card-${size} ${isPlayable ? 'playable' : ''} ${isSelected ? 'selected' : ''}`}
+      className={cardClasses}
       onClick={handleClick}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
+      {/* Special card indicators */}
+      {isWildcard && <div className="card-badge wildcard-badge">🌟</div>}
+      {isSkipCard && <div className="card-badge skip-badge">⏭️</div>}
+      
       <div className="card-corner top-left" style={{ color: suitColor }}>
         <span className="card-rank">{displayRank}</span>
         <span className="card-suit">{suitSymbol}</span>

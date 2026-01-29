@@ -1,0 +1,355 @@
+.game-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  color: #fff;
+  padding: 15px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Header */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.game-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.back-button {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.base-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  background: #4caf50;
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+  background: #45a049;
+}
+
+/* Score Summary */
+.score-summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.score-summary strong {
+  color: #ffd700;
+}
+
+.score-summary .goal strong {
+  color: #4caf50;
+}
+
+.score-divider {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Turn Banner */
+.turn-banner {
+  text-align: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.turn-banner.my-turn {
+  background: rgba(76, 175, 80, 0.3);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  color: #4caf50;
+}
+
+.turn-banner.opponent-turn {
+  background: rgba(255, 152, 0, 0.2);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  color: #ff9800;
+}
+
+/* Game Over Banner */
+.game-over-banner {
+  text-align: center;
+  padding: 15px;
+  background: rgba(255, 215, 0, 0.2);
+  border: 2px solid #ffd700;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+  color: #ffd700;
+}
+
+/* Opponent Area */
+.opponent-area {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.player-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.opponent-hand {
+  display: flex;
+  justify-content: center;
+  min-height: 70px;
+}
+
+.opponent-card-wrapper {
+  transition: transform 0.2s;
+}
+
+/* Table Area */
+.table-area {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 60px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+  margin-bottom: 15px;
+}
+
+.pile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pile-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.draw-pile-stack {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.draw-pile-stack:hover {
+  transform: translateY(-3px);
+}
+
+.top-card-display {
+  position: relative;
+}
+
+.forced-suit {
+  margin-top: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+}
+
+/* Player Area */
+.player-area {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.player-hand {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  min-height: 110px;
+  padding: 10px;
+}
+
+.hand-card-wrapper {
+  transition: transform 0.2s;
+}
+
+.hint-section {
+  margin-top: 10px;
+  padding: 8px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.hint-label {
+  color: rgba(255, 255, 255, 0.6);
+  margin-right: 8px;
+}
+
+.hint-cards {
+  font-family: monospace;
+  color: #4caf50;
+}
+
+/* Action Bar */
+.action-bar {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.action-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.play-btn {
+  background: #4caf50;
+  border-color: #4caf50;
+}
+
+.action-btn.play-btn:hover:not(:disabled) {
+  background: #45a049;
+}
+
+/* Suit Picker Modal */
+.suit-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.suit-picker {
+  background: #1e1e2e;
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.suit-picker h3 {
+  margin: 0 0 20px 0;
+  color: #fff;
+}
+
+.suit-options {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.suit-btn {
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.suit-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.cancel-btn {
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Log Section */
+.log-section {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 15px;
+}
+
+.log-container {
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  max-height: 150px;
+  overflow: auto;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Game Instructions */
+.game-instructions {
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
