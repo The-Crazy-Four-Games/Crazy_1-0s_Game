@@ -1,6 +1,6 @@
 import type { Server as IOServer, Socket } from "socket.io";
 
-import { applyAction, getPublicState } from "@rev0/shared";
+import { applyAction, getPublicState, createGame } from "@rev0/shared";
 import type { GameAction, GameState } from "@rev0/shared";
 
 export const WS = {
@@ -9,10 +9,16 @@ export const WS = {
   GAME_STATE: "game_state",
   MY_HAND: "my_hand",
   ERROR: "error",
+  // Restart events
+  REQUEST_RESTART: "request_restart",
+  RESTART_REQUESTED: "restart_requested",
+  RESTART_CONFIRMED: "restart_confirmed",
+  GAME_RESTARTED: "game_restarted",
 } as const;
 
 export type JoinGamePayload = { gameId: string };
 export type SubmitActionPayload = { gameId: string; action: GameAction };
+export type RestartRequestPayload = { gameId: string };
 
 export type AuthService = {
   verifyToken: (token: string) => { userId: string; username?: string; role?: string };
@@ -31,6 +37,9 @@ export function makeRealtimeGateway(deps: {
   gameSessions: Map<string, GameState>;
 }) {
   const { io, auth, audit, gameSessions } = deps;
+
+  // Track restart requests per game: gameId -> Set of userIds who requested restart
+  const restartRequests = new Map<string, Set<string>>();
 
   const roomForGame = (gameId: string) => `game:${gameId}`;
 
@@ -141,6 +150,88 @@ export function makeRealtimeGateway(deps: {
         await emitHandsToRoom(payload.gameId, next);
       } catch (e: any) {
         emitError(socket, "ACTION_FAILED", e?.message ?? "Action failed");
+      }
+    });
+
+    // Handle restart request
+    socket.on(WS.REQUEST_RESTART, async (payload: RestartRequestPayload) => {
+      try {
+        const userId = (socket.data as any).userId as string;
+        if (!payload?.gameId) throw new Error("BadRequest");
+
+        const game = gameSessions.get(payload.gameId);
+        if (!game) throw new Error("GameNotFound");
+
+        // Only allow restart requests when game is over
+        if (game.status !== "GAME_OVER") {
+          throw new Error("GameNotOver");
+        }
+
+        assertPlayerInGame(game, userId);
+
+        // Track this player's restart request
+        if (!restartRequests.has(payload.gameId)) {
+          restartRequests.set(payload.gameId, new Set());
+        }
+        const requests = restartRequests.get(payload.gameId)!;
+        requests.add(userId);
+
+        audit.logSystemEvent?.({ type: "RESTART_REQUESTED", at: Date.now(), userId, gameId: payload.gameId });
+
+        // Get both players
+        const players = game.round.players;
+
+        // Check if both players have requested restart
+        if (requests.size >= 2 && players.every(p => requests.has(p))) {
+          // Both players agreed - create a new game
+          const newGame = createGame({
+            baseId: game.sys.id,
+            players: players,
+            initialHandSize: 5,
+          });
+
+          // Store the new game
+          gameSessions.set(newGame.gameId, newGame);
+
+          // Clear restart requests for old game
+          restartRequests.delete(payload.gameId);
+
+          audit.logSystemEvent?.({ type: "GAME_RESTARTED", at: Date.now(), oldGameId: payload.gameId, newGameId: newGame.gameId });
+
+          // Notify all players in the room about the new game
+          io.to(roomForGame(payload.gameId)).emit(WS.GAME_RESTARTED, {
+            oldGameId: payload.gameId,
+            newGameId: newGame.gameId,
+            publicState: getPublicState(newGame),
+          });
+
+          // Move all sockets to the new game room
+          const sockets = await io.in(roomForGame(payload.gameId)).fetchSockets();
+          for (const s of sockets) {
+            s.leave(roomForGame(payload.gameId));
+            s.join(roomForGame(newGame.gameId));
+            // Send each player their hand
+            const uid = (s.data as any).userId as string | undefined;
+            if (uid) {
+              const hand = newGame.round.hands[uid] ?? [];
+              s.emit(WS.MY_HAND, { hand });
+            }
+          }
+        } else {
+          // Notify the other player that restart was requested
+          socket.to(roomForGame(payload.gameId)).emit(WS.RESTART_REQUESTED, {
+            requestedBy: userId,
+            waitingFor: players.filter(p => !requests.has(p)),
+          });
+
+          // Confirm to the requester
+          socket.emit(WS.RESTART_CONFIRMED, {
+            message: "Waiting for opponent to accept restart",
+            waitingFor: players.filter(p => !requests.has(p)),
+          });
+        }
+      } catch (e: any) {
+        emitError(socket, "RESTART_FAILED", e?.message ?? "Restart failed");
       }
     });
 

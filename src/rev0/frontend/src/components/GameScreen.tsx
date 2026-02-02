@@ -36,7 +36,8 @@ interface GameScreenProps {
   onBackToLobby: () => void;
 
   // Restart game
-  onPlayAgain: () => void;
+  restartStatus: 'none' | 'waiting' | 'opponent_requested';
+  onRequestRestart: () => void;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({
@@ -49,11 +50,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   onPass,
   onPlay,
   onBackToLobby,
-  onPlayAgain,
+  restartStatus,
+  onRequestRestart,
 }) => {
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [showSuitPicker, setShowSuitPicker] = useState(false);
   const [pendingCard, setPendingCard] = useState<CardType | null>(null);
+  const [showGameOverModal, setShowGameOverModal] = useState(true);
 
   // Get opponent info
   const opponentId = useMemo(() => {
@@ -64,6 +67,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const opponentHandCount = ps.handsCount[opponentId] || 0;
   const myScore = ps.scoresText[userId] || '0';
   const opponentScore = ps.scoresText[opponentId] || '0';
+
+  // Determine winner when game is over
+  const isGameOver = ps.status === 'GAME_OVER';
+  const myHandCount = ps.handsCount[userId] || 0;
+  const iWon = isGameOver && myHandCount === 0;
 
   // Helper to check if card is wildcard (rank "10")
   const isWildcard = (rank: string) => rank === '10';
@@ -162,12 +170,90 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         </span>
       </div>
 
-      {/* Game Status */}
-      {ps.status === 'GAME_OVER' && (
+      {/* Game Over Modal */}
+      {isGameOver && showGameOverModal && (
+        <div className="game-over-overlay">
+          <div className="game-over-modal">
+            <h2>{iWon ? '🎉 You Won!' : '😔 You Lost'}</h2>
+            <div className="final-scores">
+              <div className="score-row">
+                <span>Your Score:</span>
+                <strong>{myScore}</strong>
+              </div>
+              <div className="score-row">
+                <span>Opponent Score:</span>
+                <strong>{opponentScore}</strong>
+              </div>
+              <div className="score-row goal-row">
+                <span>Goal:</span>
+                <strong>{ps.targetScoreText}</strong>
+              </div>
+            </div>
+            <p className="game-over-message">
+              {iWon 
+                ? 'Congratulations! You reached the goal first!' 
+                : 'Better luck next time!'}
+            </p>
+            
+            {/* Restart status messages */}
+            {restartStatus === 'waiting' && (
+              <p className="restart-status waiting">⏳ Waiting for opponent to accept rematch...</p>
+            )}
+            {restartStatus === 'opponent_requested' && (
+              <p className="restart-status opponent-requested">🔔 Opponent wants a rematch!</p>
+            )}
+            
+            <div className="game-over-actions">
+              {restartStatus === 'none' && (
+                <button className="modal-btn primary" onClick={onRequestRestart}>
+                  🔄 Request Rematch
+                </button>
+              )}
+              {restartStatus === 'opponent_requested' && (
+                <button className="modal-btn primary" onClick={onRequestRestart}>
+                  ✅ Accept Rematch
+                </button>
+              )}
+              {restartStatus === 'waiting' && (
+                <button className="modal-btn primary" disabled>
+                  ⏳ Waiting...
+                </button>
+              )}
+              <button className="modal-btn secondary" onClick={onBackToLobby}>
+                Return to Lobby
+              </button>
+              <button className="modal-btn tertiary" onClick={() => setShowGameOverModal(false)}>
+                View Board
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Over Banner (when modal is dismissed) */}
+      {isGameOver && !showGameOverModal && (
         <div className="game-over-banner">
-          <div>🎉 Game Over! Check scores above.</div>
-          <button className="play-again-btn" onClick={onPlayAgain}>
-            Play Again
+          <span>{iWon ? '🎉 You Won!' : '😔 Game Over'}</span>
+          {restartStatus === 'opponent_requested' && (
+            <span className="banner-notification">🔔 Opponent wants rematch!</span>
+          )}
+          {restartStatus === 'none' && (
+            <button className="play-again-btn" onClick={onRequestRestart}>
+              Request Rematch
+            </button>
+          )}
+          {restartStatus === 'opponent_requested' && (
+            <button className="play-again-btn" onClick={onRequestRestart}>
+              Accept Rematch
+            </button>
+          )}
+          {restartStatus === 'waiting' && (
+            <button className="play-again-btn" disabled>
+              Waiting...
+            </button>
+          )}
+          <button className="lobby-btn" onClick={onBackToLobby}>
+            Lobby
           </button>
         </div>
       )}
@@ -212,8 +298,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               card={ps.topCard}
               size="large"
               isPlayable={false}
-              isWildcard={isWildcard(ps.topCard.rank)}
-              isSkipCard={isSkipCard(ps.topCard.rank)}
             />
           </div>
           {ps.forcedSuit && (

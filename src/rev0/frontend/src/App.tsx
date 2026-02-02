@@ -13,6 +13,11 @@ const WS = {
   GAME_STATE: "game_state",
   MY_HAND: "my_hand",
   ERROR: "error",
+  // Restart events
+  REQUEST_RESTART: "request_restart",
+  RESTART_REQUESTED: "restart_requested",
+  RESTART_CONFIRMED: "restart_confirmed",
+  GAME_RESTARTED: "game_restarted",
 } as const;
 
 type AuthResult = { token: string; user: { userId: string; username: string; role: string } };
@@ -81,6 +86,9 @@ export default function App() {
 
   // Track if we've joined the game via WS
   const [gameJoined, setGameJoined] = useState(false);
+
+  // Restart state
+  const [restartStatus, setRestartStatus] = useState<"none" | "waiting" | "opponent_requested">("none");
 
   // Determine if we should show game screen
   // Show game screen when: we have public state AND game is started
@@ -191,6 +199,24 @@ export default function App() {
       setMyHand(payload?.hand ?? []);
       pushLog(`HAND updated: ${payload?.hand?.length ?? 0} cards`);
     });
+
+    // Restart event handlers
+    s.on(WS.RESTART_REQUESTED, (payload: { requestedBy: string }) => {
+      setRestartStatus("opponent_requested");
+      pushLog(`Opponent requested restart`);
+    });
+
+    s.on(WS.RESTART_CONFIRMED, (payload: { message: string }) => {
+      setRestartStatus("waiting");
+      pushLog(payload.message);
+    });
+
+    s.on(WS.GAME_RESTARTED, (payload: { oldGameId: string; newGameId: string; publicState: PublicState }) => {
+      setGameId(payload.newGameId);
+      setPs(payload.publicState);
+      setRestartStatus("none");
+      pushLog(`Game restarted! New game: ${payload.newGameId}`);
+    });
   }
 
   function joinGameWS() {
@@ -222,6 +248,14 @@ export default function App() {
     emitAction({ type: "PLAY", playerId: userId, card, chosenSuit });
   }
 
+  function requestRestart() {
+    const s = sockRef.current;
+    if (!s) return pushLog("WS not connected");
+    if (!gameId) return pushLog("Need gameId");
+    s.emit(WS.REQUEST_RESTART, { gameId });
+    pushLog("Requested restart...");
+  }
+
   const myTurn = ps ? ps.turn === userId : false;
 
   // Back to lobby handler
@@ -229,15 +263,7 @@ export default function App() {
     setGameJoined(false);
     setPs(null);
     setMyHand([]);
-  }
-
-  // Play again handler - returns to lobby to start a new game
-  function handlePlayAgain() {
-    setGameJoined(false);
-    setPs(null);
-    setMyHand([]);
-    setGameId("");
-    pushLog("Returning to lobby for a new game...");
+    setRestartStatus("none");
   }
 
   // Render appropriate screen
@@ -253,7 +279,8 @@ export default function App() {
         onPass={doPass}
         onPlay={doPlay}
         onBackToLobby={handleBackToLobby}
-        onPlayAgain={handlePlayAgain}
+        restartStatus={restartStatus}
+        onRequestRestart={requestRestart}
       />
     );
   }
