@@ -2352,24 +2352,7 @@ With unlimited resources: Add comprehensive automated testing. Expand features (
 Benefits of monolith: faster to prototype initially, fewer interfaces.\\
 Tradeoffs: difficult to test; tight coupling; violates information hiding; changes ripple everywhere.\\
 Reason rejected: course expectations and long-term maintainability favor modular design with clear interfaces.
-  \item (After you have implemented another team's module, which means this
-    isn't filled in until after the original deadline). What did you learn by
-    implementing another team's module? Were all the details you needed in the
-    documentation, or did you need to make assumptions, or ask the other team
-    questions?  If your team also had another team implement one of your modules,
-    what was this experience like?  Are there things in your documentation you
-    could have changed to make the process go more smoothly for when an
-    ``outsider'' completes some of the implementation?
-  \section*{Reflection -- Implementing Another Team's Module}
-  (https://github.com/ljm-jim/MES-Website-App-Router.git)
-  This experience highlighted the difference between the conceptual module structure defined in the MIS and the actual directory structure of a real-world codebase.
-
-  Although the MIS clearly specified the responsibilities, exported constants, types, and access programs of M5, locating the corresponding implementation points in the code was not straightforward. The system defined only eight modules at the MIS level, but the repository contained a large number of directories organized by technical concerns, such as API routes, slices, UI components, and utility code. As a result, notification-related functionality was distributed across multiple directories rather than implemented as a single, clearly identifiable module. This required additional effort to determine which parts of the codebase belonged to M5 and which merely depended on it.
-
-  Not all of the details required to implement M5 were directly available in the documentation. While the MIS defined abstractions such as \texttt{NotificationType}, \texttt{EmailContent}, and the \texttt{notifyUser} access program, these abstractions did not map directly to existing files or folders in the repository. Consequently, I had to make reasonable assumptions about how the conceptual module should be realized within the existing architecture, particularly with respect to module boundaries and interactions with the API layer.
-
-  This experience demonstrated the importance of documenting not only what a module is responsible for, but also how it is expected to be integrated into the overall project structure. If our team were to revise the documentation, it could be improved by explicitly describing where each module should reside in the codebase or by providing concrete examples of how module interfaces are intended to be used within a multi-directory project. Such clarification would make it easier for an external team to implement or extend a module without needing to infer design intent from the existing code.
-
 \end{enumerate}
+
 
 \end{document}
