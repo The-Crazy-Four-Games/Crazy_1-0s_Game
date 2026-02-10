@@ -7,6 +7,15 @@ export type PlayerID = string;
 export type Rank = string;
 export type Card = Readonly<{ suit: Suit; rank: Rank }>;
 
+export type PendingChallenge = Readonly<{
+  suit: Suit;
+  op: "+" | "-" | "*" | "/";
+  aDec: number;
+  bDec: number;
+  answerDec: number;
+  resumeTurn: PlayerID;
+}>;
+
 export type RoundState = Readonly<{
   deck: Card[];
   discard: Card[];
@@ -17,6 +26,7 @@ export type RoundState = Readonly<{
   turn: PlayerID;
   drawCountThisTurn: number;
   freePlayFor?: PlayerID;
+  pendingChallenge?: PendingChallenge;
 }>;
 
 // baseConversion usage
