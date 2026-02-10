@@ -1,9 +1,75 @@
 // shared/src/gameEngine.ts
 import type { PlayerID, RoundState, Card } from "./rules.js";
-import { initRound, applyDraw, applyPlay, passTurn, isRoundOver, roundWinner, parseInSystem, formatInSystem, systemFromBaseId } from "./rules.js";
-import type { BaseId, NumeralSystem } from "./systems.js";
+import {
+  initRound,
+  applyDraw,
+  applyPlay,
+  passTurn,
+  isRoundOver,
+  roundWinner,
+  parseInSystem,
+  formatInSystem,
+  systemFromBaseId,
+} from "./rules.js";
+import type { BaseId, NumeralSystem, Suit } from "./systems.js";
 import { roundGainDec } from "./scoring.js";
 import { type GameAction, withTimestamp, assertTurn } from "./gameActions.js";
+
+// Challenge system: always dozenal (base-12) for the math question, regardless of the game base.
+const CHALLENGE_SYS = systemFromBaseId("doz");
+
+function opBySuit(s: Suit): "+" | "-" | "*" | "/" {
+  switch (s) {
+    case "S":
+      return "+"; // Spades
+    case "C":
+      return "-"; // Clubs
+    case "H":
+      return "*"; // Hearts
+    case "D":
+      return "/"; // Diamonds
+  }
+}
+
+function randInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function genChallenge(suit: Suit) {
+  const op = opBySuit(suit);
+  let aDec = 0,
+    bDec = 0,
+    answerDec = 0;
+
+  switch (op) {
+    case "+":
+      aDec = randInt(1, 20);
+      bDec = randInt(1, 20);
+      answerDec = aDec + bDec;
+      break;
+    case "-":
+      aDec = randInt(1, 20);
+      bDec = randInt(1, aDec);
+      answerDec = aDec - bDec;
+      break;
+    case "*":
+      aDec = randInt(1, 10);
+      bDec = randInt(1, 10);
+      answerDec = aDec * bDec;
+      break;
+    case "/": {
+      // Ensure exact division
+      const q = randInt(1, 10);
+      const d = randInt(1, 10);
+      aDec = q * d;
+      bDec = d;
+      answerDec = q;
+      break;
+    }
+  }
+
+  return { suit, op, aDec, bDec, answerDec };
+}
 
 export type GameStatus = "ONGOING" | "GAME_OVER";
 
@@ -19,7 +85,7 @@ export type GameState = Readonly<{
 
 export type CreateGameOptions = Readonly<{
   players: [PlayerID, PlayerID];
-  baseId: BaseId;            // more bases in future
+  baseId: BaseId; // more bases in future
   initialHandSize?: number;
   rngDeck?: Card[];
   gameId?: string;
@@ -53,16 +119,55 @@ export function applyAction(game: GameState, action: GameAction): GameState {
   const snapshot = game;
   let round = game.round;
 
+  if (round.pendingChallenge && a.type !== "ANSWER_CHALLENGE") {
+    throw new Error("MustAnswerChallengeFirst");
+  }
+
   switch (a.type) {
     case "DRAW":
       round = applyDraw(game.sys, round, a.playerId);
       break;
+
     case "PLAY":
+      if (a.card.rank === game.sys.wildcardTenSymbol) {
+        if (!a.chosenSuit) throw new Error("NeedChosenSuitForWildcardTen");
+
+        const applied = applyPlay(game.sys, round, a.playerId, a.card, a.chosenSuit);
+
+        const resumeTurn = applied.turn;
+
+        round = {
+          ...applied,
+          turn: a.playerId,
+          pendingChallenge: {
+            ...genChallenge(a.chosenSuit),
+            resumeTurn,
+          },
+        };
+        break;
+      }
+
       round = applyPlay(game.sys, round, a.playerId, a.card, a.chosenSuit);
       break;
+
     case "PASS":
       round = passTurn(round);
       break;
+
+    case "ANSWER_CHALLENGE": {
+      const ch = round.pendingChallenge;
+      if (!ch) throw new Error("NoPendingChallenge");
+
+      const userDec = parseInSystem(a.answer, CHALLENGE_SYS);
+      if (userDec !== ch.answerDec) throw new Error("WrongChallengeAnswer");
+
+      round = {
+        ...round,
+        pendingChallenge: undefined,
+        turn: ch.resumeTurn,
+      };
+      break;
+    }
   }
 
   let next: GameState = {
@@ -82,7 +187,7 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     const scoresDec = { ...next.scoresDec, [winner]: (next.scoresDec[winner] ?? 0) + gainedDec };
 
     const targetDec = parseInSystem(next.sys.targetScoreText, next.sys);
-    const over = Object.values(scoresDec).some(s => s >= targetDec);
+    const over = Object.values(scoresDec).some((s) => s >= targetDec);
 
     if (over) {
       next = { ...next, scoresDec, status: "GAME_OVER" };
@@ -106,6 +211,15 @@ export function getPublicState(game: GameState) {
   }
   const targetDec = parseInSystem(game.sys.targetScoreText, game.sys);
 
+  const pendingChallenge = game.round.pendingChallenge
+    ? {
+        suit: game.round.pendingChallenge.suit,
+        op: game.round.pendingChallenge.op,
+        aText: formatInSystem(game.round.pendingChallenge.aDec, CHALLENGE_SYS),
+        bText: formatInSystem(game.round.pendingChallenge.bDec, CHALLENGE_SYS),
+      }
+    : undefined;
+
   return {
     gameId: game.gameId,
     baseId: game.sys.id,
@@ -113,6 +227,7 @@ export function getPublicState(game: GameState) {
     turn: game.round.turn,
     topCard: game.round.topCard,
     forcedSuit: game.round.forcedSuit,
+    pendingChallenge,
     handsCount: Object.fromEntries(Object.entries(game.round.hands).map(([pid, h]) => [pid, h.length])),
     scoresDec: game.scoresDec,
     scoresText,
