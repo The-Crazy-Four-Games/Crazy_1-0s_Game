@@ -103,11 +103,19 @@ function renderTurnUI(g: GameState) {
 
   console.log(`Wildcards: ten="${g.sys.wildcardTenSymbol}" | skip="${g.sys.wildcardSkipSymbol}"`);
   console.log(`Draw used this turn: ${g.round.drawCountThisTurn}/3`);
-  console.log("");
-
-  const hand = g.round.hands[turn];
-  console.log(`${turn} Hand (${hand.length}):`);
-  hand.forEach(c => console.log(`  ${shortCard(c)}`));
+  if (g.public.activeChallenge) {
+    const c = g.public.activeChallenge;
+    console.log(chalk.red.bold(`\n 🔥 MATH CHALLENGE for ${c.playerId} 🔥`));
+    console.log(chalk.yellow(`Solve: ${c.op1} ${c.type} ${c.op2} = ?`));
+    console.log(chalk.gray(`(Type 'answer <number>' to solve)`));
+  } else {
+    // only show hand if no challenge or if we want to show it anyway
+    console.log(chalk.cyan(`\nYour Hand:`));
+    const myHand = g.public.handsCount[turn] > 0 ? (g.round.hands[turn] || []) : []; // Cheating a bit to read internal state for local CLI
+    console.log(
+      myHand.map((c, i) => `${i}:${chalk.bold(c.rank)}${c.suit}`).join("  ")
+    );
+  }
   console.log("");
 
   // hint back
