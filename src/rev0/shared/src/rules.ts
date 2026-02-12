@@ -17,6 +17,17 @@ export type RoundState = Readonly<{
   turn: PlayerID;
   drawCountThisTurn: number;
   freePlayFor?: PlayerID;
+  activeChallenge?: MathChallenge;
+}>;
+
+export type MathChallenge = Readonly<{
+  playerId: PlayerID;
+  type: '+' | '-' | '*' | '/';
+  op1: number;
+  op2: number;
+  answer: number;
+  reward: number;
+  shouldPassTurn: boolean;
 }>;
 
 // baseConversion usage
