@@ -103,17 +103,17 @@ function renderTurnUI(g: GameState) {
 
   console.log(`Wildcards: ten="${g.sys.wildcardTenSymbol}" | skip="${g.sys.wildcardSkipSymbol}"`);
   console.log(`Draw used this turn: ${g.round.drawCountThisTurn}/3`);
-  if (g.public.activeChallenge) {
-    const c = g.public.activeChallenge;
-    console.log(chalk.red.bold(`\n 🔥 MATH CHALLENGE for ${c.playerId} 🔥`));
-    console.log(chalk.yellow(`Solve: ${c.op1} ${c.type} ${c.op2} = ?`));
-    console.log(chalk.gray(`(Type 'answer <number>' to solve)`));
+  if (g.round.activeChallenge) {
+    const c = g.round.activeChallenge;
+    console.log(`\n 🔥 MATH CHALLENGE for ${c.playerId} 🔥`);
+    console.log(`Solve: ${formatInSystem(c.op1, g.sys)} ${c.type} ${formatInSystem(c.op2, g.sys)} = ?`);
+    console.log(`(Type 'answer <number>' to solve. Answer in ${g.sys.id} base)`);
   } else {
     // only show hand if no challenge or if we want to show it anyway
-    console.log(chalk.cyan(`\nYour Hand:`));
-    const myHand = g.public.handsCount[turn] > 0 ? (g.round.hands[turn] || []) : []; // Cheating a bit to read internal state for local CLI
+    console.log(`\nYour Hand:`);
+    const myHand = g.round.hands[turn] || [];
     console.log(
-      myHand.map((c, i) => `${i}:${chalk.bold(c.rank)}${c.suit}`).join("  ")
+      myHand.map((c, i) => `${i}:${c.rank}${c.suit}`).join("  ")
     );
   }
   console.log("");
