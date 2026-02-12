@@ -96,7 +96,7 @@ export function applyAction(game: GameState, action: GameAction): GameState {
           round = { ...round, activeChallenge: undefined };
 
           if (shouldPass) {
-              round = passTurn(round);
+              round = advanceTurn(round);
           }
           break;
   }
