@@ -96,7 +96,7 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
       const game = createGame({
         baseId,
         players,
-        initialHandSize: 5,
+        initialHandSize: 7,
       });
 
       const gameId = game.gameId;

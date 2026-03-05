@@ -57,7 +57,7 @@ export const GameBoard: React.FC = () => {
     return (
       <div className="game-board">
         <header className="game-header">
-          <h1>Crazy Tens</h1>
+          <h1>Crazy 1-0's</h1>
         </header>
         <div className="connection-panel">
           <h2>Connect to Game</h2>
@@ -104,7 +104,7 @@ export const GameBoard: React.FC = () => {
     return (
       <div className="game-board">
         <header className="game-header">
-          <h1>Crazy Tens</h1>
+          <h1>Crazy 1-0's</h1>
         </header>
         <div className="connection-panel">
           <h2>Connection</h2>
@@ -132,7 +132,7 @@ export const GameBoard: React.FC = () => {
     return (
       <div className="game-board">
         <header className="game-header">
-          <h1>Crazy Tens</h1>
+          <h1>Crazy 1-0's</h1>
         </header>
         <div className="connection-panel">
           <h2>Join Game</h2>
@@ -160,7 +160,7 @@ export const GameBoard: React.FC = () => {
   return (
     <div className="game-board">
       <header className="game-header">
-        <h1>Crazy Tens</h1>
+        <h1>Crazy 1-0's</h1>
         <div className="score-summary">
           <span className="score-item">
             You: <strong>{playerScore}</strong>

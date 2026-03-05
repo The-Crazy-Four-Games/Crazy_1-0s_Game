@@ -7,6 +7,13 @@ import { type GameAction, withTimestamp, assertTurn } from "./gameActions.js";
 
 export type GameStatus = "ONGOING" | "GAME_OVER";
 
+export type RoundResult = {
+  winner: string;
+  loser: string;
+  pointsGained: number;
+  scoresDec: Record<string, number>;
+};
+
 export type GameState = Readonly<{
   gameId: string;
   sys: NumeralSystem;
@@ -16,6 +23,7 @@ export type GameState = Readonly<{
   actionLog: readonly GameAction[];
   lastSnapshot?: GameState;
   activeChallenge?: MathChallenge;
+  lastRoundResult?: RoundResult;
 }>;
 
 export type { MathChallenge };
@@ -50,8 +58,17 @@ export function createGame(opts: CreateGameOptions): GameState {
 export function applyAction(game: GameState, action: GameAction): GameState {
   if (game.status === "GAME_OVER") throw new Error("GameOver");
 
+  // Clear lastRoundResult on any new action so the popup dismisses
+  if (game.lastRoundResult) {
+    game = { ...game, lastRoundResult: undefined };
+  }
+
   const a = withTimestamp(action);
-  assertTurn(game.round.turn, a);
+
+  // Skip turn check for ANSWER_CHALLENGE (both players can answer)
+  if (a.type !== 'ANSWER_CHALLENGE') {
+    assertTurn(game.round.turn, a);
+  }
 
   const snapshot = game;
   let round = game.round;
@@ -61,14 +78,13 @@ export function applyAction(game: GameState, action: GameAction): GameState {
       round = applyDraw(game.sys, round, a.playerId);
       break;
     case "PLAY":
-      round = applyPlay(game.sys, round, a.playerId, a.card, a.chosenSuit);
+      round = applyPlay(game.sys, round, a.playerId, a.card, a.chosenSuit, a.chosenOperation);
       break;
     case "PASS":
       round = passTurn(round);
       break;
     case "ANSWER_CHALLENGE":
           if (!round.activeChallenge) throw new Error("NoActiveChallenge");
-          if (round.activeChallenge.playerId !== a.playerId) throw new Error("NotYourChallenge");
 
           const isCorrect = round.activeChallenge.answer === a.answer;
           // If correct, add points immediately to scoresDec
@@ -120,14 +136,21 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     const gainedDec = roundGainDec(next.round.hands[loser], next.sys);
     const scoresDec = { ...next.scoresDec, [winner]: (next.scoresDec[winner] ?? 0) + gainedDec };
 
+    const roundResult: RoundResult = {
+      winner,
+      loser,
+      pointsGained: gainedDec,
+      scoresDec,
+    };
+
     const targetDec = parseInSystem(next.sys.targetScoreText, next.sys);
     const over = Object.values(scoresDec).some(s => s >= targetDec);
 
     if (over) {
-      next = { ...next, scoresDec, status: "GAME_OVER" };
+      next = { ...next, scoresDec, status: "GAME_OVER", lastRoundResult: roundResult };
     } else {
       const newRound = initRound(next.sys, next.round.players, 7);
-      next = { ...next, scoresDec, round: newRound };
+      next = { ...next, scoresDec, round: newRound, lastRoundResult: roundResult };
     }
   }
 
@@ -164,5 +187,6 @@ export function getPublicState(game: GameState) {
     targetScoreText: formatInSystem(targetDec, game.sys),
     faceRanks: game.sys.faceRanks,
     deckNumericSymbols: game.sys.deckNumericSymbols,
+    lastRoundResult: game.lastRoundResult,
   };
 }

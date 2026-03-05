@@ -3,7 +3,7 @@ import type { Card, PlayerID } from "./rules.js";
 import type { Suit } from "./systems.js";
 
 export type GameAction =
-  | { type: "PLAY"; playerId: PlayerID; card: Card; chosenSuit?: Suit; at?: number }
+  | { type: "PLAY"; playerId: PlayerID; card: Card; chosenSuit?: Suit; chosenOperation?: '+' | '-' | '*' | '/'; at?: number }
   | { type: "DRAW"; playerId: PlayerID; at?: number }
   | { type: "PASS"; playerId: PlayerID; at?: number }
   | { type: "ANSWER_CHALLENGE"; playerId: PlayerID; answer: number; at?: number };

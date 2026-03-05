@@ -23,6 +23,10 @@ interface LobbyScreenProps {
   onJoinLobby: () => void;
   onStartGame: () => void;
 
+  // Rejoin
+  savedGameId?: string;
+  onRejoinGame?: () => void;
+
   // Log
   log: string[];
 }
@@ -45,6 +49,8 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
   onCreateLobby,
   onJoinLobby,
   onStartGame,
+  savedGameId,
+  onRejoinGame,
   log,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -59,7 +65,7 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
 
   return (
     <div className="lobby-screen">
-      <h1 className="lobby-title">Crazy Tens</h1>
+      <h1 className="lobby-title">Crazy 1-0's</h1>
       <p className="lobby-subtitle">Dozenal Card Game</p>
 
       {/* Step 1: Auth */}
@@ -117,6 +123,16 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
               <option value="dec">Decimal (Base 10)</option>
             </select>
           </div>
+
+          {/* Rejoin button */}
+          {savedGameId && onRejoinGame && lobbyStatus === 'idle' && (
+            <div className="lobby-action-group" style={{ marginBottom: '1rem' }}>
+              <button className="btn-primary btn-large" onClick={onRejoinGame}>
+                🔄 Rejoin Active Game
+              </button>
+              <span className="action-hint">You have an active game in progress</span>
+            </div>
+          )}
 
           {lobbyStatus === 'idle' && (
             <div className="lobby-actions">

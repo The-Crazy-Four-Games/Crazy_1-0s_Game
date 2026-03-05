@@ -540,6 +540,20 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Operation picker buttons */
+.op-btn {
+  font-size: 2rem !important;
+  color: #fff !important;
+  min-width: 60px;
+}
+
+/* Round result goal row */
+.goal-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
 /* Log Section */
 .log-section {
   border: 1px solid rgba(255, 255, 255, 0.2);

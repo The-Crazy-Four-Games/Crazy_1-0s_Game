@@ -20,6 +20,14 @@ export interface MathChallenge {
   shouldPassTurn: boolean;
 }
 
+// Round result for end-of-round popup
+export interface RoundResult {
+  winner: string;
+  loser: string;
+  pointsGained: number;
+  scoresDec: Record<string, number>;
+}
+
 // Public state received from backend
 export interface PublicState {
   gameId: string;
@@ -36,11 +44,12 @@ export interface PublicState {
   targetScoreText: string;
   faceRanks: readonly string[];
   deckNumericSymbols: readonly string[];
+  lastRoundResult?: RoundResult;
 }
 
 // Action types matching backend
 export type GameAction =
-  | { type: 'PLAY'; playerId: string; card: Card; chosenSuit?: Suit }
+  | { type: 'PLAY'; playerId: string; card: Card; chosenSuit?: Suit; chosenOperation?: '+' | '-' | '*' | '/' }
   | { type: 'DRAW'; playerId: string }
   | { type: 'PASS'; playerId: string }
   | { type: 'ANSWER_CHALLENGE'; playerId: string; answer: number };
@@ -155,9 +164,15 @@ export function isSkipCard(rank: string): boolean {
   return rank === '6';
 }
 
-// Check if a card triggers an arithmetic challenge
-export function isChallengeCard(rank: string): boolean {
-  return rank === '10' || rank === 'J' || rank === 'Q' || rank === 'K';
+// Check if a card triggers an arithmetic challenge (any face card or wildcard 10)
+export function isChallengeCard(rank: string, faceRanks: readonly string[]): boolean {
+  return rank === '10' || faceRanks.includes(rank);
+}
+
+// Check if a card lets the player select the arithmetic operation
+// K in decimal, C in dozenal
+export function isSelectOpCard(rank: string, baseId: BaseId): boolean {
+  return (baseId === 'dec' && rank === 'K') || (baseId === 'doz' && rank === 'C');
 }
 
 // Get the operation label for a challenge type

@@ -24,6 +24,13 @@ type AuthResult = { token: string; user: { userId: string; username: string; rol
 
 type Card = { suit: "S" | "H" | "D" | "C"; rank: string };
 
+type RoundResult = {
+  winner: string;
+  loser: string;
+  pointsGained: number;
+  scoresDec: Record<string, number>;
+};
+
 type PublicState = {
   gameId: string;
   baseId: "doz" | "dec";
@@ -41,10 +48,13 @@ type PublicState = {
     shouldPassTurn: boolean;
   };
   handsCount: Record<string, number>;
+  scoresDec: Record<string, number>;
   scoresText: Record<string, string>;
+  targetScoreDec: number;
   targetScoreText: string;
   faceRanks: string[];
   deckNumericSymbols: string[];
+  lastRoundResult?: RoundResult;
 };
 
 async function postJSON<T>(url: string, body: any, token?: string): Promise<T> {
@@ -101,6 +111,9 @@ export default function App() {
 
   // Restart state
   const [restartStatus, setRestartStatus] = useState<"none" | "waiting" | "opponent_requested">("none");
+
+  // Saved game ID for rejoin
+  const [savedGameId, setSavedGameId] = useState<string>(() => localStorage.getItem("savedGameId") || "");
 
   // Determine if we should show game screen
   const showGameScreen = ps !== null && gameJoined;
@@ -174,6 +187,10 @@ export default function App() {
 
     s.on(WS.GAME_STATE, (state: PublicState) => {
       setPs(state);
+      if (state.status === "GAME_OVER") {
+        setSavedGameId("");
+        localStorage.removeItem("savedGameId");
+      }
     });
 
     s.on(WS.MY_HAND, (payload: any) => {
@@ -197,6 +214,16 @@ export default function App() {
       setRestartStatus("none");
       pushLog(`Game restarted!`);
     });
+  }
+
+  // --- Rejoin a previously active game ---
+  function handleRejoinGame() {
+    if (!savedGameId || !token) return;
+    setGameId(savedGameId);
+    connectAndJoinGame(token, savedGameId);
+    setSavedGameId("");
+    localStorage.removeItem("savedGameId");
+    pushLog(`Rejoining game ${savedGameId}...`);
   }
 
   // --- Simplified lobby flow ---
@@ -284,9 +311,9 @@ export default function App() {
     if (!userId) return;
     emitAction({ type: "PASS", playerId: userId });
   }
-  function doPlay(card: Card, chosenSuit?: "S" | "H" | "D" | "C") {
+  function doPlay(card: Card, chosenSuit?: "S" | "H" | "D" | "C", chosenOperation?: '+' | '-' | '*' | '/') {
     if (!userId) return;
-    emitAction({ type: "PLAY", playerId: userId, card, chosenSuit });
+    emitAction({ type: "PLAY", playerId: userId, card, chosenSuit, chosenOperation });
   }
   function doAnswerChallenge(answer: number) {
     if (!userId) return;
@@ -305,6 +332,14 @@ export default function App() {
 
   // Back to lobby handler
   function handleBackToLobby() {
+    // Save game ID for rejoin if game is still ongoing
+    if (ps && ps.status !== "GAME_OVER" && gameId) {
+      setSavedGameId(gameId);
+      localStorage.setItem("savedGameId", gameId);
+    } else {
+      setSavedGameId("");
+      localStorage.removeItem("savedGameId");
+    }
     setGameJoined(false);
     setPs(null);
     setMyHand([]);
@@ -358,6 +393,8 @@ export default function App() {
       onCreateLobby={() => handleCreateLobby().catch((e) => pushLog(`Error: ${e.message}`))}
       onJoinLobby={() => handleJoinLobby().catch((e) => pushLog(`Error: ${e.message}`))}
       onStartGame={() => handleStartGame().catch((e) => pushLog(`Error: ${e.message}`))}
+      savedGameId={savedGameId}
+      onRejoinGame={handleRejoinGame}
       log={log}
     />
   );

@@ -1,11 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import Card from './Card';
 import ArithmeticPopup from './ArithmeticPopup';
-import { SUIT_SYMBOLS, SUIT_COLORS, sanitizeDozenalDisplay } from '../types/game';
+import { SUIT_SYMBOLS, SUIT_COLORS, sanitizeDozenalDisplay, isSelectOpCard as checkSelectOpCard } from '../types/game';
 import type { Suit, MathChallenge } from '../types/game';
 import './GameScreen.css';
 
 type CardType = { suit: Suit; rank: string };
+
+type RoundResult = {
+  winner: string;
+  loser: string;
+  pointsGained: number;
+  scoresDec: Record<string, number>;
+};
 
 type PublicState = {
   gameId: string;
@@ -16,10 +23,13 @@ type PublicState = {
   forcedSuit?: Suit;
   activeChallenge?: MathChallenge;
   handsCount: Record<string, number>;
+  scoresDec: Record<string, number>;
   scoresText: Record<string, string>;
+  targetScoreDec: number;
   targetScoreText: string;
   faceRanks: string[];
   deckNumericSymbols: string[];
+  lastRoundResult?: RoundResult;
 };
 
 interface GameScreenProps {
@@ -31,7 +41,7 @@ interface GameScreenProps {
 
   // Game actions
   onDraw: () => void;
-  onPlay: (card: CardType, chosenSuit?: Suit) => void;
+  onPlay: (card: CardType, chosenSuit?: Suit, chosenOperation?: '+' | '-' | '*' | '/') => void;
   onAnswerChallenge: (answer: number) => void;
 
   // Back button
@@ -59,6 +69,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const [showSuitPicker, setShowSuitPicker] = useState(false);
   const [pendingCard, setPendingCard] = useState<CardType | null>(null);
   const [showGameOverModal, setShowGameOverModal] = useState(true);
+  const [showRoundEndModal, setShowRoundEndModal] = useState(true);
+  const [showOpPicker, setShowOpPicker] = useState(false);
+  const [pendingOpCard, setPendingOpCard] = useState<CardType | null>(null);
+  const [pendingOpSuit, setPendingOpSuit] = useState<Suit | undefined>(undefined);
 
   // Get opponent info
   const opponentId = useMemo(() => {
@@ -67,8 +81,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   }, [ps.handsCount, userId]);
 
   const opponentHandCount = ps.handsCount[opponentId] || 0;
-  const myScore = sanitizeDozenalDisplay(ps.scoresText[userId] || '0');
-  const opponentScore = sanitizeDozenalDisplay(ps.scoresText[opponentId] || '0');
+  // Always display scores in decimal
+  const myScore = String(ps.scoresDec?.[userId] ?? 0);
+  const opponentScore = String(ps.scoresDec?.[opponentId] ?? 0);
+  const targetScore = String(ps.targetScoreDec ?? 100);
 
   // Determine winner when game is over
   const isGameOver = ps.status === 'GAME_OVER';
@@ -81,6 +97,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Helper to check if card is skip card (rank "6" for dozenal, "5" for decimal)
   const skipRank = ps.baseId === 'doz' ? '6' : '5';
   const isSkipCard = (rank: string) => rank === skipRank;
+
+  // Helper to check if card triggers operation selection (K in decimal, C in dozenal)
+  const isSelectOp = (rank: string) => checkSelectOpCard(rank, ps.baseId);
 
   // Playable cards hint (client-side weak check)
   const playableCards = useMemo(() => {
@@ -108,6 +127,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       if (isWildcard(card.rank)) {
         setPendingCard(card);
         setShowSuitPicker(true);
+      } else if (isSelectOp(card.rank)) {
+        setPendingOpCard(card);
+        setPendingOpSuit(undefined);
+        setShowOpPicker(true);
       } else {
         onPlay(card);
         setSelectedCard(null);
@@ -122,6 +145,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     if (isWildcard(selectedCard.rank)) {
       setPendingCard(selectedCard);
       setShowSuitPicker(true);
+    } else if (isSelectOp(selectedCard.rank)) {
+      setPendingOpCard(selectedCard);
+      setPendingOpSuit(undefined);
+      setShowOpPicker(true);
     } else {
       onPlay(selectedCard);
       setSelectedCard(null);
@@ -137,6 +164,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     setShowSuitPicker(false);
   };
 
+  const handleOpSelect = (op: '+' | '-' | '*' | '/') => {
+    if (pendingOpCard) {
+      onPlay(pendingOpCard, pendingOpSuit, op);
+      setPendingOpCard(null);
+      setPendingOpSuit(undefined);
+      setSelectedCard(null);
+    }
+    setShowOpPicker(false);
+  };
+
   // Create opponent's face-down cards
   const opponentCards: CardType[] = Array(opponentHandCount).fill({ suit: 'S', rank: '?' });
 
@@ -147,7 +184,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         <button className="back-button" onClick={onBackToLobby}>
           ← Back
         </button>
-        <h1>Crazy Tens</h1>
+        <h1>Crazy 1-0's</h1>
         <div className="game-base-info">
           Base: {ps.baseId === 'doz' ? 'Dozenal' : 'Decimal'}
         </div>
@@ -164,13 +201,50 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         </span>
         <span className="score-divider">|</span>
         <span className="goal">
-          Goal: <strong>{sanitizeDozenalDisplay(ps.targetScoreText)}</strong>
+          Goal: <strong>{targetScore}</strong>
         </span>
         <span className="score-divider">|</span>
         <span>
           Base: <strong>{ps.baseId}</strong>
         </span>
       </div>
+
+      {/* Round End Popup */}
+      {ps.lastRoundResult && showRoundEndModal && !isGameOver && (
+        <div className="game-over-overlay">
+          <div className="game-over-modal">
+            <h2>{ps.lastRoundResult.winner === userId ? '🎉 You Won This Round!' : '😔 You Lost This Round'}</h2>
+            <div className="final-scores">
+              <div className="score-row">
+                <span>Points Won This Round:</span>
+                <strong>{ps.lastRoundResult.pointsGained}</strong>
+              </div>
+              <div className="score-row">
+                <span>Your Total Score:</span>
+                <strong>{ps.lastRoundResult.scoresDec[userId] ?? 0}</strong>
+              </div>
+              <div className="score-row">
+                <span>Opponent Total Score:</span>
+                <strong>{ps.lastRoundResult.scoresDec[opponentId] ?? 0}</strong>
+              </div>
+              <div className="score-row goal-row">
+                <span>Goal:</span>
+                <strong>{targetScore}</strong>
+              </div>
+            </div>
+            <p className="game-over-message">
+              {ps.lastRoundResult.winner === userId
+                ? 'Great job! Next round is ready.'
+                : 'Keep going! Next round is ready.'}
+            </p>
+            <div className="game-over-actions">
+              <button className="modal-btn primary" onClick={() => setShowRoundEndModal(false)}>
+                Continue to Next Round
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Game Over Modal */}
       {isGameOver && showGameOverModal && (
@@ -188,7 +262,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               </div>
               <div className="score-row goal-row">
                 <span>Goal:</span>
-                <strong>{sanitizeDozenalDisplay(ps.targetScoreText)}</strong>
+                <strong>{targetScore}</strong>
               </div>
             </div>
             <p className="game-over-message">
@@ -338,7 +412,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           <span className="hint-label">Playable:</span>
           <span className="hint-cards">
             {playableCards.length > 0
-              ? playableCards.map((c) => `${c.rank}${c.suit}`).join(' ')
+              ? playableCards.map((c) => `${sanitizeDozenalDisplay(c.rank)}${c.suit}`).join(' ')
               : '(none)'}
           </span>
         </div>
@@ -354,7 +428,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           disabled={!myTurn || !selectedCard}
           onClick={handlePlayButton}
         >
-          PLAY {selectedCard ? `${selectedCard.rank}${selectedCard.suit}` : ''}
+          PLAY {selectedCard ? `${sanitizeDozenalDisplay(selectedCard.rank)}${selectedCard.suit}` : ''}
         </button>
       </div>
 
@@ -382,19 +456,30 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       )}
 
-      {/* Arithmetic Challenge Popup */}
-      {ps.activeChallenge && ps.activeChallenge.playerId === userId && (
+      {/* Operation Picker Modal (for K in decimal / C in dozenal) */}
+      {showOpPicker && (
+        <div className="suit-picker-overlay" onClick={() => setShowOpPicker(false)}>
+          <div className="suit-picker" onClick={(e) => e.stopPropagation()}>
+            <h3>Choose Arithmetic Operation</h3>
+            <div className="suit-options">
+              <button className="suit-btn op-btn" onClick={() => handleOpSelect('+')}>+</button>
+              <button className="suit-btn op-btn" onClick={() => handleOpSelect('-')}>−</button>
+              <button className="suit-btn op-btn" onClick={() => handleOpSelect('*')}>×</button>
+              <button className="suit-btn op-btn" onClick={() => handleOpSelect('/')}>÷</button>
+            </div>
+            <button className="cancel-btn" onClick={() => setShowOpPicker(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Arithmetic Challenge Popup - shown to BOTH players */}
+      {ps.activeChallenge && (
         <ArithmeticPopup
           challenge={ps.activeChallenge}
           onAnswer={onAnswerChallenge}
         />
-      )}
-
-      {/* Opponent's challenge indicator */}
-      {ps.activeChallenge && ps.activeChallenge.playerId !== userId && (
-        <div className="opponent-challenge-banner">
-          Opponent is solving an arithmetic challenge...
-        </div>
       )}
 
       {/* Log Section */}
@@ -409,7 +494,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
       {/* Instructions */}
       <div className="game-instructions">
-        <strong>Card Legend:</strong> 🌟 = Wildcard (10, changes suit + Addition) | ⏭️ = Skip ({skipRank}, grants free play) | J = Subtraction | Q = Multiplication | K = Division
+        <strong>Card Legend:</strong> 🌟 = Wildcard (10, changes suit + Addition) | ⏭️ = Skip ({skipRank}, grants free play) | Face Cards (J, Q{ps.baseId === 'doz' ? ', K' : ''}) = Random Arithmetic | {ps.baseId === 'dec' ? 'K' : 'C'} = Choose Arithmetic Op
       </div>
     </div>
   );
