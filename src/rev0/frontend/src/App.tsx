@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import LobbyScreen from "./components/LobbyScreen";
 import GameScreen from "./components/GameScreen";
@@ -31,6 +31,15 @@ type PublicState = {
   turn: string;
   topCard: Card;
   forcedSuit?: "S" | "H" | "D" | "C";
+  activeChallenge?: {
+    playerId: string;
+    type: '+' | '-' | '*' | '/';
+    op1: number;
+    op2: number;
+    answer?: number;
+    reward: number;
+    shouldPassTurn: boolean;
+  };
   handsCount: Record<string, number>;
   scoresText: Record<string, string>;
   targetScoreText: string;
@@ -82,16 +91,18 @@ export default function App() {
   const [myHand, setMyHand] = useState<Card[]>([]);
 
   const [log, setLog] = useState<string[]>([]);
-  const pushLog = (s: string) => setLog((x) => [s, ...x].slice(0, 200));
+  const pushLog = useCallback((s: string) => setLog((x) => [s, ...x].slice(0, 200)), []);
 
   // Track if we've joined the game via WS
   const [gameJoined, setGameJoined] = useState(false);
+
+  // Lobby status
+  const [lobbyStatus, setLobbyStatus] = useState<"idle" | "created" | "joined" | "starting" | "ready">("idle");
 
   // Restart state
   const [restartStatus, setRestartStatus] = useState<"none" | "waiting" | "opponent_requested">("none");
 
   // Determine if we should show game screen
-  // Show game screen when: we have public state AND game is started
   const showGameScreen = ps !== null && gameJoined;
 
   // --- auth ---
@@ -101,7 +112,7 @@ export default function App() {
     setUserId(out.user.userId);
     localStorage.setItem("token", out.token);
     localStorage.setItem("userId", out.user.userId);
-    pushLog(`REGISTER ok. userId=${out.user.userId}`);
+    pushLog(`Registered as ${out.user.username}`);
   }
   async function doLogin() {
     const out = await postJSON<AuthResult>(`${API}/auth/login`, { username, password });
@@ -109,101 +120,70 @@ export default function App() {
     setUserId(out.user.userId);
     localStorage.setItem("token", out.token);
     localStorage.setItem("userId", out.user.userId);
-    pushLog(`LOGIN ok. userId=${out.user.userId}`);
+    pushLog(`Logged in as ${out.user.username}`);
   }
   function doLogoutLocal() {
     setToken("");
     setUserId("");
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
-    pushLog("Local logout");
+    pushLog("Logged out");
     if (sockRef.current) {
       sockRef.current.disconnect();
       sockRef.current = null;
       setWsStatus("disconnected");
     }
-    // Reset game state
     setPs(null);
     setGameJoined(false);
     setMyHand([]);
     setGameId("");
+    setLobbyId("");
+    setLobbyStatus("idle");
   }
 
-  // --- lobby ---
-  async function createLobby() {
-    if (!token) throw new Error("Need login first");
-    const out = await postJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/create`, {}, token);
-    setLobbyId(out.lobby.lobbyId);
-    if (out.gameId) setGameId(out.gameId);
-    pushLog(`Created lobby: ${out.lobby.lobbyId}`);
-  }
-
-  async function joinLobby() {
-    if (!token) throw new Error("Need login first");
-    if (!lobbyId) throw new Error("Enter lobbyId");
-    const out = await postJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/join`, { lobbyId }, token);
-    pushLog(`Joined lobby: ${out.lobby.lobbyId}`);
-
-    // auto sync after join
-    await syncGameId().catch(() => {});
-  }
-
-  async function syncGameId() {
-    if (!token) throw new Error("Need login first");
-    if (!lobbyId) throw new Error("Need lobbyId");
-    const out = await getJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/status?lobbyId=${encodeURIComponent(lobbyId)}`, token);
-    if (out.gameId) {
-      setGameId(out.gameId);
-      pushLog(`Synced gameId from lobby: ${out.gameId}`);
-    } else {
-      pushLog("Lobby has no gameId yet (host not started).");
+  // --- Helper: connect WS, then join game room ---
+  function connectAndJoinGame(tok: string, gId: string) {
+    if (sockRef.current) {
+      // Already connected, just join
+      sockRef.current.emit(WS.JOIN_GAME, { gameId: gId });
+      pushLog(`Joining game ${gId}...`);
+      setGameJoined(true);
+      return;
     }
-  }
 
-  async function startMatch() {
-    if (!token) throw new Error("Need login first");
-    if (!lobbyId) throw new Error("Need lobbyId");
-    const out = await postJSON<{ gameId: string; publicState: PublicState }>(
-      `${API}/lobby/start`,
-      { lobbyId, baseId },
-      token
-    );
-    setGameId(out.gameId);
-    setPs(out.publicState);
-    pushLog(`Started match: gameId=${out.gameId}`);
-  }
-
-  // --- websocket ---
-  function connectWS() {
-    if (!token) return pushLog("Need login first");
-    if (sockRef.current) return pushLog("WS already connected");
-
-    const s = io(WS_URL, { auth: { token }, transports: ["websocket"] });
+    const s = io(WS_URL, { auth: { token: tok }, transports: ["websocket"] });
     sockRef.current = s;
 
-    s.on("connect", () => { setWsStatus("connected"); pushLog(`WS connected (${s.id})`); });
-    s.on("disconnect", (r: string) => { 
-      setWsStatus("disconnected"); 
-      pushLog(`WS disconnected: ${r}`); 
-      sockRef.current = null; 
+    s.on("connect", () => {
+      setWsStatus("connected");
+      pushLog(`Connected to server`);
+      // Auto-join the game room once connected
+      s.emit(WS.JOIN_GAME, { gameId: gId });
+      pushLog(`Joining game...`);
+      setGameJoined(true);
+    });
+
+    s.on("disconnect", (r: string) => {
+      setWsStatus("disconnected");
+      pushLog(`Disconnected: ${r}`);
+      sockRef.current = null;
       setGameJoined(false);
     });
-    s.on(WS.ERROR, (e: unknown) => pushLog(`WS ERROR: ${JSON.stringify(e)}`));
+
+    s.on(WS.ERROR, (e: unknown) => pushLog(`ERROR: ${JSON.stringify(e)}`));
 
     s.on(WS.GAME_STATE, (state: PublicState) => {
       setPs(state);
-      pushLog(`STATE: top=${state.topCard.rank}${state.topCard.suit} forced=${state.forcedSuit ?? "-"} turn=${state.turn.slice(0, 6)}...`);
     });
 
     s.on(WS.MY_HAND, (payload: any) => {
       setMyHand(payload?.hand ?? []);
-      pushLog(`HAND updated: ${payload?.hand?.length ?? 0} cards`);
     });
 
     // Restart event handlers
-    s.on(WS.RESTART_REQUESTED, (payload: { requestedBy: string }) => {
+    s.on(WS.RESTART_REQUESTED, () => {
       setRestartStatus("opponent_requested");
-      pushLog(`Opponent requested restart`);
+      pushLog(`Opponent requested rematch`);
     });
 
     s.on(WS.RESTART_CONFIRMED, (payload: { message: string }) => {
@@ -215,45 +195,110 @@ export default function App() {
       setGameId(payload.newGameId);
       setPs(payload.publicState);
       setRestartStatus("none");
-      pushLog(`Game restarted! New game: ${payload.newGameId}`);
+      pushLog(`Game restarted!`);
     });
   }
 
-  function joinGameWS() {
-    const s = sockRef.current;
-    if (!s) return pushLog("WS not connected");
-    if (!gameId) return pushLog("Need gameId (host start or sync first)");
-    s.emit(WS.JOIN_GAME, { gameId });
-    pushLog(`Sent join_game ${gameId}`);
-    setGameJoined(true);
+  // --- Simplified lobby flow ---
+
+  // P1: Create lobby
+  async function handleCreateLobby() {
+    if (!token) throw new Error("Need login first");
+    const out = await postJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/create`, {}, token);
+    setLobbyId(out.lobby.lobbyId);
+    if (out.gameId) setGameId(out.gameId);
+    setLobbyStatus("created");
+    pushLog(`Lobby created: ${out.lobby.lobbyId}`);
   }
 
+  // P2: Join lobby
+  async function handleJoinLobby() {
+    if (!token) throw new Error("Need login first");
+    if (!lobbyId) throw new Error("Enter lobby ID");
+    await postJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/join`, { lobbyId }, token);
+    setLobbyStatus("joined");
+    pushLog(`Joined lobby: ${lobbyId}`);
+
+    // Start polling for game start
+    pollForGameStart(lobbyId, token);
+  }
+
+  // P1: Start the game -> auto connect WS + join
+  async function handleStartGame() {
+    if (!token) throw new Error("Need login first");
+    if (!lobbyId) throw new Error("Need lobbyId");
+    setLobbyStatus("starting");
+    pushLog("Starting game...");
+
+    const out = await postJSON<{ gameId: string; publicState: PublicState }>(
+      `${API}/lobby/start`,
+      { lobbyId, baseId },
+      token
+    );
+    setGameId(out.gameId);
+    setPs(out.publicState);
+    pushLog(`Game started!`);
+
+    // Auto connect WS and join game
+    connectAndJoinGame(token, out.gameId);
+  }
+
+  // P2: Poll lobby status until game starts, then auto-join
+  function pollForGameStart(lid: string, tok: string) {
+    pushLog("Waiting for host to start...");
+    const interval = setInterval(async () => {
+      try {
+        const out = await getJSON<{ lobby: any; gameId?: string | null }>(
+          `${API}/lobby/status?lobbyId=${encodeURIComponent(lid)}`,
+          tok
+        );
+        if (out.gameId) {
+          clearInterval(interval);
+          setGameId(out.gameId);
+          pushLog(`Game found! Connecting...`);
+          // Auto connect WS and join game
+          connectAndJoinGame(tok, out.gameId);
+        }
+      } catch {
+        // Keep polling
+      }
+    }, 1500);
+
+    // Clean up after 5 minutes
+    setTimeout(() => clearInterval(interval), 300000);
+  }
+
+  // --- Game actions ---
   function emitAction(action: any) {
     const s = sockRef.current;
-    if (!s) return pushLog("WS not connected");
-    if (!gameId) return pushLog("Need gameId");
+    if (!s) return pushLog("Not connected");
+    if (!gameId) return pushLog("No active game");
     s.emit(WS.SUBMIT_ACTION, { gameId, action });
   }
 
   function doDraw() {
-    if (!userId) return pushLog("No userId");
+    if (!userId) return;
     emitAction({ type: "DRAW", playerId: userId });
   }
   function doPass() {
-    if (!userId) return pushLog("No userId");
+    if (!userId) return;
     emitAction({ type: "PASS", playerId: userId });
   }
   function doPlay(card: Card, chosenSuit?: "S" | "H" | "D" | "C") {
-    if (!userId) return pushLog("No userId");
+    if (!userId) return;
     emitAction({ type: "PLAY", playerId: userId, card, chosenSuit });
+  }
+  function doAnswerChallenge(answer: number) {
+    if (!userId) return;
+    emitAction({ type: "ANSWER_CHALLENGE", playerId: userId, answer });
   }
 
   function requestRestart() {
     const s = sockRef.current;
-    if (!s) return pushLog("WS not connected");
-    if (!gameId) return pushLog("Need gameId");
+    if (!s) return pushLog("Not connected");
+    if (!gameId) return pushLog("No active game");
     s.emit(WS.REQUEST_RESTART, { gameId });
-    pushLog("Requested restart...");
+    pushLog("Requested rematch...");
   }
 
   const myTurn = ps ? ps.turn === userId : false;
@@ -264,9 +309,17 @@ export default function App() {
     setPs(null);
     setMyHand([]);
     setRestartStatus("none");
+    setLobbyStatus("idle");
+    setGameId("");
+    setLobbyId("");
+    if (sockRef.current) {
+      sockRef.current.disconnect();
+      sockRef.current = null;
+      setWsStatus("disconnected");
+    }
   }
 
-  // Render appropriate screen
+  // Render game screen
   if (showGameScreen && ps) {
     return (
       <GameScreen
@@ -276,8 +329,8 @@ export default function App() {
         myTurn={myTurn}
         log={log}
         onDraw={doDraw}
-        onPass={doPass}
         onPlay={doPlay}
+        onAnswerChallenge={doAnswerChallenge}
         onBackToLobby={handleBackToLobby}
         restartStatus={restartStatus}
         onRequestRestart={requestRestart}
@@ -285,6 +338,7 @@ export default function App() {
     );
   }
 
+  // Render lobby screen
   return (
     <LobbyScreen
       username={username}
@@ -293,21 +347,17 @@ export default function App() {
       setPassword={setPassword}
       token={token}
       userId={userId}
-      onRegister={() => doRegister().catch((e) => pushLog(`ERR: ${e.message}`))}
-      onLogin={() => doLogin().catch((e) => pushLog(`ERR: ${e.message}`))}
+      onRegister={() => doRegister().catch((e) => pushLog(`Error: ${e.message}`))}
+      onLogin={() => doLogin().catch((e) => pushLog(`Error: ${e.message}`))}
       onLogout={doLogoutLocal}
       baseId={baseId}
       setBaseId={setBaseId}
       lobbyId={lobbyId}
       setLobbyId={setLobbyId}
-      gameId={gameId}
-      onCreateLobby={() => createLobby().catch((e) => pushLog(`ERR: ${e.message}`))}
-      onJoinLobby={() => joinLobby().catch((e) => pushLog(`ERR: ${e.message}`))}
-      onStartMatch={() => startMatch().catch((e) => pushLog(`ERR: ${e.message}`))}
-      onSyncGameId={() => syncGameId().catch((e) => pushLog(`ERR: ${e.message}`))}
-      wsStatus={wsStatus}
-      onConnectWS={connectWS}
-      onJoinGameWS={joinGameWS}
+      lobbyStatus={lobbyStatus}
+      onCreateLobby={() => handleCreateLobby().catch((e) => pushLog(`Error: ${e.message}`))}
+      onJoinLobby={() => handleJoinLobby().catch((e) => pushLog(`Error: ${e.message}`))}
+      onStartGame={() => handleStartGame().catch((e) => pushLog(`Error: ${e.message}`))}
       log={log}
     />
   );

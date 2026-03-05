@@ -571,3 +571,16 @@
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
 }
+
+/* Opponent Challenge Banner */
+.opponent-challenge-banner {
+  text-align: center;
+  padding: 12px 20px;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  color: #ffc107;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}

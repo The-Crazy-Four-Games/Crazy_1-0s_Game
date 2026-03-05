@@ -1,5 +1,4 @@
 .card {
-  background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -7,24 +6,30 @@
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
+  overflow: hidden;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  pointer-events: none;
 }
 
 .card-small {
   width: 50px;
-  height: 70px;
-  font-size: 10px;
+  height: 75px;
 }
 
 .card-medium {
-  width: 70px;
-  height: 100px;
-  font-size: 14px;
+  width: 80px;
+  height: 120px;
 }
 
 .card-large {
-  width: 90px;
-  height: 130px;
-  font-size: 18px;
+  width: 100px;
+  height: 150px;
 }
 
 .card.playable {
@@ -46,7 +51,6 @@
 
 /* Wildcard (rank 10) styling */
 .card.wildcard {
-  background: linear-gradient(135deg, #fff8e1, #ffecb3);
   border: 2px solid #ffc107;
 }
 
@@ -61,7 +65,6 @@
 
 /* Skip card (rank 6) styling */
 .card.skip-card {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
   border: 2px solid #2196f3;
 }
 
@@ -115,72 +118,7 @@
   background: linear-gradient(135deg, #e3f2fd, #2196f3);
 }
 
-.card-corner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1;
-}
-
-.card-corner.top-left {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-}
-
-.card-corner.bottom-right {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  transform: rotate(180deg);
-}
-
-.card-rank {
-  font-weight: bold;
-}
-
-.card-suit {
-  font-size: 0.8em;
-}
-
-.card-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-suit-large {
-  font-size: 2em;
-}
-
-.card-small .card-suit-large {
-  font-size: 1.5em;
-}
-
-.card-large .card-suit-large {
-  font-size: 3em;
-}
-
 /* Card Back */
 .card-back {
-  background: linear-gradient(135deg, #1a237e, #3949ab);
   border: 2px solid #0d47a1;
-}
-
-.card-back-pattern {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2em;
-  opacity: 0.5;
-}
-
-.card-small .card-back-pattern {
-  font-size: 1.5em;
-}
-
-.card-large .card-back-pattern {
-  font-size: 3em;
 }

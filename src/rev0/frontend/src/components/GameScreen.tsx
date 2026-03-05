@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import Card from './Card';
-import { SUIT_SYMBOLS, SUIT_COLORS } from '../types/game';
-import type { Suit } from '../types/game';
+import ArithmeticPopup from './ArithmeticPopup';
+import { SUIT_SYMBOLS, SUIT_COLORS, sanitizeDozenalDisplay } from '../types/game';
+import type { Suit, MathChallenge } from '../types/game';
 import './GameScreen.css';
 
 type CardType = { suit: Suit; rank: string };
@@ -13,6 +14,7 @@ type PublicState = {
   turn: string;
   topCard: CardType;
   forcedSuit?: Suit;
+  activeChallenge?: MathChallenge;
   handsCount: Record<string, number>;
   scoresText: Record<string, string>;
   targetScoreText: string;
@@ -29,8 +31,8 @@ interface GameScreenProps {
 
   // Game actions
   onDraw: () => void;
-  onPass: () => void;
   onPlay: (card: CardType, chosenSuit?: Suit) => void;
+  onAnswerChallenge: (answer: number) => void;
 
   // Back button
   onBackToLobby: () => void;
@@ -47,8 +49,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   myTurn,
   log,
   onDraw,
-  onPass,
   onPlay,
+  onAnswerChallenge,
   onBackToLobby,
   restartStatus,
   onRequestRestart,
@@ -65,8 +67,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   }, [ps.handsCount, userId]);
 
   const opponentHandCount = ps.handsCount[opponentId] || 0;
-  const myScore = ps.scoresText[userId] || '0';
-  const opponentScore = ps.scoresText[opponentId] || '0';
+  const myScore = sanitizeDozenalDisplay(ps.scoresText[userId] || '0');
+  const opponentScore = sanitizeDozenalDisplay(ps.scoresText[opponentId] || '0');
 
   // Determine winner when game is over
   const isGameOver = ps.status === 'GAME_OVER';
@@ -162,7 +164,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         </span>
         <span className="score-divider">|</span>
         <span className="goal">
-          Goal: <strong>{ps.targetScoreText}</strong>
+          Goal: <strong>{sanitizeDozenalDisplay(ps.targetScoreText)}</strong>
         </span>
         <span className="score-divider">|</span>
         <span>
@@ -186,7 +188,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               </div>
               <div className="score-row goal-row">
                 <span>Goal:</span>
-                <strong>{ps.targetScoreText}</strong>
+                <strong>{sanitizeDozenalDisplay(ps.targetScoreText)}</strong>
               </div>
             </div>
             <p className="game-over-message">
@@ -347,9 +349,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         <button className="action-btn" disabled={!myTurn} onClick={onDraw}>
           DRAW
         </button>
-        <button className="action-btn" disabled={!myTurn} onClick={onPass}>
-          PASS
-        </button>
         <button
           className="action-btn play-btn"
           disabled={!myTurn || !selectedCard}
@@ -383,6 +382,21 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       )}
 
+      {/* Arithmetic Challenge Popup */}
+      {ps.activeChallenge && ps.activeChallenge.playerId === userId && (
+        <ArithmeticPopup
+          challenge={ps.activeChallenge}
+          onAnswer={onAnswerChallenge}
+        />
+      )}
+
+      {/* Opponent's challenge indicator */}
+      {ps.activeChallenge && ps.activeChallenge.playerId !== userId && (
+        <div className="opponent-challenge-banner">
+          Opponent is solving an arithmetic challenge...
+        </div>
+      )}
+
       {/* Log Section */}
       <div className="log-section">
         <b>Log</b>
@@ -395,7 +409,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
       {/* Instructions */}
       <div className="game-instructions">
-        <strong>Card Legend:</strong> 🌟 = Wildcard (10, changes suit) | ⏭️ = Skip ({skipRank}, grants free play)
+        <strong>Card Legend:</strong> 🌟 = Wildcard (10, changes suit + Addition) | ⏭️ = Skip ({skipRank}, grants free play) | J = Subtraction | Q = Multiplication | K = Division
       </div>
     </div>
   );

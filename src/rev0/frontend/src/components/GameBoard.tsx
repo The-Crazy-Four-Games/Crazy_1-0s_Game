@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import PlayerHand from './PlayerHand';
 import { DrawPile, DiscardPile, SuitSelector, GameActions } from './GameTable';
-import { getCardId, isWildcard } from '../types/game';
+import { getCardId, isWildcard, sanitizeDozenalDisplay } from '../types/game';
 import './GameBoard.css';
 
 export const GameBoard: React.FC = () => {
@@ -32,7 +32,6 @@ export const GameBoard: React.FC = () => {
     selectSuit,
     cancelSuitSelection,
     drawCard,
-    passTurn,
     message,
   } = useGameState(token, gameId, userId);
 
@@ -52,7 +51,6 @@ export const GameBoard: React.FC = () => {
     playableCards.some((c) => getCardId(c) === getCardId(selectedCard)) &&
     !isGameOver
   );
-  const canPass = isPlayerTurn && !isGameOver;
 
   // If not connected, show connection UI
   if (!token || !gameId || !userId) {
@@ -156,8 +154,8 @@ export const GameBoard: React.FC = () => {
   // Get opponent info from public state
   const opponentId = Object.keys(publicState.handsCount).find(id => id !== userId) || 'opponent';
   const opponentHandCount = publicState.handsCount[opponentId] || 0;
-  const playerScore = publicState.scoresText?.[userId] || '0';
-  const opponentScore = publicState.scoresText?.[opponentId] || '0';
+  const playerScore = sanitizeDozenalDisplay(publicState.scoresText?.[userId] || '0');
+  const opponentScore = sanitizeDozenalDisplay(publicState.scoresText?.[opponentId] || '0');
 
   return (
     <div className="game-board">
@@ -173,7 +171,7 @@ export const GameBoard: React.FC = () => {
           </span>
           <span className="score-divider">|</span>
           <span className="score-item goal">
-            Goal: {publicState.targetScoreText}
+            Goal: {sanitizeDozenalDisplay(publicState.targetScoreText)}
           </span>
         </div>
         <button className="disconnect-btn" onClick={disconnect}>
@@ -211,10 +209,8 @@ export const GameBoard: React.FC = () => {
           selectedCard={selectedCard}
           canPlay={canPlay}
           canDraw={canDraw}
-          canPass={canPass}
           onPlay={playCard}
           onDraw={drawCard}
-          onPass={passTurn}
           isWildCard={selectedCard ? isWildcard(selectedCard.rank) : false}
         />
       )}

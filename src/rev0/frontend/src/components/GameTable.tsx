@@ -114,10 +114,8 @@ interface GameActionsProps {
   selectedCard: CardType | null;
   canPlay: boolean;
   canDraw: boolean;
-  canPass?: boolean;
   onPlay: () => void;
   onDraw: () => void;
-  onPass: () => void;
   isWildCard: boolean;
 }
 
@@ -125,10 +123,8 @@ export const GameActions: React.FC<GameActionsProps> = ({
   selectedCard,
   canPlay,
   canDraw,
-  canPass = true,
   onPlay,
   onDraw,
-  onPass,
   isWildCard,
 }) => {
   return (
@@ -146,13 +142,6 @@ export const GameActions: React.FC<GameActionsProps> = ({
         disabled={!canDraw}
       >
         Draw Card
-      </button>
-      <button
-        className="action-button pass-button"
-        onClick={onPass}
-        disabled={!canPass}
-      >
-        Pass Turn
       </button>
     </div>
   );

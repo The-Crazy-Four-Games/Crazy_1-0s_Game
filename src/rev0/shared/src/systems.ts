@@ -55,7 +55,7 @@ export const DECIMAL_SYSTEM: NumeralSystem = (() => {
     faceRanks: ["J","Q","K"] as const,
     valueOf,
     targetSumText: "10",     // base10 10
-    targetScoreText: "50",   // base10 50
+    targetScoreText: "100",  // base10 100
     wildcardTenSymbol: "10",
     wildcardSkipSymbol: "5", // 5+5=10 in decimal
     facePointsDec: 10,
@@ -76,7 +76,7 @@ export const DOZENAL_SYSTEM: NumeralSystem = (() => {
     faceRanks: ["J","Q","K","C"] as const,
     valueOf,
     targetSumText: "10",     // base12 "10" => 12 dec
-    targetScoreText: "50",   // base12 "50" => 60 dec
+    targetScoreText: "84",   // base12 "84" => 100 dec
     wildcardTenSymbol: "10",
     wildcardSkipSymbol: "6",
     facePointsDec: 10,

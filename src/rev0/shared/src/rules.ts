@@ -68,7 +68,7 @@ export function createDeck(sys: NumeralSystem): Card[] {
 export function initRound(
   sys: NumeralSystem,
   players: [PlayerID, PlayerID],
-  initialHandSize = 5,
+  initialHandSize = 7,
   rngDeck?: Card[]
 ): RoundState {
   if (players[0] === players[1]) throw new Error("InvalidPlayers");
@@ -242,9 +242,9 @@ export function applyPlay(
           type: '/',
           op1: product,
           op2: op1,
+          answer,
           reward: 10,
           shouldPassTurn: true
-        }
         }
       };
     } else {
