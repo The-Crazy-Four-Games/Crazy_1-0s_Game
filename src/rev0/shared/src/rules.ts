@@ -274,7 +274,7 @@ export function applyPlay(
           op1: product,
           op2: a,
           answer: b,
-          reward: 10,
+          reward: sys.spec.base,
           shouldPassTurn: true
         }
       };
@@ -291,7 +291,7 @@ export function applyPlay(
           op1: high,
           op2: low,
           answer: high - low,
-          reward: 10,
+          reward: sys.spec.base,
           shouldPassTurn: true
         }
       };
@@ -308,7 +308,7 @@ export function applyPlay(
           op1,
           op2,
           answer,
-          reward: 10,
+          reward: sys.spec.base,
           shouldPassTurn: true
         }
       };
@@ -337,10 +337,10 @@ export function passTurn(state: RoundState): RoundState {
 }
 
 export function isRoundOver(state: RoundState): boolean {
-    if (state.activeChallenge) return false;
+  if (state.activeChallenge) return false;
 
-    const [p1, p2] = state.players;
-    return state.hands[p1].length === 0 || state.hands[p2].length === 0;
+  const [p1, p2] = state.players;
+  return state.hands[p1].length === 0 || state.hands[p2].length === 0;
 }
 
 export function roundWinner(state: RoundState): PlayerID | null {

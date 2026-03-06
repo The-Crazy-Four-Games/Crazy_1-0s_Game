@@ -68,6 +68,11 @@
   justify-content: space-between;
 }
 
+.auth-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .user-badge {
   font-size: 1.1rem;
   color: #4caf50;
@@ -289,8 +294,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Log */
@@ -325,4 +335,131 @@
 
 .instructions strong {
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* Create room bar */
+.create-room-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.base-select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(30, 30, 46, 0.9);
+  color: #fff;
+  font-size: 14px;
+}
+
+/* Room list */
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+.room-ready {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.btn-start:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.room-list-empty {
+  text-align: center;
+  padding: 24px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.95rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+
+.room-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.room-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.room-mine {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.06);
+}
+
+.room-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.room-host {
+  font-weight: 600;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.room-you-badge {
+  margin-left: 4px;
+  color: #4caf50;
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+.room-base {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.room-base-doz {
+  background: rgba(156, 39, 176, 0.2);
+  color: #ce93d8;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+}
+
+.room-base-dec {
+  background: rgba(33, 150, 243, 0.2);
+  color: #90caf9;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.room-players {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.room-players.full {
+  color: rgba(255, 152, 0, 0.8);
+}
+
+.btn-join {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+}
+
+.room-status-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
 }

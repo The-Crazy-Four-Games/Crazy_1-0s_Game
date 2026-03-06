@@ -65,8 +65,8 @@ export function applyAction(game: GameState, action: GameAction): GameState {
 
   const a = withTimestamp(action);
 
-  // Skip turn check for ANSWER_CHALLENGE (both players can answer)
-  if (a.type !== 'ANSWER_CHALLENGE') {
+  // Skip turn check for ANSWER_CHALLENGE and CHEAT_WIN
+  if (a.type !== 'ANSWER_CHALLENGE' && a.type !== 'CHEAT_WIN') {
     assertTurn(game.round.turn, a);
   }
 
@@ -84,29 +84,33 @@ export function applyAction(game: GameState, action: GameAction): GameState {
       round = passTurn(round);
       break;
     case "ANSWER_CHALLENGE":
-          if (!round.activeChallenge) throw new Error("NoActiveChallenge");
+      if (!round.activeChallenge) throw new Error("NoActiveChallenge");
 
-          const isCorrect = round.activeChallenge.answer === a.answer;
-          // If correct, add points immediately to scoresDec
-          if (isCorrect) {
-            const reward = round.activeChallenge.reward;
-            game = {
-                ...game,
-                scoresDec: {
-                    ...game.scoresDec,
-                    [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
-                }
-            };
+      const isCorrect = round.activeChallenge.answer === a.answer;
+      // If correct, add points immediately to scoresDec
+      if (isCorrect) {
+        const reward = round.activeChallenge.reward;
+        game = {
+          ...game,
+          scoresDec: {
+            ...game.scoresDec,
+            [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
           }
+        };
+      }
 
-          // Clear challenge
-          const shouldPass = round.activeChallenge.shouldPassTurn;
-          round = { ...round, activeChallenge: undefined };
+      // Clear challenge
+      const shouldPass = round.activeChallenge.shouldPassTurn;
+      round = { ...round, activeChallenge: undefined };
 
-          if (shouldPass) {
-              round = advanceTurn(round);
-          }
-          break;
+      if (shouldPass) {
+        round = advanceTurn(round);
+      }
+      break;
+    case "CHEAT_WIN":
+      // Empty this player's hand → triggers round-over + scoring
+      round = { ...round, hands: { ...round.hands, [a.playerId]: [] } };
+      break;
   }
 
   let next: GameState = {
@@ -172,6 +176,21 @@ export function getPublicState(game: GameState) {
     ? { ...game.round.activeChallenge, answer: undefined }
     : undefined;
 
+  // Format lastRoundResult with base-aware text
+  let lastRoundResultFormatted: any = undefined;
+  if (game.lastRoundResult) {
+    const r = game.lastRoundResult;
+    const scoresResultText: Record<string, string> = {};
+    for (const [pid, s] of Object.entries(r.scoresDec)) {
+      scoresResultText[pid] = formatInSystem(s, game.sys);
+    }
+    lastRoundResultFormatted = {
+      ...r,
+      pointsGainedText: formatInSystem(r.pointsGained, game.sys),
+      scoresText: scoresResultText,
+    };
+  }
+
   return {
     gameId: game.gameId,
     baseId: game.sys.id,
@@ -187,6 +206,6 @@ export function getPublicState(game: GameState) {
     targetScoreText: formatInSystem(targetDec, game.sys),
     faceRanks: game.sys.faceRanks,
     deckNumericSymbols: game.sys.deckNumericSymbols,
-    lastRoundResult: game.lastRoundResult,
+    lastRoundResult: lastRoundResultFormatted,
   };
 }

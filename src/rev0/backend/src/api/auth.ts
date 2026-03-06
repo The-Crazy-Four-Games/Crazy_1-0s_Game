@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { AuthService } from "../modules/auth/authService";
-import { UsernameTaken, WeakPassword, InvalidCredentials } from "../types/errors";
+import { UsernameTaken, WeakPassword, InvalidCredentials, AlreadyLoggedIn } from "../types/errors";
 
 export function makeAuthRouter(auth: AuthService) {
   const router = Router();
@@ -26,6 +26,7 @@ export function makeAuthRouter(auth: AuthService) {
       res.json(result);
     } catch (e: any) {
       if (e instanceof InvalidCredentials) return res.status(401).json({ error: e.message });
+      if (e instanceof AlreadyLoggedIn) return res.status(409).json({ error: e.message });
       return res.status(500).json({ error: "login failed" });
     }
   });

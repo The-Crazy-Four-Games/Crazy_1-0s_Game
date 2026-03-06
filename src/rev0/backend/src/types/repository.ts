@@ -1,6 +1,6 @@
 export type PlayerID = string;
 
-export type UserRole = "guest" | "user";
+export type UserRole = "guest" | "user" | "admin";
 
 export type Player = {
   id: PlayerID;
@@ -31,8 +31,16 @@ export type CredentialRecord = CredentialData & {
 export type MatchResult = {
   id: string;
   playerId: PlayerID;
+  opponentId?: PlayerID;
   outcome: "win" | "lose" | "draw";
+  playerScore?: number;
+  opponentScore?: number;
+  baseId?: string;
   timestamp: number;
+};
+
+export type MatchHistoryEntry = MatchResult & {
+  opponentNickname?: string;
 };
 
 export type PlayerStats = {
@@ -52,8 +60,19 @@ export interface Repository {
 
   storeCredential(playerId: PlayerID, cred: CredentialData): Promise<void>;
   getCredentialByUsername(username: string): Promise<CredentialRecord>;
+  changePassword(username: string, newPasswordHash: string): Promise<void>;
 
   saveMatchResult(result: MatchResult): Promise<void>;
-  getMatchHistory(playerId: PlayerID, limit: number, offset: number): Promise<MatchResult[]>;
+  getMatchHistory(playerId: PlayerID, limit: number, offset: number): Promise<MatchHistoryEntry[]>;
   getPlayerStats(playerId: PlayerID): Promise<PlayerStats>;
+
+  // Session tracking (for duplicate login prevention)
+  setSessionIat(playerId: PlayerID, iat: number): Promise<void>;
+  clearSessionIat(playerId: PlayerID): Promise<void>;
+  getSessionIat(playerId: PlayerID): Promise<number | null>;
+
+  // Admin
+  searchPlayers(query: string): Promise<Player[]>;
+  clearMatchHistory(playerId: PlayerID): Promise<void>;
 }
+

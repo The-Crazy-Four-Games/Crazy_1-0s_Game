@@ -2,6 +2,8 @@ import { useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import LobbyScreen from "./components/LobbyScreen";
 import GameScreen from "./components/GameScreen";
+import ProfilePage from "./components/ProfilePage";
+import AdminPage from "./components/AdminPage";
 import './App.css';
 
 const API = "http://localhost:3001/api/v1";
@@ -18,6 +20,16 @@ const WS = {
   RESTART_REQUESTED: "restart_requested",
   RESTART_CONFIRMED: "restart_confirmed",
   GAME_RESTARTED: "game_restarted",
+  DECLINE_RESTART: "decline_restart",
+  RESTART_DECLINED: "restart_declined",
+  // Leave events
+  OPPONENT_LEFT: "opponent_left",
+  FORCE_LOGOUT: "force_logout",
+  // Chat
+  CHAT_SEND: "chat_send",
+  CHAT_MSG: "chat_msg",
+  // Admin
+  ROOM_DELETED: "room_deleted",
 } as const;
 
 type AuthResult = { token: string; user: { userId: string; username: string; role: string } };
@@ -28,7 +40,9 @@ type RoundResult = {
   winner: string;
   loser: string;
   pointsGained: number;
+  pointsGainedText?: string;
   scoresDec: Record<string, number>;
+  scoresText?: Record<string, string>;
 };
 
 type PublicState = {
@@ -84,10 +98,10 @@ async function getJSON<T>(url: string, token?: string): Promise<T> {
 }
 
 export default function App() {
-  const [username, setUsername] = useState("u1");
+  const [username, setUsername] = useState(() => sessionStorage.getItem("username") || "u1");
   const [password, setPassword] = useState("123456");
-  const [token, setToken] = useState<string>(() => localStorage.getItem("token") || "");
-  const [userId, setUserId] = useState<string>(() => localStorage.getItem("userId") || "");
+  const [token, setToken] = useState<string>(() => sessionStorage.getItem("token") || "");
+  const [userId, setUserId] = useState<string>(() => sessionStorage.getItem("userId") || "");
 
   const [baseId, setBaseId] = useState<"doz" | "dec">("doz");
   const [lobbyId, setLobbyId] = useState("");
@@ -113,7 +127,25 @@ export default function App() {
   const [restartStatus, setRestartStatus] = useState<"none" | "waiting" | "opponent_requested">("none");
 
   // Saved game ID for rejoin
-  const [savedGameId, setSavedGameId] = useState<string>(() => localStorage.getItem("savedGameId") || "");
+  const [savedGameId, setSavedGameId] = useState<string>(() => sessionStorage.getItem("savedGameId") || "");
+
+  // Room list for lobby browser
+  const [rooms, setRooms] = useState<any[]>([]);
+
+  // Profile page visibility
+  const [showProfile, setShowProfile] = useState(false);
+
+  // Track if opponent has joined the room
+  const [roomHasGuest, setRoomHasGuest] = useState(false);
+
+  // Admin mode
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Guest mode
+  const [isGuest, setIsGuest] = useState(() => sessionStorage.getItem("isGuest") === "true");
+
+  // Chat
+  const [chatMessages, setChatMessages] = useState<{ from: string; text: string; ts: number }[]>([]);
 
   // Determine if we should show game screen
   const showGameScreen = ps !== null && gameJoined;
@@ -123,23 +155,63 @@ export default function App() {
     const out = await postJSON<AuthResult>(`${API}/auth/register`, { username, password });
     setToken(out.token);
     setUserId(out.user.userId);
-    localStorage.setItem("token", out.token);
-    localStorage.setItem("userId", out.user.userId);
+    setUsername(out.user.username);
+    sessionStorage.setItem("token", out.token);
+    sessionStorage.setItem("userId", out.user.userId);
+    sessionStorage.setItem("username", out.user.username);
     pushLog(`Registered as ${out.user.username}`);
   }
   async function doLogin() {
     const out = await postJSON<AuthResult>(`${API}/auth/login`, { username, password });
     setToken(out.token);
     setUserId(out.user.userId);
-    localStorage.setItem("token", out.token);
-    localStorage.setItem("userId", out.user.userId);
+    setUsername(out.user.username);
+    sessionStorage.setItem("token", out.token);
+    sessionStorage.setItem("userId", out.user.userId);
+    sessionStorage.setItem("username", out.user.username);
     pushLog(`Logged in as ${out.user.username}`);
   }
-  function doLogoutLocal() {
+  async function doAdminLogin() {
+    const out = await postJSON<AuthResult>(`${API}/admin/login`, { username, password });
+    setToken(out.token);
+    setUserId(out.user.userId);
+    setIsAdmin(true);
+    sessionStorage.setItem("token", out.token);
+    sessionStorage.setItem("userId", out.user.userId);
+    pushLog(`Admin login as ${out.user.username}`);
+  }
+  async function doGuestLogin() {
+    const tag = Math.random().toString(36).slice(2, 8);
+    const out = await postJSON<AuthResult>(`${API}/auth/guest`, { deviceId: tag });
+    setToken(out.token);
+    setUserId(out.user.userId);
+    setUsername(out.user.username);
+    setIsGuest(true);
+    sessionStorage.setItem("token", out.token);
+    sessionStorage.setItem("userId", out.user.userId);
+    sessionStorage.setItem("username", out.user.username);
+    sessionStorage.setItem("isGuest", "true");
+    pushLog(`Guest login as ${out.user.username}`);
+  }
+  async function doLogoutLocal() {
+    // Call backend to clear session IAT (prevents "already logged in" on re-login)
+    if (token) {
+      try {
+        await fetch(`${API}/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ token }),
+        });
+      } catch { /* ignore network errors during logout */ }
+    }
     setToken("");
     setUserId("");
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    setUsername("");
+    setIsGuest(false);
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("userId");
+    sessionStorage.removeItem("username");
+    sessionStorage.removeItem("isGuest");
     pushLog("Logged out");
     if (sockRef.current) {
       sockRef.current.disconnect();
@@ -189,7 +261,7 @@ export default function App() {
       setPs(state);
       if (state.status === "GAME_OVER") {
         setSavedGameId("");
-        localStorage.removeItem("savedGameId");
+        sessionStorage.removeItem("savedGameId");
       }
     });
 
@@ -214,6 +286,93 @@ export default function App() {
       setRestartStatus("none");
       pushLog(`Game restarted!`);
     });
+
+    s.on(WS.OPPONENT_LEFT, (payload: { userId: string; message: string; aborted?: boolean }) => {
+      pushLog(`⚠️ ${payload.message}`);
+      setRestartStatus("none");
+
+      const returnToLobby = () => {
+        setGameJoined(false);
+        setPs(null);
+        setMyHand([]);
+        setRestartStatus("none");
+        setLobbyStatus("idle");
+        setGameId("");
+        setLobbyId("");
+        setSavedGameId("");
+        sessionStorage.removeItem("savedGameId");
+        if (sockRef.current) {
+          sockRef.current.disconnect();
+          sockRef.current = null;
+        }
+        pushLog(payload.aborted
+          ? "Returned to lobby — game aborted, no match recorded."
+          : "Returned to lobby — opponent left.");
+      };
+
+      // If game was aborted (mid-game disconnect), return immediately
+      if (payload.aborted) {
+        alert("Opponent disconnected — game aborted. No match recorded.");
+        returnToLobby();
+      } else {
+        alert("Opponent has left the game. Returning to lobby.");
+        returnToLobby();
+      }
+    });
+
+    s.on(WS.RESTART_DECLINED, (payload: { declinedBy: string; message: string }) => {
+      pushLog(`❌ ${payload.message}`);
+      setRestartStatus("none");
+      // Auto-return to lobby
+      setTimeout(() => {
+        setGameJoined(false);
+        setPs(null);
+        setMyHand([]);
+        setRestartStatus("none");
+        setLobbyStatus("idle");
+        setGameId("");
+        setLobbyId("");
+        setSavedGameId("");
+        sessionStorage.removeItem("savedGameId");
+        if (sockRef.current) {
+          sockRef.current.disconnect();
+          sockRef.current = null;
+        }
+        pushLog("Returned to lobby — rematch declined.");
+      }, 2000);
+    });
+
+    // Force-logout: admin kicked the user
+    s.on(WS.FORCE_LOGOUT, (payload: { message: string }) => {
+      pushLog(`⚠️ ${payload.message}`);
+      doLogoutLocal();
+    });
+
+    // Chat
+    s.on(WS.CHAT_MSG, (payload: { from: string; text: string; ts: number }) => {
+      setChatMessages(prev => [...prev, payload]);
+    });
+
+    // Room deleted by admin (kick back to lobby, don't logout)
+    s.on(WS.ROOM_DELETED, (payload: { message: string }) => {
+      pushLog(`⚠️ ${payload.message}`);
+      alert(payload.message);
+      // Return to lobby without logging out
+      setGameJoined(false);
+      setPs(null);
+      setMyHand([]);
+      setRestartStatus("none");
+      setLobbyStatus("idle");
+      setGameId("");
+      setLobbyId("");
+      setChatMessages([]);
+      setSavedGameId("");
+      sessionStorage.removeItem("savedGameId");
+      if (sockRef.current) {
+        sockRef.current.disconnect();
+        sockRef.current = null;
+      }
+    });
   }
 
   // --- Rejoin a previously active game ---
@@ -222,32 +381,84 @@ export default function App() {
     setGameId(savedGameId);
     connectAndJoinGame(token, savedGameId);
     setSavedGameId("");
-    localStorage.removeItem("savedGameId");
+    sessionStorage.removeItem("savedGameId");
     pushLog(`Rejoining game ${savedGameId}...`);
   }
 
-  // --- Simplified lobby flow ---
+  // --- Lobby flow ---
 
-  // P1: Create lobby
+  async function fetchRooms() {
+    if (!token) return;
+    try {
+      const out = await getJSON<{ rooms: any[] }>(`${API}/lobby/list`, token);
+      setRooms(out.rooms);
+    } catch {
+      // ignore fetch errors
+    }
+  }
+
+  // P1: Create game room
   async function handleCreateLobby() {
     if (!token) throw new Error("Need login first");
-    const out = await postJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/create`, {}, token);
+    const out = await postJSON<{ lobby: any; gameId?: string | null }>(
+      `${API}/lobby/create`,
+      { baseId, username },
+      token
+    );
     setLobbyId(out.lobby.lobbyId);
     if (out.gameId) setGameId(out.gameId);
     setLobbyStatus("created");
-    pushLog(`Lobby created: ${out.lobby.lobbyId}`);
+    setRoomHasGuest(false);
+    pushLog(`Room created: ${out.lobby.lobbyId}`);
+
+    // Poll lobby status continuously (detect guest join/leave, room deletion)
+    const lid = out.lobby.lobbyId;
+    const tok = token;
+    const pollInterval = setInterval(async () => {
+      try {
+        const status = await getJSON<{ lobby: any; gameId?: string | null }>(
+          `${API}/lobby/status?lobbyId=${encodeURIComponent(lid)}`, tok
+        );
+        // Track guest presence dynamically
+        setRoomHasGuest(!!status.lobby?.guestId);
+      } catch (e: any) {
+        // Room was deleted (admin or auto-empty)
+        if (e.message?.includes('LobbyNotFound') || e.message?.includes('404')) {
+          clearInterval(pollInterval);
+          setLobbyId('');
+          setLobbyStatus('idle');
+          setRoomHasGuest(false);
+          pushLog('⚠️ Room was deleted. Returning to lobby.');
+          alert('Your room has been deleted by an admin.');
+        }
+      }
+    }, 2000);
   }
 
-  // P2: Join lobby
-  async function handleJoinLobby() {
+  // Leave a room before game starts
+  async function handleLeaveRoom() {
+    if (!token || !lobbyId) return;
+    try {
+      await postJSON(`${API}/lobby/leave`, { lobbyId }, token);
+      pushLog("Left room.");
+    } catch (e: any) {
+      pushLog(`Error leaving: ${e.message}`);
+    }
+    setLobbyId("");
+    setLobbyStatus("idle");
+    setRoomHasGuest(false);
+  }
+
+  // P2: Join game room from room list
+  async function handleJoinRoom(roomLobbyId: string) {
     if (!token) throw new Error("Need login first");
-    if (!lobbyId) throw new Error("Enter lobby ID");
-    await postJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/join`, { lobbyId }, token);
+    await postJSON<{ lobby: any; gameId?: string | null }>(`${API}/lobby/join`, { lobbyId: roomLobbyId }, token);
+    setLobbyId(roomLobbyId);
     setLobbyStatus("joined");
-    pushLog(`Joined lobby: ${lobbyId}`);
+    pushLog(`Joined room: ${roomLobbyId}`);
 
     // Start polling for game start
-    pollForGameStart(lobbyId, token);
+    pollForGameStart(roomLobbyId, token);
   }
 
   // P1: Start the game -> auto connect WS + join
@@ -259,7 +470,7 @@ export default function App() {
 
     const out = await postJSON<{ gameId: string; publicState: PublicState }>(
       `${API}/lobby/start`,
-      { lobbyId, baseId },
+      { lobbyId },
       token
     );
     setGameId(out.gameId);
@@ -286,8 +497,15 @@ export default function App() {
           // Auto connect WS and join game
           connectAndJoinGame(tok, out.gameId);
         }
-      } catch {
-        // Keep polling
+      } catch (e: any) {
+        // Room was deleted by admin or host left
+        if (e.message?.includes('LobbyNotFound') || e.message?.includes('404')) {
+          clearInterval(interval);
+          setLobbyId('');
+          setLobbyStatus('idle');
+          pushLog('⚠️ Room was deleted. Returning to lobby.');
+          alert('The room has been deleted.');
+        }
       }
     }, 1500);
 
@@ -319,6 +537,10 @@ export default function App() {
     if (!userId) return;
     emitAction({ type: "ANSWER_CHALLENGE", playerId: userId, answer });
   }
+  function doCheatWin() {
+    if (!userId) return;
+    emitAction({ type: "CHEAT_WIN", playerId: userId });
+  }
 
   function requestRestart() {
     const s = sockRef.current;
@@ -328,6 +550,21 @@ export default function App() {
     pushLog("Requested rematch...");
   }
 
+  function declineRestart() {
+    const s = sockRef.current;
+    if (!s) return pushLog("Not connected");
+    if (!gameId) return pushLog("No active game");
+    s.emit(WS.DECLINE_RESTART, { gameId });
+    pushLog("Declined rematch.");
+    handleBackToLobby();
+  }
+
+  function sendChat(text: string) {
+    const s = sockRef.current;
+    if (!s || !gameId) return;
+    s.emit(WS.CHAT_SEND, { gameId, text });
+  }
+
   const myTurn = ps ? ps.turn === userId : false;
 
   // Back to lobby handler
@@ -335,10 +572,10 @@ export default function App() {
     // Save game ID for rejoin if game is still ongoing
     if (ps && ps.status !== "GAME_OVER" && gameId) {
       setSavedGameId(gameId);
-      localStorage.setItem("savedGameId", gameId);
+      sessionStorage.setItem("savedGameId", gameId);
     } else {
       setSavedGameId("");
-      localStorage.removeItem("savedGameId");
+      sessionStorage.removeItem("savedGameId");
     }
     setGameJoined(false);
     setPs(null);
@@ -347,6 +584,7 @@ export default function App() {
     setLobbyStatus("idle");
     setGameId("");
     setLobbyId("");
+    setChatMessages([]);
     if (sockRef.current) {
       sockRef.current.disconnect();
       sockRef.current = null;
@@ -369,6 +607,38 @@ export default function App() {
         onBackToLobby={handleBackToLobby}
         restartStatus={restartStatus}
         onRequestRestart={requestRestart}
+        onDeclineRestart={declineRestart}
+        onCheatWin={doCheatWin}
+        chatMessages={chatMessages}
+        onSendChat={sendChat}
+      />
+    );
+  }
+
+  // Render admin page
+  if (isAdmin && token) {
+    return (
+      <AdminPage
+        token={token}
+        onLogout={() => {
+          doLogoutLocal();
+          setIsAdmin(false);
+        }}
+      />
+    );
+  }
+
+  // Render profile page
+  if (showProfile) {
+    return (
+      <ProfilePage
+        token={token}
+        username={username}
+        onBack={() => setShowProfile(false)}
+        onLogout={() => {
+          doLogoutLocal();
+          setShowProfile(false);
+        }}
       />
     );
   }
@@ -391,11 +661,19 @@ export default function App() {
       setLobbyId={setLobbyId}
       lobbyStatus={lobbyStatus}
       onCreateLobby={() => handleCreateLobby().catch((e) => pushLog(`Error: ${e.message}`))}
-      onJoinLobby={() => handleJoinLobby().catch((e) => pushLog(`Error: ${e.message}`))}
+      onJoinRoom={(id: string) => handleJoinRoom(id).catch((e) => pushLog(`Error: ${e.message}`))}
       onStartGame={() => handleStartGame().catch((e) => pushLog(`Error: ${e.message}`))}
       savedGameId={savedGameId}
       onRejoinGame={handleRejoinGame}
+      rooms={rooms}
+      onRefreshRooms={fetchRooms}
+      onOpenProfile={() => setShowProfile(true)}
+      onAdminLogin={() => doAdminLogin().catch((e) => pushLog(`Error: ${e.message}`))}
+      onGuestLogin={() => doGuestLogin().catch((e) => pushLog(`Error: ${e.message}`))}
+      onLeaveRoom={handleLeaveRoom}
+      roomHasGuest={roomHasGuest}
       log={log}
+      isGuest={isGuest}
     />
   );
 }

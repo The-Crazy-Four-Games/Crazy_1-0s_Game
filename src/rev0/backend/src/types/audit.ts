@@ -2,7 +2,7 @@ export type AuditEventID = string;
 
 export type AuthAuditEvent = {
   kind: "auth";
-  action: "register" | "login" | "guest" | "logout" | "verify_fail";
+  action: "register" | "login" | "guest" | "logout" | "verify_fail" | "change_password" | "delete_account";
   username?: string;
   playerId?: string;
   success: boolean;

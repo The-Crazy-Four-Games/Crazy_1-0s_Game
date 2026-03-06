@@ -1,0 +1,304 @@
+.profile-page {
+    padding: 30px 20px;
+    max-width: 550px;
+    margin: 0 auto;
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    color: #fff;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.profile-header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.btn-back {
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-loading,
+.profile-error {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Section */
+.profile-section {
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.section-title {
+    margin: 0 0 16px 0;
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Player Card */
+.player-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.player-avatar {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+}
+
+.player-details h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.player-username {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.player-joined {
+    display: block;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.35);
+    margin-top: 2px;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+}
+
+.stat-winrate .stat-value {
+    color: #ffd700;
+}
+
+.stat-wins .stat-value {
+    color: #4caf50;
+}
+
+.stat-losses .stat-value {
+    color: #ef5350;
+}
+
+.stat-total .stat-value {
+    color: #90caf9;
+}
+
+/* Match History */
+.no-matches {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.match-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.match-win {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 3px solid #4caf50;
+}
+
+.match-lose {
+    background: rgba(239, 83, 80, 0.1);
+    border-left: 3px solid #ef5350;
+}
+
+.match-draw {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+}
+
+.match-outcome {
+    font-weight: 600;
+    min-width: 70px;
+}
+
+.match-score {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.match-opponent {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.match-base {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Settings */
+.setting-group {
+    margin-bottom: 16px;
+}
+
+.setting-group:last-child {
+    margin-bottom: 0;
+}
+
+.setting-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+}
+
+.setting-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.setting-row input {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 14px;
+}
+
+.setting-row input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.setting-msg {
+    margin-top: 6px;
+    font-size: 0.85rem;
+}
+
+/* Buttons (reuse lobby styles + add new) */
+.profile-page .btn-primary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #4caf50;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.profile-page .btn-primary:hover:not(:disabled) {
+    background: #45a049;
+}
+
+.profile-page .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.profile-page .btn-secondary {
+    padding: 10px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-danger {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #d32f2f;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background: #b71c1c;
+}
+
+/* Danger Zone */
+.danger-zone {
+    border-color: rgba(211, 47, 47, 0.3);
+    background: rgba(211, 47, 47, 0.05);
+}
+
+.delete-confirm p {
+    margin: 0 0 12px 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.delete-actions {
+    display: flex;
+    gap: 10px;
+}
