@@ -1,7 +1,7 @@
 import type { Server as IOServer, Socket } from "socket.io";
 import crypto from "crypto";
 
-import { applyAction, getPublicState, createGame } from "@rev0/shared";
+import { applyAction, getPublicState, createGame, parseInSystem } from "@rev0/shared";
 import type { GameAction, GameState } from "@rev0/shared";
 import type { Repository } from "../../types/repository";
 
@@ -181,8 +181,9 @@ export function makeRealtimeGateway(deps: {
           // but for the overall game, check if someone reached targetScore.
           // The game is over, so we can look at scores to determine who won.
           let winnerId: string | undefined;
+          const targetScoreDec = next.sys?.targetScoreText ? parseInSystem(next.sys.targetScoreText, next.sys) : 100;
           for (const pid of players) {
-            if ((scores as any)[pid] >= (next.targetScoreDec ?? 100)) {
+            if ((scores as any)[pid] >= targetScoreDec) {
               winnerId = pid;
               break;
             }

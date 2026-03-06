@@ -6,8 +6,8 @@ import ProfilePage from "./components/ProfilePage";
 import AdminPage from "./components/AdminPage";
 import './App.css';
 
-const API = "http://localhost:3001/api/v1";
-const WS_URL = "http://localhost:3001";
+const API = import.meta.env.VITE_API_URL || "/api/v1";
+const WS_URL = import.meta.env.VITE_WS_URL || "";
 
 const WS = {
   JOIN_GAME: "join_game",
@@ -109,7 +109,6 @@ export default function App() {
   const [gameId, setGameId] = useState("");
   const [ps, setPs] = useState<PublicState | null>(null);
 
-  const [wsStatus, setWsStatus] = useState<"disconnected" | "connected">("disconnected");
   const sockRef = useRef<Socket | null>(null);
 
   const [myHand, setMyHand] = useState<Card[]>([]);
@@ -139,7 +138,7 @@ export default function App() {
   const [roomHasGuest, setRoomHasGuest] = useState(false);
 
   // Admin mode
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem("isAdmin") === "true");
 
   // Guest mode
   const [isGuest, setIsGuest] = useState(() => sessionStorage.getItem("isGuest") === "true");
@@ -178,6 +177,7 @@ export default function App() {
     setIsAdmin(true);
     sessionStorage.setItem("token", out.token);
     sessionStorage.setItem("userId", out.user.userId);
+    sessionStorage.setItem("isAdmin", "true");
     pushLog(`Admin login as ${out.user.username}`);
   }
   async function doGuestLogin() {
@@ -208,15 +208,16 @@ export default function App() {
     setUserId("");
     setUsername("");
     setIsGuest(false);
+    setIsAdmin(false);
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("userId");
     sessionStorage.removeItem("username");
     sessionStorage.removeItem("isGuest");
+    sessionStorage.removeItem("isAdmin");
     pushLog("Logged out");
     if (sockRef.current) {
       sockRef.current.disconnect();
       sockRef.current = null;
-      setWsStatus("disconnected");
     }
     setPs(null);
     setGameJoined(false);
@@ -240,7 +241,6 @@ export default function App() {
     sockRef.current = s;
 
     s.on("connect", () => {
-      setWsStatus("connected");
       pushLog(`Connected to server`);
       // Auto-join the game room once connected
       s.emit(WS.JOIN_GAME, { gameId: gId });
@@ -249,7 +249,6 @@ export default function App() {
     });
 
     s.on("disconnect", (r: string) => {
-      setWsStatus("disconnected");
       pushLog(`Disconnected: ${r}`);
       sockRef.current = null;
       setGameJoined(false);
@@ -525,10 +524,7 @@ export default function App() {
     if (!userId) return;
     emitAction({ type: "DRAW", playerId: userId });
   }
-  function doPass() {
-    if (!userId) return;
-    emitAction({ type: "PASS", playerId: userId });
-  }
+
   function doPlay(card: Card, chosenSuit?: "S" | "H" | "D" | "C", chosenOperation?: '+' | '-' | '*' | '/') {
     if (!userId) return;
     emitAction({ type: "PLAY", playerId: userId, card, chosenSuit, chosenOperation });
@@ -588,7 +584,6 @@ export default function App() {
     if (sockRef.current) {
       sockRef.current.disconnect();
       sockRef.current = null;
-      setWsStatus("disconnected");
     }
   }
 

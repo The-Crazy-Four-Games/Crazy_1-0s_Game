@@ -73,7 +73,6 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
   onLogout,
   baseId,
   setBaseId,
-  lobbyId,
   setLobbyId: _setLobbyId,
   lobbyStatus,
   onCreateLobby,

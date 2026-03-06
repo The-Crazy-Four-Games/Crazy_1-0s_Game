@@ -2,8 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type { Card, Suit, PublicState } from '../types/game';
 import { WS_EVENTS, getPlayableCards, isWildcard, getCardId } from '../types/game';
-
-const WS_URL = 'http://localhost:3001';
+const WS_URL = import.meta.env.VITE_WS_URL || '';
 
 interface ConnectionState {
   socket: Socket | null;
@@ -106,7 +105,7 @@ export function useGameState(token: string | null, gameId: string | null, userId
   // Select a card
   const selectCard = useCallback((card: Card) => {
     if (!isPlayerTurn) return;
-    setSelectedCard(prev => 
+    setSelectedCard(prev =>
       prev && getCardId(prev) === getCardId(card) ? null : card
     );
   }, [isPlayerTurn]);
@@ -185,26 +184,26 @@ export function useGameState(token: string | null, gameId: string | null, userId
     connect,
     disconnect,
     joinGame,
-    
+
     // Game state
     publicState,
     myHand,
     isPlayerTurn,
     topCard,
     playableCards,
-    
+
     // Card selection
     selectedCard,
     selectCard,
     showSuitSelector,
-    
+
     // Actions
     playCard,
     selectSuit,
     cancelSuitSelection,
     drawCard,
     passTurn,
-    
+
     // UI
     message,
   };

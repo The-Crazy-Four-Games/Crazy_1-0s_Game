@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AdminPage.css';
-
-const API = 'http://localhost:3001/api/v1';
+const API = import.meta.env.VITE_API_URL || '/api/v1';
 
 interface PlayerResult {
     id: string;

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './ProfilePage.css';
-
-const API = 'http://localhost:3001/api/v1';
+const API = import.meta.env.VITE_API_URL || '/api/v1';
 
 type ProfileData = {
     player: { id: string; username: string; displayName?: string; createdAt: number };
@@ -25,7 +24,7 @@ interface ProfilePageProps {
     onLogout: () => void;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ token, username, onBack, onLogout }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ token, onBack, onLogout }) => {
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
