@@ -44,6 +44,7 @@ Oct 27 & Ruida & Fixed errors in Plan \\
 Oct 27 & Alvin & VnV Plan Reflection \\
 Oct 27 & Ammar & Acronyms and General Information \\
 Nov 24 & Ruida & Fixed peer review issues and keep consistency\\
+Mar 8 & Ruida & Change FR evaluation method into Manual UI\\
 \bottomrule
 \end{tabularx}
 
@@ -469,7 +470,9 @@ This section defines end to end system tests that validate the software against 
 
 \subsection{Tests for Functional Requirements}
 
-The subsections below cover: (1) game flow, rule validation, special cards, and end conditions (\href{../SRS/SRS.pdf}{SRS} Game Manager: FR-1..FR-5), (2) scoring and valid move highlighting (\href{../SRS/SRS.pdf}{SRS} Score Manager and Highlighting: FR-6..FR-9), (3) account access flows (Login Manager: FR-10..FR-13), and (4) persistence operations (Data Manager: FR-14..FR-17). Where tests rely on input constraints, they use the card value and move legality definitions in the \href{../SRS/SRS.pdf}{SRS}.
+The subsections below cover: (1) game flow, rule validation, special cards, and end conditions (\href{../SRS/SRS.pdf}{SRS} Game Manager: FR-1..FR-5), (2) scoring and valid move highlighting (\href{../SRS/SRS.pdf}{SRS} Score Manager and Highlight: FR-6..FR-9), (3) account access flows (Login Manager: FR-10..FR-13), and (4) persistence operations (Data Manager: FR-14..FR-17). Where tests rely on input constraints, they use the card value and move legality definitions in the \href{../SRS/SRS.pdf}{SRS}.
+
+\textit{Note: While originally planned as automated Node console scripts, these Functional Requirements evaluated via Manual UI-based Testing on the deployed application to better validate the end-to-end integration of the frontend, backend, and real-time WebSocket engine under realistic network conditions. The exactly numeric values below (such as card values, suit) may be different in actual testing case}
 
 \subsubsection{Game Manager: Start, Turn, Rules, Specials, End (FR-1..FR-5)}
 
@@ -478,23 +481,23 @@ This area verifies new game initialization, turn sequencing, rule validation for
 \paragraph{Start new game initializes state (ST-GM-01)}
 \begin{enumerate}
 \item{ST-GM-01\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} No active sessions. Two users are authenticated and in the lobby. Deterministic deck seed S is configured.
 
 \textbf{Input:} User A clicks New Game and invites User B. User B accepts.
 
-\textbf{Output:} A new session is created with a shuffled deck using seed S, a discard starter card is placed, each player receives the configured hand size H, and the UI shows turn = User A.
+\textbf{Output:} A new session is created with a shuffled deck, a discard starter card is placed, each player receives the configured hand size H, and the UI shows turn = User A.
 
 \textbf{Test Case Derivation:} From FR-1 and \href{../SRS/SRS.pdf}{SRS} deck initialization semantics. With a fixed seed S, the initial state is uniquely determined.
 
-\textbf{How test will be performed:} Run a Node console harness that calls \texttt{initGame('S')}, then logs and checks via simple equality that \texttt{hands} have size H, \texttt{discard.length == 1}, and \texttt{turn == UserA}. No browser, no sockets.
+\textbf{How test will be performed:} Using two browser windows or two physical devices, User A logs in, creates a room, and invites User B (or B joins via code). Confirm that the UI transitions to the Game Screen, both avatars show 7 cards in hand, the discard pile shows 1 top card, and the UI visually indicates it is User A's turn.
 \end{enumerate}
 
 \paragraph{Legal move: same suit (ST-GM-02)}
 \begin{enumerate}
 \item{ST-GM-02\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Active session. Discard top = 5$\heartsuit$. User A hand contains K$\heartsuit$ and others. Turn = User A.
 
@@ -504,13 +507,13 @@ This area verifies new game initialization, turn sequencing, rule validation for
 
 \textbf{Test Case Derivation:} FR-3 allows a move when suits match.
 
-\textbf{How test will be performed:} In the console harness set \texttt{discard = [{suit:'H',v:5}]} and handA contains K$\heartsuit$. Call \texttt{canPlay()} then \texttt{playCard()}. Log PASS if top becomes K$\heartsuit$ and turn flips to UserB.
+\textbf{How test will be performed:} Observe the discard pile top card suit. When it is User A's turn, select a card of the same suit from the hand and click the Play button. Confirm the card moves to the discard pile and the turn indicator shifts to User B.
 \end{enumerate}
 
 \paragraph{Legal move: sum equals 12 (base-12) (ST-GM-03)}
 \begin{enumerate}
 \item{ST-GM-03\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Discard top = 5$\diamondsuit$ (value 5). User A hand contains 7$\spadesuit$ (value 7). Turn = User A.
 
@@ -520,13 +523,13 @@ This area verifies new game initialization, turn sequencing, rule validation for
 
 \textbf{Test Case Derivation:} In base-12, 5 + 7 = 10$_{12}$ which equals 12 in decimal. FR-3 permits play when values sum to 12 base-12.
 
-\textbf{How test will be performed:} Set top to value 5 then attempt to play value 7. Use \texttt{canPlay()} to assert true and log PASS.
+\textbf{How test will be performed:} Observe the top card's decimal value (e.g., 5). When it is User A's turn, select a card whose decimal value adds up to 12 with the top card (e.g., 7). Click Play and confirm the move is accepted and the turn advances.
 \end{enumerate}
 
 \paragraph{Special card: wild ten suit selection (ST-GM-04)}
 \begin{enumerate}
 \item{ST-GM-04\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Discard top = K$\clubsuit$. User A hand contains 8$\heartsuit$. Turn = User A.
 
@@ -536,14 +539,13 @@ This area verifies new game initialization, turn sequencing, rule validation for
 
 \textbf{Test Case Derivation:} FR-4 specifies 8s are wild and allow the player to declare a suit.
 
-\textbf{How test will be performed:} Give A an 8, play with \linebreak 
-\texttt{playCard(state,'A',eight,\{chooseSuit:'S'\})}, then check \texttt{chosenSuit == 'S'} and \texttt{turn == 'B'} via console logs.
+\textbf{How test will be performed:} When it is User A's turn, select a wildcard (a 10). A UI modal should appear asking to select a new suit (e.g., Spades). Select the suit and confirm the UI updates to show specifically that the forced suit is Spades, and that User B is bound by it.
 \end{enumerate}
 
 \paragraph{Illegal move is rejected with guidance (ST-GM-05)}
 \begin{enumerate}
 \item{ST-GM-05\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Discard top = 9$\diamondsuit$. User A hand contains Q$\clubsuit$ and no other legal card.
 
@@ -553,13 +555,13 @@ This area verifies new game initialization, turn sequencing, rule validation for
 
 \textbf{Test Case Derivation:} FR-3 rejects moves that are not same suit, not same value, and do not sum to 12 base-12.
 
-\textbf{How test will be performed:} Call \texttt{canPlay()} on an invalid card and expect \texttt{false}. For now we just assert the engine rejects the move; UI message will be verified later in UI tests.
+\textbf{How test will be performed:} During gameplay, observe that illegal cards in the UI hand are not highlighted. Attempt to click an illegal card. Confirm the UI does not allow the card to be selected or played, preventing the illegal move entirely.
 \end{enumerate}
 
 \paragraph{End of game detection (ST-GM-06)}
 \begin{enumerate}
 \item{ST-GM-06\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} User A has 1 card, which is legal to play. User B has multiple cards.
 
@@ -569,7 +571,7 @@ This area verifies new game initialization, turn sequencing, rule validation for
 
 \textbf{Test Case Derivation:} FR-5 requires ending the game when a player has no cards left.
 
-\textbf{How test will be performed:} Have a scripted state where A has one legal card, call \texttt{playCard()}, then log PASS if \texttt{state.status == 'Completed'} and \texttt{winner == 'A'}.
+\textbf{How test will be performed:} Play a normal round until User A plays their final card. Confirm the UI immediately transitions to a Round Over / Game Over summary screen declaring User A the winner and displaying total scores.
 \end{enumerate}
 
 \subsubsection{Score Features: Dual-base, Highlights (FR-6..FR-9)}
@@ -579,7 +581,7 @@ This area validates round scoring in decimal and Dozenal, correct conversion and
 \paragraph{Score calculated and shown in decimal and Dozenal (ST-SC-01)}
 \begin{enumerate}
 \item{ST-SC-01\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Game just ended. Opponent remaining cards have numeric values 2, 4, 6 (per \href{../SRS/SRS.pdf}{SRS} value function).
 
@@ -589,13 +591,13 @@ This area validates round scoring in decimal and Dozenal, correct conversion and
 
 \textbf{Test Case Derivation:} 2 + 4 + 6 = 12 decimal which equals 10 in base-12.
 
-\textbf{How test will be performed:} Call \texttt{calculateScore(\{B:[2,4,6]\})} and expect \texttt{\{ decimal:12, dozenal:'10' \}}. Log PASS or FAIL.
+\textbf{How test will be performed:} Complete a round where the loser holds specific cards. Observe the Round Result popup. Verify that the "Points Gained" correctly summarizes the lost hand in both Decimal (e.g., 12) and Dozenal (e.g., 10$_{12}$) notations side by side.
 \end{enumerate}
 
 \paragraph{Valid moves highlighted exactly (ST-SC-03)}
 \begin{enumerate}
 \item{ST-SC-03\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Discard top = 4$\spadesuit$. Hand contains 4$\clubsuit$, 8$\diamondsuit$, 7$\heartsuit$, Q$\spadesuit$, 6$\clubsuit$.
 
@@ -605,24 +607,9 @@ This area validates round scoring in decimal and Dozenal, correct conversion and
 
 \textbf{Test Case Derivation:} Same value (4), same suit (Spades), and wild eight are valid. Others are invalid because 7 + 4 = 11 decimal which is not 10$_{12}$ and 6 + 4 = 10 decimal which is not 10$_{12}$.
 
-\textbf{How test will be performed:} Call exported \texttt{listValidMoves(state, hand)} and assert it returns exactly the IDs for same value, same suit, and wild eight. Log PASS or FAIL.
+\textbf{How test will be performed:} During User A's turn, visually inspect the on-screen hand. Verify that exactly the cards that match suit, value, sum to 12, or are wildcards are visually highlighted or raised, while all others are dimmed or disabled.
 \end{enumerate}
 
-\paragraph{Primary base toggle affects labeling only (ST-SC-04)}
-\begin{enumerate}
-\item{ST-SC-04\\}
-\textbf{Control:} Automatic
-
-\textbf{Initial State:} Score view shows decimal on the left and Dozenal on the right with decimal as primary.
-
-\textbf{Input:} Toggle primary base to Dozenal.
-
-\textbf{Output:} Labels and prominence swap, but numeric values remain identical pair \{12, 10$_{12}$\}. No recomputation changes total values.
-
-\textbf{Test Case Derivation:} FR-7 specifies dual display; the toggle is a presentation choice.
-
-\textbf{How test will be performed:} For MVP engine tests, verify the conversion outputs are stable. The UI toggle is deferred; assert that conversion of 12 dec remains $10_{12}$ before and after calling a \texttt{setPrimaryBase()} no-op stub.
-\end{enumerate}
 
 \subsubsection{Login Manager: Account, Sessions, Guest, Validation (FR-10..FR-13)}
 
@@ -631,7 +618,7 @@ This area verifies account creation, login and logout, guest sessions, and crede
 \paragraph{Account creation creates unique user and session (ST-LM-01)}
 \begin{enumerate}
 \item{ST-LM-01\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} No account exists for username \texttt{U}. Clean auth store.
 
@@ -641,13 +628,13 @@ This area verifies account creation, login and logout, guest sessions, and crede
 
 \textbf{Test Case Derivation:} FR-10 requires creation with unique username and password.
 
-\textbf{How test will be performed:} In Node harness call \texttt{createAccount(U,P)}. Assert \texttt{store.users[U].passwordHash} exists and \texttt{store.sessions.has(userId)}. Then attempt a second \texttt{createAccount(U,P2)} and assert rejection.
+\textbf{How test will be performed:} Navigate to the registration page. Submit a new unique username and a valid password. Confirm that the UI logs the user in and redirects to the Lobby or Main Menu. Then, open an incognito window and attempt to register with the exact same username. Confirm the UI rejects the second attempt with an appropriate "username taken" error message.
 \end{enumerate}
 
 \paragraph{Login and logout preserve progress (ST-LM-02)}
 \begin{enumerate}
 \item{ST-LM-02\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Account \texttt{U} exists with prior game history \texttt{H0}. No active session.
 
@@ -657,13 +644,13 @@ This area verifies account creation, login and logout, guest sessions, and crede
 
 \textbf{Test Case Derivation:} FR-11 requires login and logout at any time without losing progress.
 
-\textbf{How test will be performed:} Call \texttt{login}, run minimal game through engine hooks, call \texttt{logout}, then \texttt{login} again. Compare history count before and after.
+\textbf{How test will be performed:} Log in as User U. Play one complete game. Navigate to the profile page and note the match history. Click Logout. Navigate back to the login page and authenticate again as User U. Confirm that the profile page still shows the exact same match history.
 \end{enumerate}
 
 \paragraph{Guest mode creates temporary session (ST-LM-03)}
 \begin{enumerate}
 \item{ST-LM-03\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} No active session.
 
@@ -673,13 +660,13 @@ This area verifies account creation, login and logout, guest sessions, and crede
 
 \textbf{Test Case Derivation:} FR-12 allows a temporary session without login.
 
-\textbf{How test will be performed:} Call \texttt{createGuestSession()}, verify \texttt{session.guest == true}. Write a hand, restart in-memory store, assert no user profile exists for the guest.
+\textbf{How test will be performed:} On the landing page, click "Play as Guest". Confirm a temporary account (e.g., "Guest\_XXXX") is created and logs in immediately without password. Complete a game. Click Logout. Attempt to log in to that specific Guest account—verification passes if this is impossible, proving the profile was temporary and deleted.
 \end{enumerate}
 
 \paragraph{Credential validation gates access (ST-LM-04)}
 \begin{enumerate}
 \item{ST-LM-04\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Account \texttt{U} exists with password \texttt{P}. No active session.
 
@@ -689,7 +676,7 @@ This area verifies account creation, login and logout, guest sessions, and crede
 
 \textbf{Test Case Derivation:} FR-13 requires validating credentials against stored records before granting access.
 
-\textbf{How test will be performed:} Call \texttt{login} with wrong password and assert failure and \texttt{sessions.size} unchanged, then with correct password and assert success.
+\textbf{How test will be performed:} Navigate to the login page. Enter a valid registered username but an intentionally incorrect password. Confirm the UI rejects the login with an "invalid credentials" message. Then, enter the correct password and confirm successful entry to the Lobby.
 \end{enumerate}
 
 \subsubsection{Data Manager: Storage, Retrieval, Update, Deletion (FR-14..FR-17)}
@@ -699,7 +686,7 @@ This area verifies secure storage of usernames, game history, and Dozenal scores
 \paragraph{User data is stored on events that require persistence (ST-DM-01)}
 \begin{enumerate}
 \item{ST-DM-01\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Authenticated user \texttt{U}. Clean data store.
 
@@ -709,13 +696,13 @@ This area verifies secure storage of usernames, game history, and Dozenal scores
 
 \textbf{Test Case Derivation:} FR-14 requires secure storage of user data including game history and Dozenal scores.
 
-\textbf{How test will be performed:} Call \texttt{saveGameResult(U, result)}. Assert schema fields exist and values match expected totals. For MVP we verify presence and correctness; deeper security assessments are separate.
+\textbf{How test will be performed:} Log in and complete a game against an opponent. Navigate to the Profile page dynamically. Confirm that the recent game appears in the Match History list, showing correct Decimal and/or Dozenal scores matching the game's actual conclusion.
 \end{enumerate}
 
 \paragraph{Stored data can be retrieved on login or profile view (ST-DM-02)}
 \begin{enumerate}
 \item{ST-DM-02\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Data store contains prior records for \texttt{U}.
 
@@ -725,39 +712,39 @@ This area verifies secure storage of usernames, game history, and Dozenal scores
 
 \textbf{Test Case Derivation:} FR-15 requires retrieval of stored user data.
 
-\textbf{How test will be performed:} Assert \texttt{getProfile(U)} returns non-empty history and last score equals most recent saved value.
+\textbf{How test will be performed:} Log in to an account that has previously played multiple games. Navigate to the Profile page. Confirm that the UI successfully fetches and renders the user's overall stats (win rate, total games) and the history of past matches accurately.
 \end{enumerate}
 
 \paragraph{Data updates after games and profile changes (ST-DM-03)}
 \begin{enumerate}
 \item{ST-DM-03\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Profile for \texttt{U} exists with history length \texttt{n}.
 
-\textbf{Input:} Complete another game and call \texttt{saveGameResult}. Then change profile display name via \texttt{updateProfile(U,\{displayName:'A'\})}.
+\textbf{Input:} Complete another game, change nickname, refresh and open profile page, check match history.
 
 \textbf{Output:} History length becomes \texttt{n+1}. Profile \texttt{displayName} is updated. Timestamps reflect the latest update.
 
 \textbf{Test Case Derivation:} FR-16 requires updating stored data after each game or profile change.
 
-\textbf{How test will be performed:} Compare history length and profile fields before and after the operations.
+\textbf{How test will be performed:} Navigate to the Profile page and use the Settings/Edit Modal to change the user's Display Name to a new string. Save the changes. Refresh the entire web page (F5) and navigate back to Profile. Confirm the new display name persists correctly.
 \end{enumerate}
 
 \paragraph{User can permanently delete data (ST-DM-04)}
 \begin{enumerate}
 \item{ST-DM-04\\}
-\textbf{Control:} Automatic
+\textbf{Control:} Manual UI
 
 \textbf{Initial State:} Profile and history exist for \texttt{U}.
 
-\textbf{Input:} \texttt{deleteUserData(U)} then attempt \texttt{getProfile(U)} and \texttt{login(U,P)}.
+\textbf{Input:} User enter the profile page, click the ``delete account'' button and confirm.
 
-\textbf{Output:} User records, history, and scores are removed. \texttt{getProfile(U)} returns not found. Login is rejected since the account data has been deleted or deactivated per policy.
+\textbf{Output:} User records, history, and scores are removed from the database. Login is rejected since the account data has been deleted or deactivated per policy.
 
 \textbf{Test Case Derivation:} FR-17 requires permanent deletion upon request.
 
-\textbf{How test will be performed:} Call \texttt{deleteUserData} and assert data store no longer contains keys for \texttt{U}. Verify subsequent access fails.
+\textbf{How test will be performed:} Log in as User U. Navigate to the Profile page and click the "Delete Account" / "Danger Zone" button. Confirm the action logs the user out. Attempt to log back in with User U's credentials. Confirm the system rejects the login entirely, proving the profile was wiped.
 \end{enumerate}
 
 
@@ -766,7 +753,7 @@ This area verifies secure storage of usernames, game history, and Dozenal scores
     \subsubsection{Performance and Responsiveness (NFR-1)}
     \textbf{Objective:} Verify that all user interactions, such as playing a card or updating the score, occur with a latency below 200\,ms under normal network conditions. \\
 
-    \textbf{Type:} Dynamic, Automatic \\
+    \textbf{Type:} Dynamic, Manual UI \\
 
     \textbf{Initial State:} Running MVP build on localhost with two authenticated test users and a seeded deck. \\
 
@@ -796,7 +783,7 @@ This area verifies secure storage of usernames, game history, and Dozenal scores
     \subsubsection{Stability and Robustness (NFR-3)}
     \textbf{Objective:} Confirm that the application handles unexpected network events and invalid inputs gracefully. \\
 
-    \textbf{Type:} Dynamic, Automatic + Manual Fault Injection \\
+    \textbf{Type:} Dynamic, Manual UI + Manual Fault Injection \\
 
     \textbf{Initial State:} Running multi-client session connected via WebSocket. \\
 
@@ -893,7 +880,7 @@ needs to be well-documented, with meaningful names for all of the tests.}
 
 \item{test-id1\\}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
+Type: \wss{Functional, Dynamic, Manual, Manual UI, Static etc. Most will
   be automatic}
 					
 Initial State: 
@@ -908,7 +895,7 @@ How test will be performed:
 					
 \item{test-id2\\}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
+Type: \wss{Functional, Dynamic, Manual, Manual UI, Static etc. Most will
   be automatic}
 					
 Initial State: 
@@ -944,7 +931,7 @@ How test will be performed:
 
 \item{test-id1\\}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
+Type: \wss{Functional, Dynamic, Manual, Manual UI, Static etc. Most will
   be automatic}
 					
 Initial State: 
@@ -977,9 +964,9 @@ How test will be performed:
 
 \wss{Provide evidence that all of the modules have been considered.}
 				
-\bibliographystyle{plainnat}
+%\bibliographystyle{plainnat}
 
-\bibliography{../../refs/References}
+%\bibliography{../../refs/References}
 
 \newpage
 

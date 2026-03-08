@@ -2,6 +2,7 @@
 
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage[table]{xcolor}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,
@@ -21,7 +22,7 @@
 \begin{document}
 
     \title{Verification and Validation Report: Crazy 1-0s Game}
-    \author{Jiaming Li}
+    \author{\authname}
     \date{\today}
 
     \maketitle
@@ -59,73 +60,150 @@
 
     \newpage
 
-    \section{Functional Requirements Evaluation}
+   \section{Functional Requirements Evaluation}
 
-    The functional requirements were verified through a combination of unit tests,
-    integration tests, and manual system testing.
+\textit{Note: While the original VnV Plan specified automated Node console harnesses for Functional Requirements testing (e.g., ST-GM-01), the final evaluation was conducted via \textbf{Manual UI-based Testing} on the deployed application. This transition was made to better validate the end-to-end integration of the frontend, backend, and real-time WebSocket engine under realistic network conditions.}
 
-    \textbf{FR-1: Start a new game session}
+\subsection{Game Manager: Start, Turn, Rules, Specials, End }
 
-    Test Method: Manual system testing.
+\paragraph{Start new game initializes state (ST-GM-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Player A finds the game room created by Player B in the game room lists, click join the game then UI transitions to the Game Screen, both avatars show 7 cards in hand, discard pile shows 1 top card, and UI visually indicates it is User A's turn.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Result: PASS. Players can start a new Crazy Eights game from the lobby interface.
-    The game initializes correctly with shuffled cards and player hands.
+\paragraph{Legal move: same suit (ST-GM-02)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Card of the same suit moves to discard pile and turn indicator shifts to User B.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    \textbf{FR-2: Manage player turns}
+\paragraph{Legal move: sum equals 12(in decimal) base-12 (ST-GM-03)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Card whose decimal value adds up to 12 with the top card is accepted and turn advances.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Test Method: Unit testing and integration testing.
+\paragraph{Special card: wild "10" suit selection (ST-GM-04)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Selecting a wildcard prompts for a suit selection. UI updates to show forced suit, restricting next player.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Result: PASS. The game engine enforces alternating player turns. Attempts to
-    play out of turn are rejected by the server.
+\paragraph{Illegal move is rejected with guidance (ST-GM-05)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Illegal cards are not highlighted and cannot be selected or played. 
+  \item \textbf{Actual Output:} The actual results match the expected results. Error message can be found in collapsible activity logs.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    \textbf{FR-3: Validate move legality}
+\paragraph{End of game detection (ST-GM-06)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Successfully playing final card transitions UI to a summary screen declaring the winner of this round and displaying total scores.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Test Method: Unit testing of the Rules module.
 
-    Result: PASS. Illegal moves such as playing an incorrect suit or value are
-    correctly rejected by the system.
+\subsection{Score Features: Dual-base, Highlights }
 
-    \textbf{FR-4: Handle special cards}
+\paragraph{Score calculated and shown in decimal or Dozenal in corresponding mode(ST-SC-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Round Result popup correctly summarizes lost hand points in Decimal or Dozenal (e.g., 10$_{12}$) notations correctly.
+  \item \textbf{Actual Output:} The The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Test Method: Manual gameplay testing.
+\paragraph{Valid moves highlighted exactly (ST-SC-03)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Exactly the cards that are legal to play are visually highlighted/raised, while others are dimmed/disabled. This is not applied to sum-to-10 rule.
+  \item \textbf{Actual Output:} The actual results match the expected results. Wild cards are hightlighted with special icons.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Result: PASS. When a special card (rank 10) is played, the player is prompted to
-    select a suit and complete a mathematical challenge related to dozenal arithmetic.
 
-    \textbf{FR-5: End of game detection}
+\subsection{Login Manager: Account, Sessions, Guest, Validation}
 
-    Test Method: System testing.
+\paragraph{Account creation creates unique user and session (ST-LM-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Valid registration logs user in. Duplicate registration is rejected with "username taken" error.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Result: PASS. When a player runs out of cards, the game engine correctly
-    declares the winner and ends the session.
+\paragraph{Login and logout preserve progress (ST-LM-02)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Logging out and logging back in retains exact match history in Profile page.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    \textbf{FR-6: Score calculation}
+\paragraph{Guest mode creates temporary session (ST-LM-03)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} "Play as Guest" creates temporary profile. Logging out deletes profile, preventing future logins to that guest account.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Test Method: Unit testing of the Scoring module.
+\paragraph{Credential validation gates access (ST-LM-04)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Incorrect password rejected with "invalid credentials". Correct password proceeds to Lobby.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Result: PASS. Scores are calculated correctly using both decimal and dozenal
-    representations.
 
-    \textbf{FR-7: Dual base score display}
+\subsection{Data Manager: Storage, Retrieval, Update, Deletion}
 
-    Test Method: UI testing.
+\paragraph{User data is stored on events that require persistence (ST-DM-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Completing a game adds a correct entry to the Profile Match History.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Result: PASS. The scoreboard displays both decimal and base-12 values.
+\paragraph{Stored data can be retrieved on login or profile view (ST-DM-02)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Profile page successfully fetches and renders stats (win rate) and latest 5 games' match history with scoring details.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    \textbf{FR-8: Educational hints}
+\paragraph{Data updates after games and profile changes (ST-DM-03)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-16
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Changing Display Name in settings persists across full page refreshes.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-    Test Method: Manual testing.
-
-    Result: PASS. The system provides explanations when players encounter
-    dozenal arithmetic challenges.
-
-    \textbf{FR-9: Highlight valid moves}
-
-    Test Method: Manual UI testing.
-
-    Result: PASS. The interface highlights valid playable cards to assist users.
-
-    ---
+\paragraph{User can permanently delete data (ST-DM-04)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-17
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Clicking "Delete Account" forces logout and permanently prevents logging back in with old credentials.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
     \section{Nonfunctional Requirements Evaluation}
 
