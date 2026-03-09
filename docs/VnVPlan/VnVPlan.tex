@@ -839,134 +839,149 @@ This traceability matrix links each functional and non-functional requirement fr
     \end{tabular}
 \end{table}
 
+
+This section describes the detailed design and implementation of the unit testing suite for \textbf{The Crazy Tens}. The testing strategy focuses on isolating logic modules to ensure that the core mathematical engine, card mechanics, and networking protocols operate correctly before system-level integration.
+
 \section{Unit Test Description}
 
-\wss{This section should not be filled in until after the MIS (detailed design
-  document) has been completed.}
-
-\wss{Reference your MIS (detailed design document) and explain your overall
-philosophy for test case selection.}  
-
-\wss{To save space and time, it may be an option to provide less detail in this section.  
-For the unit tests you can potentially layout your testing strategy here.  That is, you 
-can explain how tests will be selected for each module.  For instance, your test building 
-approach could be test cases for each access program, including one test for normal behaviour 
-and as many tests as needed for edge cases.  Rather than create the details of the input 
-and output here, you could point to the unit testing code.  For this to work, you code 
-needs to be well-documented, with meaningful names for all of the tests.}
+The unit testing suite for \progname\ is designed to verify the internal logic of individual modules in isolation. As specified in the MIS, we employ a combination of black-box testing for API verification and white-box testing for internal state transitions.
 
 \subsection{Unit Testing Scope}
-
-\wss{What modules are outside of the scope.  If there are modules that are
-  developed by someone else, then you would say here if you aren't planning on
-  verifying them.  There may also be modules that are part of your software, but
-  have a lower priority for verification than others.  If this is the case,
-  explain your rationale for the ranking of module importance.}
+The scope covers the Dozenal Math Engine, Card Dispatcher, Networking Protocols, and UI State synchronization. Third-party libraries (React, Socket.io) are excluded from direct unit verification.
 
 \subsection{Tests for Functional Requirements}
 
-\wss{Most of the verification will be through automated unit testing.  If
-  appropriate specific modules can be verified by a non-testing based
-  technique.  That can also be documented in this section.}
-
-\subsubsection{Module 1}
-
-\wss{Include a blurb here to explain why the subsections below cover the module.
-  References to the MIS would be good.  You will want tests from a black box
-  perspective and from a white box perspective.  Explain to the reader how the
-  tests were selected.}
+\subsubsection{Module 1: Mathematical Logic (Dozenal Engine)}
+This module manages the core base-12 arithmetic. Tests verify the accuracy of the conversion and input validation logic.
 
 \begin{enumerate}
+    \item \textbf{UT01-UT05: Decimal to Dozenal Conversion}\\
+    Type: Functional, Automated. \\
+    Initial State: MathEngine idle. \\
+    Input: Decimals 10, 11, 12, 144, 1727. \\
+    Output: "A", "B", "10", "100", "BBB". \\
+    Derivation: Tests standard digits, alpha-placeholders, and multi-digit carries ($12^1, 12^2, 12^3$). \\
+    Performance: Jest assertion.
 
-\item{test-id1\\}
+    \item \textbf{UT06-UT07: Dozenal to Decimal Conversion}\\
+    Type: Functional, Automated. \\
+    Input: Strings "1A", "B1". \\
+    Output: Integers 22, 133. \\
+    Derivation: Ensures bidirectional consistency of the base-12 math library.
 
-Type: \wss{Functional, Dynamic, Manual, Manual UI, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
-
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
-
-How test will be performed: 
-					
-\item{test-id2\\}
-
-Type: \wss{Functional, Dynamic, Manual, Manual UI, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
-
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
-
-How test will be performed: 
-
-\item{...\\}
-    
+    \item \textbf{UT08: Illegal Input Handling}\\
+    Type: Functional, Automated. \\
+    Input: "G" (Non-base-12 character). \\
+    Output: Throw \texttt{InputError}. \\
+    Derivation: Robustness check against invalid user entry in challenge fields.
 \end{enumerate}
 
-\subsubsection{Module 2}
 
-...
+
+\subsubsection{Module 2: Card Action Dispatcher}
+Verifies that card attributes correctly map to game events and arithmetic operators.
+
+\begin{enumerate}
+    \item \textbf{UT09-UT12: Suit-based Arithmetic Mapping}\\
+    Type: Functional, Dynamic. \\
+    Input: Play Hearts(H), Diamonds(D), Clubs(C), Spades(S). \\
+    Output: Operator state becomes +, -, *, / respectively. \\
+    Derivation: Core requirement for the game's mathematical challenge mechanism. \\
+    Note: UT10 (Spades) initially failed due to division-by-zero; now fixed.
+
+    \item \textbf{UT13-UT14: Special Card Triggers}\\
+    Type: Functional, Manual UI. \\
+    Input: Play "Inverse 2", Play "1-0". \\
+    Output: Trigger Wildcard Menu / "Crazy 1-0" event. \\
+    Derivation: Verified in v1.1 after property-check logic was corrected.
+
+    \item \textbf{UT15-UT20: Deck and Hand State}\\
+    Type: Functional, Automated. \\
+    Input: Draw card (deck=0), Play "A" on "A", Hand size > 20. \\
+    Output: Trigger Reshuffle, Accept Move, Apply Penalty. \\
+    Derivation: Verifies game rules and resource limits.
+\end{enumerate}
+
+\subsubsection{Module 3: Multiplayer State Synchronization}
+Verifies real-time communication integrity via Socket.io.
+
+\begin{enumerate}
+    \item \textbf{UT21: Turn Enforcement}\\
+    Type: Functional, Automated. \\
+    Input: P2 attempts move during P1 turn. \\
+    Output: Error: "Not your turn". \\
+    Derivation: Prevents out-of-sequence play in multiplayer mode.
+
+    \item \textbf{UT22-UT25: State and Synchronization}\\
+    Type: Functional, Dynamic. \\
+    Input: Calculate [A, 5, 1-0] hand, Join with duplicate ID, Simultaneous play (UT25). \\
+    Output: Score=27, Connection Rejected, Mutex Lock (UT25 FAIL). \\
+    Derivation: Ensures consistency across distributed client states.
+
+    \item \textbf{UT26-UT30: Lobby and Network Resilience}\\
+    Type: Dynamic, Automated. \\
+    Input: Lobby full, Socket DC, Refresh Page, Message Burst. \\
+    Output: Redirect, Win-by-default, Session Recovery, Throttle. \\
+    Derivation: Tests the robustness of the server-side session management.
+\end{enumerate}
+
+
 
 \subsection{Tests for Nonfunctional Requirements}
 
-\wss{If there is a module that needs to be independently assessed for
-  performance, those test cases can go here.  In some projects, planning for
-  nonfunctional tests of units will not be that relevant.}
+\subsubsection{Module 4: UI/UX Components}
+Focuses on responsiveness, anti-cheat input, and visual feedback.
 
-\wss{These tests may involve collecting performance data from previously
-  mentioned functional tests.}
-
-\subsubsection{Module ?}
-		
 \begin{enumerate}
+    \item \textbf{UT31-UT33: Input and Responsive Logic}\\
+    Type: Dynamic, Manual UI. \\
+    Input: Rapid click Draw x5, Mobile Viewport, Toggle Dozenal mode. \\
+    Output: Single draw (Debounce), Layout shift, Label update. \\
+    Derivation: Ensures usability and responsiveness across different devices.
 
-\item{test-id1\\}
-
-Type: \wss{Functional, Dynamic, Manual, Manual UI, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input/Condition: 
-					
-Output/Result: 
-					
-How test will be performed: 
-					
-\item{test-id2\\}
-
-Type: Functional, Dynamic, Manual, Static etc.
-					
-Initial State: 
-					
-Input: 
-					
-Output: 
-					
-How test will be performed: 
-
+    \item \textbf{UT34-UT35: Visual Integrity}\\
+    Type: Manual UI. \\
+    Input: Play card animation, Open Modal. \\
+    Output: Callback on finish, Background blur active. \\
+    Derivation: Aesthetic requirements for immersive user experience.
 \end{enumerate}
 
-\subsubsection{Module ?}
+\subsubsection{Module 5: Security and Performance}
+Ensures the system can handle load and malicious inputs.
 
-...
+\begin{enumerate}
+    \item \textbf{UT36-UT38: Security Verification}\\
+    Type: Static/Dynamic, Automated. \\
+    Input: Inject score via console, Play card not in hand, XSS Chat script. \\
+    Output: Server-side rejection, Error log, Escaped entities. \\
+    Derivation: Validates that the client is not trusted and the server is the source of truth.
+
+    \item \textbf{UT39-UT40: Performance Metrics}\\
+    Type: Dynamic, Automated. \\
+    Input: 1-hour session, 100 concurrent users. \\
+    Output: Memory leak < 10MB, CPU < 60\%. \\
+    Derivation: Ensures long-term stability and capacity for the expected user base.
+\end{enumerate}
 
 \subsection{Traceability Between Test Cases and Modules}
+All 40 cases are mapped to the MIS modules to ensure 100\% design coverage.
 
-\wss{Provide evidence that all of the modules have been considered.}
-				
-%\bibliographystyle{plainnat}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Module ID} & \textbf{Mapped Unit Tests} \\
+        \midrule
+        M1: MathEngine & UT01 -- UT08, UT22, UT33 \\
+        M2: CardDispatcher & UT09 -- UT20 \\
+        M3: NetworkManager & UT21, UT23 -- UT30, UT36, UT37 \\
+        M4: UIComponents & UT31, UT32, UT34, UT35, UT38 \\
+        M5: Performance/Security & UT39, UT40 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Traceability Matrix: Design Modules to Unit Tests}
+\end{table}
 
-%\bibliography{../../refs/References}
 
 \newpage
 
