@@ -14,7 +14,9 @@ type PublicState = {
   topCard: CardType;
   forcedSuit?: Suit;
   handsCount: Record<string, number>;
+  scoresDec: Record<string, number>;
   scoresText: Record<string, string>;
+  targetScoreDec: number;
   targetScoreText: string;
   faceRanks: string[];
   deckNumericSymbols: string[];
@@ -29,7 +31,6 @@ interface GameScreenProps {
 
   // Game actions
   onDraw: () => void;
-  onPass: () => void;
   onPlay: (card: CardType, chosenSuit?: Suit) => void;
 
   // Back button
@@ -47,7 +48,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   myTurn,
   log,
   onDraw,
-  onPass,
   onPlay,
   onBackToLobby,
   restartStatus,
@@ -65,13 +65,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   }, [ps.handsCount, userId]);
 
   const opponentHandCount = ps.handsCount[opponentId] || 0;
-  const myScore = ps.scoresText[userId] || '0';
-  const opponentScore = ps.scoresText[opponentId] || '0';
+  const formatDozenalText = (value: string) => value.replace(/↊/g, 'X').replace(/↋/g, 'E');
+  const displayText = (value: string) => (ps.baseId === 'doz' ? formatDozenalText(value) : value);
+  const myScore = displayText(ps.scoresText[userId] || '0');
+  const opponentScore = displayText(ps.scoresText[opponentId] || '0');
+  const goalScore = displayText(ps.targetScoreText);
 
   // Determine winner when game is over
   const isGameOver = ps.status === 'GAME_OVER';
-  const myHandCount = ps.handsCount[userId] || 0;
-  const iWon = isGameOver && myHandCount === 0;
+  const myScoreDec = ps.scoresDec[userId] || 0;
+  const opponentScoreDec = ps.scoresDec[opponentId] || 0;
+  const iWon = isGameOver && myScoreDec >= ps.targetScoreDec && myScoreDec >= opponentScoreDec;
 
   // Helper to check if card is wildcard (rank "10")
   const isWildcard = (rank: string) => rank === '10';
@@ -162,7 +166,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         </span>
         <span className="score-divider">|</span>
         <span className="goal">
-          Goal: <strong>{ps.targetScoreText}</strong>
+          Goal: <strong>{goalScore}</strong>
         </span>
         <span className="score-divider">|</span>
         <span>
@@ -186,7 +190,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               </div>
               <div className="score-row goal-row">
                 <span>Goal:</span>
-                <strong>{ps.targetScoreText}</strong>
+                <strong>{goalScore}</strong>
               </div>
             </div>
             <p className="game-over-message">
@@ -346,9 +350,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       <div className="action-bar">
         <button className="action-btn" disabled={!myTurn} onClick={onDraw}>
           DRAW
-        </button>
-        <button className="action-btn" disabled={!myTurn} onClick={onPass}>
-          PASS
         </button>
         <button
           className="action-btn play-btn"

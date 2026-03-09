@@ -32,7 +32,9 @@ type PublicState = {
   topCard: Card;
   forcedSuit?: "S" | "H" | "D" | "C";
   handsCount: Record<string, number>;
+  scoresDec: Record<string, number>;
   scoresText: Record<string, string>;
+  targetScoreDec: number;
   targetScoreText: string;
   faceRanks: string[];
   deckNumericSymbols: string[];
@@ -201,7 +203,7 @@ export default function App() {
     });
 
     // Restart event handlers
-    s.on(WS.RESTART_REQUESTED, (payload: { requestedBy: string }) => {
+    s.on(WS.RESTART_REQUESTED, (_payload: { requestedBy: string }) => {
       setRestartStatus("opponent_requested");
       pushLog(`Opponent requested restart`);
     });
@@ -239,10 +241,6 @@ export default function App() {
     if (!userId) return pushLog("No userId");
     emitAction({ type: "DRAW", playerId: userId });
   }
-  function doPass() {
-    if (!userId) return pushLog("No userId");
-    emitAction({ type: "PASS", playerId: userId });
-  }
   function doPlay(card: Card, chosenSuit?: "S" | "H" | "D" | "C") {
     if (!userId) return pushLog("No userId");
     emitAction({ type: "PLAY", playerId: userId, card, chosenSuit });
@@ -276,7 +274,6 @@ export default function App() {
         myTurn={myTurn}
         log={log}
         onDraw={doDraw}
-        onPass={doPass}
         onPlay={doPlay}
         onBackToLobby={handleBackToLobby}
         restartStatus={restartStatus}

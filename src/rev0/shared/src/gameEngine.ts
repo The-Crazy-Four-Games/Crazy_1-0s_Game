@@ -1,6 +1,6 @@
 // shared/src/gameEngine.ts
 import type { PlayerID, RoundState, Card } from "./rules.js";
-import { initRound, applyDraw, applyPlay, passTurn, isRoundOver, roundWinner, parseInSystem, formatInSystem, systemFromBaseId } from "./rules.js";
+import { initRound, applyDraw, applyPlay, passTurn, advanceTurn, isRoundOver, roundWinner, parseInSystem, formatInSystem, systemFromBaseId } from "./rules.js";
 import type { BaseId, NumeralSystem } from "./systems.js";
 import { roundGainDec } from "./scoring.js";
 import { type GameAction, withTimestamp, assertTurn } from "./gameActions.js";
@@ -42,7 +42,7 @@ function newGameId(): string {
 
 export function createGame(opts: CreateGameOptions): GameState {
   const sys = systemFromBaseId(opts.baseId);
-  const round = initRound(sys, opts.players, opts.initialHandSize ?? 5, opts.rngDeck);
+  const round = initRound(sys, opts.players, opts.initialHandSize ?? 7, opts.rngDeck);
 
   return {
     gameId: opts.gameId ?? newGameId(),
@@ -123,7 +123,7 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     if (over) {
       next = { ...next, scoresDec, status: "GAME_OVER" };
     } else {
-      const newRound = initRound(next.sys, next.round.players, 5);
+      const newRound = initRound(next.sys, next.round.players, 7);
       next = { ...next, scoresDec, round: newRound };
     }
   }

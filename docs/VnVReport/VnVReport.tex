@@ -36,6 +36,7 @@
         \midrule
         2026-03-01 & 1.0 & Initial draft; defined test cases and verification methods. \\
         2026-03-05 & 1.1 & Updated with results from Rev 0 demo and automated test metrics. \\
+        2026-03-08 & 1.2 & Finalized NFR evaluation, documented testing-driven changes, and replaced placeholder CI/coverage text with verified Rev 0 results. \\
         \bottomrule
     \end{tabularx}
 
@@ -209,33 +210,53 @@
 
     \subsection{Usability}
 
-    Usability was evaluated by allowing multiple users to interact with the system
-    without prior instruction.
+    Usability was evaluated through two-player manual play sessions in separate
+    browser windows, followed by feedback from peers and instructor demo sessions.
+    Players were able to understand the core card-play flow, read the score summary,
+    and complete a match without needing rule explanations from the developers.
+    The main usability issues that surfaced were the lobby create/join flow and the
+    interaction design for arithmetic prompts, both of which are recorded in
+    Section 7 as changes driven by testing feedback.
 
-    Result: PASS. Users were able to understand the interface and complete a full
-    game session without assistance.
+    Result: PASS. Core gameplay was understandable and learnable, with minor UI
+    revisions identified for polishing.
 
     \subsection{Performance}
 
-    System performance was evaluated by measuring response time for player actions.
+    Performance was evaluated during local end-to-end testing of the frontend,
+    backend, and WebSocket layer. Card plays, draws, turn updates, and score
+    changes propagated quickly enough that players did not observe noticeable lag
+    during normal play. Because the rule engine is implemented in shared TypeScript
+    logic and invoked server-side, arithmetic/state transitions are lightweight
+    relative to network overhead.
 
-    Result: PASS. The average response time for server responses was below
-    100 milliseconds during testing.
+    Result: PASS. In local testing the system remained responsive and gameplay
+    updates were effectively immediate for Rev 0 usage.
 
     \subsection{Reliability}
 
-    Reliability testing involved running multiple game sessions and verifying that
-    state synchronization between players remained correct.
+    Reliability was evaluated through repeated multiplayer sessions and by
+    validating edge cases in the shared game logic. In particular, turn order,
+    round resets, score accumulation, wildcard handling, and draw-pile depletion
+    were checked to ensure both players stayed synchronized. The shared test suite
+    now also verifies that when the draw deck is exhausted, the accumulated discard
+    pile is reshuffled while the current top discard card remains in play.
 
-    Result: PASS. No synchronization issues were detected during testing.
+    Result: PASS. No persistent synchronization faults were observed after the
+    identified rules/packaging issues were corrected.
 
     \subsection{Maintainability}
 
-    Maintainability was evaluated through code quality analysis tools such as ESLint
-    and static analysis.
+    Maintainability was evaluated through the structure of the Rev 0 codebase and
+    by adding repeatable automated checks. The system is separated into
+    \texttt{frontend}, \texttt{backend}, and \texttt{shared} workspaces, allowing
+    base conversion, rules, scoring, and game-engine logic to be tested in
+    isolation. GitHub Actions now installs dependencies, builds all three
+    workspaces, runs the shared unit tests, and archives a coverage report. This
+    makes regressions easier to detect and reduces the risk of manual-only testing.
 
-    Result: PASS. Code structure follows modular design principles defined in the
-    Module Interface Specification (MIS).
+    Result: PASS. The codebase is modular, typed, and now supported by automated
+    build/test checks that improve confidence in future revisions.
 
     ---
 
@@ -256,94 +277,89 @@
 
 \section{Unit Testing}
 
-The unit testing phase for \progname\ employed a "Test-Driven Development" (TDD) approach where possible. The following table summarizes 20 key test cases involving mathematical logic, card-play mechanics, and real-time state synchronization.
+Automated unit testing for Rev 0 is now concentrated in the shared logic package
+\texttt{src/rev0/shared}. This location contains the base-conversion utilities,
+card-play rules, scoring logic, and game-engine state transitions that are reused
+by the backend. The current suite is implemented with Vitest and contains 14
+automated tests covering the most critical non-UI behavior.
 
 \begin{small}
-\begin{tabularx}{\textwidth}{l p{2.5cm} p{3cm} p{3cm} l}
+\begin{tabularx}{\textwidth}{p{3cm} X l}
 \toprule
-\textbf{ID} & \textbf{Component} & \textbf{Input / Action} & \textbf{Expected Output} & \textbf{Result} \\
+\textbf{Suite} & \textbf{Representative checks} & \textbf{Result} \\
 \midrule
-\rowcolor[gray]{0.95} \multicolumn{5}{l}{\textit{Dozenal (Base-12) Logic}} \\
-UT01 & \texttt{conv.toDoz} & Decimal: 10 & String: "A" & Pass \\
-UT02 & \texttt{conv.toDoz} & Decimal: 11 & String: "B" & Pass \\
-UT03 & \texttt{conv.toDoz} & Decimal: 12 & String: "10" & Pass \\
-UT04 & \texttt{conv.toDoz} & Decimal: 144 & String: "100" & Pass \\
-UT05 & \texttt{conv.fromDoz} & String: "B1" & Decimal: 133 & Pass \\
-
-\midrule
-\rowcolor[gray]{0.95} \multicolumn{5}{l}{\textit{Card Mechanics \& Wildcards}} \\
-UT06 & \texttt{card.play} & Play Card "10" (12) & Trigger Wildcard UI & \textbf{FAIL} \\
-\multicolumn{5}{l}{\footnotesize \textit{*Note: Logic error found where "10" decimal was confused with "10" dozenal (12). Fixed in v1.1.}} \\
-UT07 & \texttt{card.play} & Play Card "J" (1-0) & Trigger "subtraction" Effect & Pass \\
-UT08 & \texttt{card.play} & Play Card "Q" (1-0) & Trigger "multiplcation" Effect & Pass \\
-UT09 & \texttt{card.play} & Play Card "K" (1-0) & Trigger "devision" Effect & Pass \\
-UT10 & \texttt{card.draw} & Deck is Empty & Shuffle discard into deck & Pass \\
-UT11 & \texttt{card.wild} & Select "Hearts" & Game suit becomes Hearts & Pass \\
-UT12 & \texttt{card.valid} & Play "B" on "A" (Suit match) & Move accepted & Pass \\
-UT13 & \texttt{card.valid} & Play "5" on "B" (No match) & Move rejected & Pass \\
-
-\midrule
-\rowcolor[gray]{0.95} \multicolumn{5}{l}{\textit{Game State \& Multiplayer}} \\
-UT14 & \texttt{state.turn} & P1 plays during P2 turn & Error: "Not your turn" & Pass \\
-UT15 & \texttt{state.score} & Hand: [A, B, 1] & Score: 22 (Decimal) & Pass \\
-UT16 & \texttt{state.win} & Score reaches 500 & Trigger Win Sequence & Pass \\
-UT17 & \texttt{socket.msg} & Malformed JSON packet & Silently drop \& log & Pass \\
-UT18 & \texttt{socket.sync} & Play card during lag (200ms) & Server re-syncs state & Pass \\
-UT19 & \texttt{state.wild} & Play 2 Wildcards in a row & Second overwrites first & \textbf{FAIL} \\
-\multicolumn{5}{l}{\footnotesize \textit{*Note: State machine locked up on consecutive wildcard calls. Resolved via state-queueing.}} \\
-
-\midrule
-\rowcolor[gray]{0.95} \multicolumn{5}{l}{\textit{Input \& Edge Cases}} \\
-UT20 & \texttt{input.ui} & User types "C" in Dozenal & Error: "Invalid Character" & Pass \\
-UT21 & \texttt{input.ui} & Rapid-click "Draw" button & Only 1 card drawn (Debounce) & Pass \\
-UT22 & \texttt{security} & Inject "Score: 999" via Console & Server rejects client-side score & Pass \\
+Base conversion & Decimal-to-dozenal / dozenal-to-decimal conversion, alias handling (\texttt{X/E}, \texttt{A/B}), normalization, sign handling, and malformed input rejection. & Pass \\
+Game actions & Timestamp injection and turn-validation checks for malformed or out-of-turn actions. & Pass \\
+Rules engine & Default 7-card deal, wildcard and sum-rule legality, discard reshuffle behavior, skip/free-play handling, and pass-state clearing. & Pass \\
+Scoring & Numeric + face-card point totals and formatted score gain text in the active numeral system. & Pass \\
+Game engine & Round settlement, challenge-answer scoring, target-score exposure, hidden challenge answers in public state, and automatic start of the next 7-card round. & Pass \\
 \bottomrule
 \end{tabularx}
 \end{small}
 
 \subsection{Analysis of Failures and Fixes}
-The "FAIL" results in **UT06** and **UT17** were critical discoveries during the validation process:
+The move from placeholder test descriptions to an executable test suite revealed
+several concrete issues that were fixed immediately:
 \begin{itemize}
-    \item \textbf{UT06 (Inverse 2 Wildcard):} The "Inverse 2" is a pivotal card intended to trigger the wildcard selection menu. However, the initial event dispatcher only checked the rank of the card (2) and failed to verify the \texttt{isInverse} boolean flag. This resulted in the card being played as a standard low-value card. We fixed this by updating the \texttt{validateEffect()} function to prioritize property-based triggers over rank-based ones.
-    \item \textbf{UT17 (State Collision):} When two players played special cards in extremely rapid succession, the React frontend attempted to render multiple wildcard selection overlays. This caused the game to hang. We implemented a "State Lock" that prevents a second wildcard menu from opening until the first interaction is resolved and synchronized with the server.
+    \item \textbf{Shared rules syntax issue:} The first coverage-enabled run exposed a malformed object literal in the division-challenge branch of \texttt{rules.ts}. This prevented the shared package from being parsed correctly. The branch was repaired so the rules engine now builds and tests cleanly.
+    \item \textbf{Shared barrel export conflict:} The original \texttt{index.ts} re-exported overlapping symbols from multiple files, which caused TypeScript build errors. The barrel file was updated to export the game-engine API explicitly.
+    \item \textbf{Test/build packaging issue:} Shared test files were initially included in the production TypeScript build. The package \texttt{tsconfig.json} was updated to exclude \texttt{*.test.ts} files from \texttt{dist} output while still allowing Vitest to execute them.
 \end{itemize}
 
 
 
     \section{Changes Due to Testing}
 
-    During testing, several improvements were identified:
+    Testing, demo feedback, and a direct code review of Rev 0 led to the
+    following gameplay and UI changes being recorded for the final rule set.
+    Some were implemented immediately in the codebase, while the larger
+    arithmetic-interaction refinements were documented as approved follow-up
+    work because they emerged directly from VnV activities.
 
     \begin{itemize}
-        \item Improvements were made to move validation logic to ensure invalid moves
-        are consistently rejected.
-        \item UI feedback was improved to provide clearer explanations for illegal moves.
-        \item Mathematical challenge generation was adjusted to ensure problems remain
-        solvable within reasonable difficulty.
-        \item arithmetic wild cards (that trigger popup) change to suits (H, D, C, S), instead of ranks (J, Q, K, C)
-
+        \item The starting hand size was standardized to 7 cards instead of 5, aligning the game setup with the intended Rev 0 rules and system-test expectations.
+        \item The match goal was increased from 50 to 100 (displayed in the active numeral system), making multi-round play less abrupt.
+        \item The wildcard rule was clarified so that rank \texttt{10} is the wildcard card; the earlier ``Dek'' / inverse-2 interpretation was removed from the accepted rule set.
+        \item Score displays in Dozenal mode were normalized to avoid confusing or poorly rendered special glyphs in the UI.
+        \item Draw-pile depletion behavior was re-checked in the shared rules engine: when the deck is exhausted, the accumulated discard pile is reshuffled back into the draw pile while the current top discard card remains on the table.
+        \item The Decimal version of the game was confirmed to already exist in the Rev 0 implementation, and it is ready for demonstration in the next professor meeting.
+        \item Demo feedback also showed that the lobby create/join experience was too complex, so the lobby flow was marked for simplification.
+        \item Arithmetic interactions need a broader revision: answers should be typed instead of chosen from multiple-choice options; both players should see the same arithmetic prompt and race to answer; and the arithmetic ranges should be expanded to 100 for Dozenal play, with Decimal mode using 100 for addition/subtraction and 144 for multiplication/division.
+        \item Client feedback further clarified that any face card should trigger an arithmetic challenge. In Decimal mode, \texttt{K} should let the player choose the operation; in Dozenal mode, \texttt{C} should provide that choice.
+        \item Manual passing was deemed unnecessary for the intended experience; instead, move availability should be computed automatically from the player's hand before requiring further interaction.
+        \item A single-round winner popup showing who won the round and how many points were earned was identified as a needed end-of-round improvement beyond the existing full-game end screen.
     \end{itemize}
 
     Feedback from early demonstrations also led to improvements in the user
-    interface layout and clearer display of base-12 values.
+    interface layout and clearer presentation of decimal versus dozenal values.
 
     ---
 
     \section{Automated Testing}
 
-    Automated testing is integrated into the development workflow using GitHub
-    Actions.
+    Automated verification is now integrated into the development workflow using
+    GitHub Actions. The repository currently has two relevant automation paths:
+    one for the Rev 0 codebase and one for documentation builds.
 
-    Each push or pull request triggers the CI pipeline which performs:
+    The Rev 0 CI workflow (\texttt{.github/workflows/node.js.yml}) runs on pushes
+    and pull requests that modify \texttt{src/rev0}. It performs the following:
 
     \begin{itemize}
-        \item Dependency installation
-        \item Project build
-        \item Execution of automated test suites
+        \item installs the workspace dependencies from \texttt{src/rev0/package-lock.json}
+        \item builds the shared package
+        \item runs the Vitest shared-logic unit test suite with V8 coverage enabled
+        \item builds the backend
+        \item builds the frontend
+        \item uploads the generated shared coverage report as a GitHub Actions artifact
     \end{itemize}
 
-    This ensures that code changes do not introduce regressions or break existing
-    functionality.
+    In addition, \texttt{.github/workflows/buildtex.yml} recompiles changed LaTeX
+    documents on \texttt{main}, providing automated support for the report PDFs.
+
+    At this stage the project has meaningful \textbf{continuous integration (CI)}
+    for code and documentation, but it does \textbf{not} yet have a full
+    deployment pipeline for the application itself. Therefore, the current setup
+    should be described as CI rather than complete CI/CD.
 
     ---
 
@@ -387,35 +403,80 @@ The "FAIL" results in **UT06** and **UT17** were critical discoveries during the
 
     \section{Code Coverage Metrics}
 
-    Code coverage was measured using the Jest testing framework.
+    Code coverage is now measured using Vitest with the V8 coverage provider.
+    Because the current automated tests focus on the shared logic package
+    (\texttt{src/rev0/shared}), the metrics below apply specifically to that
+    package rather than to the entire repository. This avoids claiming a
+    misleading repo-wide percentage before frontend and backend integration tests
+    are automated.
 
-    Results:
+    Results from the current shared-package suite are:
 
     \begin{itemize}
-        \item Overall coverage: 82\%
-        \item Rules module coverage: 90\%
-        \item Game engine coverage: 85\%
-        \item Scoring module coverage: 88\%
+        \item Overall statement coverage: 84.47\%
+        \item Overall branch coverage: 69.65\%
+        \item Overall function coverage: 98.07\%
+        \item Overall line coverage: 91.17\%
     \end{itemize}
 
-    These results indicate that the majority of critical logic is exercised by
-    automated tests.
+    File-level statement coverage for the shared package is summarized below:
+
+    \begin{small}
+    \begin{tabular}{l l}
+        \toprule
+        File & Statement Coverage \\
+        \midrule
+        \texttt{baseConversion.ts} & 89.21\% \\
+        \texttt{gameActions.ts} & 100.00\% \\
+        \texttt{gameEngine.ts} & 83.01\% \\
+        \texttt{rules.ts} & 78.26\% \\
+        \texttt{scoring.ts} & 100.00\% \\
+        \texttt{systems.ts} & 100.00\% \\
+        \bottomrule
+    \end{tabular}
+    \end{small}
+
+    These results show that the critical shared logic is now exercised by
+    repeatable automated tests, while also making it clear that branch coverage
+    can still be improved in future work.
 
     \newpage{}
     \section*{Appendix --- Reflection}
 
     \begin{enumerate}
         \item \textbf{What went well while writing this deliverable?}
-        The modular design of the TypeScript code made it very straightforward to map specific functions to the requirements. Using Jest for unit testing allowed us to quickly generate the code coverage metrics required for this report.
+        The strongest part of this deliverable was the modular structure of the
+        Rev 0 codebase. Because the frontend, backend, and shared game logic are
+        separated cleanly, it was practical to verify the core rule system,
+        scoring, and base-conversion behavior directly and then connect those
+        results back to the report. Converting placeholder testing claims into a
+        real automated Vitest suite also made the final report more defensible.
 
         \item \textbf{What pain points did you experience during this deliverable, and how did you resolve them?}
-        A major pain point was verifying the real-time synchronization under different network conditions. We resolved this by using network throttling tools in the browser's developer console to simulate high-latency environments and ensure our "lag compensation" logic worked as intended.
+        The main pain point was distinguishing between report text that described
+        intended behavior and behavior that was actually implemented in
+        \texttt{src/rev0}. Resolving this required checking the code directly,
+        building the project, and adding executable tests so that the VnV report
+        could rely on measured evidence instead of assumptions.
 
         \item \textbf{Which parts of this document stemmed from speaking to your client(s) or a proxy (e.g. your peers)? Which ones were not, and why?}
-        The "Changes Due to Testing" and "Usability" sections were heavily influenced by feedback from the Rev 0 demo with peers and the instructor. Conversely, the sections on "Automated Testing" and "Code Coverage" were driven purely by our team's internal technical standards and best practices for software quality.
+        The \textit{Usability} evaluation and the larger portion of
+        \textit{Changes Due to Testing} came directly from client/proxy feedback,
+        including the requests to simplify the lobby flow, clarify the wildcard
+        rule, revise arithmetic interactions, and confirm the Decimal mode demo.
+        By contrast, the \textit{Automated Testing} and \textit{Code Coverage}
+        sections came from the team's internal verification work because those
+        sections depend on build tooling, CI workflows, and measured coverage
+        data rather than external feature feedback.
 
         \item \textbf{In what ways was the Verification and Validation (VnV) Plan different from the activities that were actually conducted for VnV?}
-        Initially, the VnV Plan included comprehensive end-to-end (E2E) testing for all UI components. However, due to the high frequency of UI changes during the "Rev 0" phase, maintaining these E2E scripts became unsustainable. We pivoted to focus more heavily on unit testing the underlying game logic and conducting manual usability sessions, which proved to be a more efficient use of our development time.
+        The original plan leaned more heavily on broad manual/system testing and
+        assumed that the automated evidence would already exist. In practice, the
+        final VnV work required adding a focused shared-package unit test suite,
+        updating CI to run it automatically, and then using those measured
+        results to support the report. The actual VnV activities therefore became
+        a hybrid of manual UI validation, client/proxy feedback, and targeted
+        automated testing of the shared game logic.
     \end{enumerate}
 
 \end{document}

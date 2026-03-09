@@ -187,7 +187,7 @@ export function makeRealtimeGateway(deps: {
           const newGame = createGame({
             baseId: game.sys.id,
             players: players,
-            initialHandSize: 5,
+            initialHandSize: 7,
           });
 
           // Store the new game
