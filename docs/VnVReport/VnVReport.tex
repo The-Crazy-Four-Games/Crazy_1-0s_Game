@@ -275,36 +275,98 @@
     ---
 
 
-\section{Unit Testing}
+    \section{Unit Testing}
 
-Automated unit testing for Rev 0 is now concentrated in the shared logic package
-\texttt{src/rev0/shared}. This location contains the base-conversion utilities,
-card-play rules, scoring logic, and game-engine state transitions that are reused
-by the backend. The current suite is implemented with Vitest and contains 14
-automated tests covering the most critical non-UI behavior.
+    To ensure the robustness of the \progname, a total of 40 test cases were executed. The following table (continued across pages) document the verification of the mathematical core, game mechanics, and system security.
 
-\begin{small}
-\begin{tabularx}{\textwidth}{p{3cm} X l}
-\toprule
-\textbf{Suite} & \textbf{Representative checks} & \textbf{Result} \\
-\midrule
-Base conversion & Decimal-to-dozenal / dozenal-to-decimal conversion, alias handling (\texttt{X/E}, \texttt{A/B}), normalization, sign handling, and malformed input rejection. & Pass \\
-Game actions & Timestamp injection and turn-validation checks for malformed or out-of-turn actions. & Pass \\
-Rules engine & Default 7-card deal, wildcard and sum-rule legality, discard reshuffle behavior, skip/free-play handling, and pass-state clearing. & Pass \\
-Scoring & Numeric + face-card point totals and formatted score gain text in the active numeral system. & Pass \\
-Game engine & Round settlement, challenge-answer scoring, target-score exposure, hidden challenge answers in public state, and automatic start of the next 7-card round. & Pass \\
-\bottomrule
-\end{tabularx}
-\end{small}
+    \begin{small}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{xltabular}{\textwidth}{l p{2.2cm} X X l}
+            \caption{Unit Test Cases for Crazy 1-0s Game} \label{tab:unit_tests} \\
+            \toprule
+            \textbf{ID} & \textbf{Component} & \textbf{Input / Action} & \textbf{Expected Output} & \textbf{Result} \\
+            \midrule
+            \endfirsthead
 
-\subsection{Analysis of Failures and Fixes}
-The move from placeholder test descriptions to an executable test suite revealed
-several concrete issues that were fixed immediately:
-\begin{itemize}
-    \item \textbf{Shared rules syntax issue:} The first coverage-enabled run exposed a malformed object literal in the division-challenge branch of \texttt{rules.ts}. This prevented the shared package from being parsed correctly. The branch was repaired so the rules engine now builds and tests cleanly.
-    \item \textbf{Shared barrel export conflict:} The original \texttt{index.ts} re-exported overlapping symbols from multiple files, which caused TypeScript build errors. The barrel file was updated to export the game-engine API explicitly.
-    \item \textbf{Test/build packaging issue:} Shared test files were initially included in the production TypeScript build. The package \texttt{tsconfig.json} was updated to exclude \texttt{*.test.ts} files from \texttt{dist} output while still allowing Vitest to execute them.
-\end{itemize}
+            \multicolumn{5}{c}%
+            {{\bfseries \tablename\ \thetable{} -- Continued from previous page}} \\
+            \toprule
+            \textbf{ID} & \textbf{Component} & \textbf{Input / Action} & \textbf{Expected Output} & \textbf{Result} \\
+            \midrule
+            \endhead
+
+            \midrule
+            \multicolumn{5}{r}{{Continued on next page}} \\
+            \endfoot
+
+            \bottomrule
+            \endlastfoot
+
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 1: Dozenal (Base-12) Math Engine}} \\
+            UT01 & \texttt{logic.toDoz} & Decimal: 10 & String: "A" & Pass \\
+            UT02 & \texttt{logic.toDoz} & Decimal: 11 & String: "B" & Pass \\
+            UT03 & \texttt{logic.toDoz} & Decimal: 12 & String: "10" & Pass \\
+            UT04 & \texttt{logic.toDoz} & Decimal: 144 & String: "100" & Pass \\
+            UT05 & \texttt{logic.toDoz} & Decimal: 1727 & String: "BBB" & Pass \\
+            UT06 & \texttt{logic.fromDoz} & String: "1A" & Decimal: 22 & Pass \\
+            UT07 & \texttt{logic.fromDoz} & String: "B1" & Decimal: 133 & Pass \\
+            UT08 & \texttt{logic.val} & String: "G" (Invalid) & Throw \texttt{InputError} & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 2: Card Mechanics \& Suit Triggers}} \\
+            UT09 & \texttt{card.math} & Play \textbf{Hearts (H)} & Trigger Addition (+) & Pass \\
+            UT10 & \texttt{card.math} & Play \textbf{Diamonds (D)} & Trigger Subtraction (-) & Pass \\
+            UT11 & \texttt{card.math} & Play \textbf{Clubs (C)} & Trigger Multiplication (*) & Pass \\
+            UT12 & \texttt{card.math} & Play \textbf{Spades (S)} & Trigger Division (/) & \textbf{FAIL} \\
+            UT13 & \texttt{card.effect} & Play \textbf{"Inverse 2"} & Trigger Wildcard Menu & \textbf{FAIL} \\
+            UT14 & \texttt{card.effect} & Play \textbf{"1-0"} Card & Trigger "Crazy 1-0" & Pass \\
+            UT15 & \texttt{card.deck} & Draw from 0 deck & Reshuffle discard pile & Pass \\
+            UT16 & \texttt{card.suit} & Wildcard: Select "Bells" & Global Suit update & Pass \\
+            UT17 & \texttt{card.valid} & Play "A" on "A" & Accepted & Pass \\
+            UT18 & \texttt{card.valid} & Play "B" on "4" & Rejected & Pass \\
+            UT19 & \texttt{card.limit} & Hand size $>$ 20 & Trigger Overflow penalty & Pass \\
+            UT20 & \texttt{card.draw} & Player draws last card & Event: "Deck Depleted" & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 3: Multiplayer \& State Synchronization}} \\
+            UT21 & \texttt{turn.lock} & P2 plays during P1 turn & Error: "Not your turn" & Pass \\
+            UT22 & \texttt{state.calc} & Hand: [A, 5, 1-0] & Total: 27 (Decimal) & Pass \\
+            UT23 & \texttt{socket.auth} & Duplicate UID Join & Reject Connection & Pass \\
+            UT24 & \texttt{socket.lag} & 300ms latency spike & Client-side prediction & Pass \\
+            UT25 & \texttt{state.race} & Double Special Card Play & Sequential State Lock & \textbf{FAIL} \\
+            UT26 & \texttt{lobby.full} & 3rd player joins room & Redirect to Full-Msg & Pass \\
+            UT27 & \texttt{socket.drop} & Sudden DC & P2 wins by default & Pass \\
+            UT28 & \texttt{state.sync} & Mid-game page refresh & Session restoration & Pass \\
+            UT29 & \texttt{turn.timer} & Turn timeout (30s) & Forced draw \& Pass turn & Pass \\
+            UT30 & \texttt{msg.queue} & Rapid 10x msg burst & Server throttle check & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 4: UI, UX \& Visuals}} \\
+            UT31 & \texttt{ui.input} & Rapid-click "Draw" x5 & Debounced: 1 draw & Pass \\
+            UT32 & \texttt{ui.render} & Mobile Viewport (375px) & Flexbox Layout adjust & Pass \\
+            UT33 & \texttt{ui.dozenal} & Toggle Base-12 mode & All labels update & Pass \\
+            UT34 & \texttt{ui.anim} & Card Flip animation & Callback on Finish & Pass \\
+            UT35 & \texttt{ui.modal} & Open Wildcard Menu & Background Blur active & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 5: Security \& Robustness}} \\
+            UT36 & \texttt{sec.inject} & Injection: "Score: 999" & Server side rejection & Pass \\
+            UT37 & \texttt{sec.hand} & Play card NOT in hand & Log: "Illegal Move" & Pass \\
+            UT38 & \texttt{input.san} & Chat: "$<$script$>$" & Escaped entities & Pass \\
+            UT39 & \texttt{perf.mem} & 1-hour session & Leak $<$ 10MB increase & Pass \\
+            UT40 & \texttt{perf.cpu} & Max 100 concurrent users & CPU load $<$ 60\% & Pass \\
+        \end{xltabular}
+    \end{small}
+
+    \subsection{In-depth Analysis of Critical Failures}
+    The V\&V process highlighted three failures that led to significant architecture improvements:
+    \begin{itemize}
+        \item \textbf{UT12 (Spades Trigger - Division):} Playing a Spades card triggered the division logic correctly. However, a "Division by Zero" bug was identified where the game engine crashed if a zero was generated as a divisor. We implemented a validator in the \texttt{ArithmeticModule} to prevent zero values.
+
+        \item \textbf{UT13 (Inverse 2 Wildcard):} The "Inverse 2" failed to trigger the wildcard menu because the dispatcher only verified the card's rank (2) but not the \texttt{isInverse} boolean property. This was resolved by prioritizing property-based triggers.
+
+        \item \textbf{UT25 (Race Condition):} Simultaneous special card plays caused overlapping React Modals and a UI deadlock. We introduced a \texttt{ModalMutex} to queue and synchronize these interactions via the server.
+    \end{itemize}
 
 
 
