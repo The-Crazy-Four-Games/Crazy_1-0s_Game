@@ -27,7 +27,8 @@
   border-radius: 20px;
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  min-width: 400px;
+  min-width: 420px;
+  max-width: 500px;
   animation: slideUp 0.3s ease;
 }
 
@@ -47,7 +48,7 @@
   align-items: center;
   justify-content: center;
   gap: 15px;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
 }
 
 .popup-header h2 {
@@ -65,51 +66,10 @@
   font-size: 0.9rem;
 }
 
-.challenge-timer {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.challenge-timer-bar-container {
-  flex: 1;
-  height: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.challenge-timer-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #4caf50, #8bc34a);
-  transition: width 1s linear;
-  border-radius: 5px;
-}
-
-.challenge-timer-bar.low {
-  background: linear-gradient(90deg, #f44336, #ff5722);
-  animation: timerFlash 0.5s infinite;
-}
-
-@keyframes timerFlash {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.challenge-timer-text {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #fff;
-  min-width: 40px;
-}
-
-.challenge-timer-text.low {
-  color: #f44336;
+.challenge-card-info {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.95rem;
+  margin-bottom: 25px;
 }
 
 .challenge-equation {
@@ -129,6 +89,11 @@
   border-radius: 10px;
 }
 
+.answer-blank {
+  color: #ffd700;
+  border: 2px dashed rgba(255, 215, 0, 0.5);
+}
+
 .operator {
   color: #ffd700;
   font-weight: bold;
@@ -138,55 +103,83 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-.answer-input {
-  width: 100px;
-  padding: 10px;
-  font-size: 2rem;
+/* Typed answer input */
+.challenge-input-area {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.challenge-input {
+  width: 200px;
+  height: 50px;
+  font-size: 1.5rem;
+  font-weight: bold;
   text-align: center;
-  border: 3px solid #4caf50;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
   outline: none;
   transition: border-color 0.2s ease;
 }
 
-.answer-input:focus {
-  border-color: #8bc34a;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+.challenge-input:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
 }
 
-.answer-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+.challenge-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 1rem;
+  font-weight: normal;
 }
 
-/* Hide spinner buttons on number input */
-.answer-input::-webkit-outer-spin-button,
-.answer-input::-webkit-inner-spin-button {
+/* Hide number input spinner */
+.challenge-input::-webkit-outer-spin-button,
+.challenge-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
-.answer-input[type='number'] {
+.challenge-input[type=number] {
   -moz-appearance: textfield;
-  appearance: textfield;
 }
 
-.answer-display {
+.submit-btn {
+  height: 50px;
+  padding: 0 24px;
+  font-size: 1.1rem;
   font-weight: bold;
-  padding: 10px 20px;
-  border-radius: 10px;
-  min-width: 100px;
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #1e1e2e;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.answer-display.correct {
-  background: rgba(76, 175, 80, 0.3);
-  border: 3px solid #4caf50;
+.submit-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
 
-.answer-display.incorrect {
-  background: rgba(244, 67, 54, 0.3);
-  border: 3px solid #f44336;
+.submit-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.answer-correct {
+  color: #4caf50 !important;
+  border-color: #4caf50 !important;
+  background: rgba(76, 175, 80, 0.2) !important;
+}
+
+.answer-incorrect {
+  color: #f44336 !important;
+  border-color: #f44336 !important;
+  background: rgba(244, 67, 54, 0.2) !important;
 }
 
 .result-message {
@@ -198,7 +191,6 @@
   border-radius: 10px;
   font-size: 1.2rem;
   font-weight: bold;
-  margin-bottom: 20px;
   animation: resultSlide 0.3s ease;
 }
 
@@ -227,27 +219,4 @@
 
 .result-icon {
   font-size: 1.5rem;
-}
-
-.submit-button {
-  padding: 15px 40px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #4caf50, #45a049);
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.submit-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #45a049, #3d8b40);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-}
-
-.submit-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }

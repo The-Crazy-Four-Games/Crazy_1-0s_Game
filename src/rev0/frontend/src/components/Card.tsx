@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Card as CardType } from '../types/game';
-import { SUIT_SYMBOLS, SUIT_COLORS, formatRank } from '../types/game';
+import { getCardImagePath } from '../types/game';
 import './Card.css';
 
 interface CardProps {
@@ -24,9 +24,7 @@ export const Card: React.FC<CardProps> = ({
   isSkipCard = false,
   size = 'medium',
 }) => {
-  const suitSymbol = SUIT_SYMBOLS[card.suit];
-  const suitColor = SUIT_COLORS[card.suit];
-  const displayRank = formatRank(card.rank);
+  const imagePath = getCardImagePath(card, faceDown);
 
   const handleClick = () => {
     if (onClick && !faceDown) {
@@ -34,46 +32,32 @@ export const Card: React.FC<CardProps> = ({
     }
   };
 
-  if (faceDown) {
-    return (
-      <div className={`card card-back card-${size}`}>
-        <div className="card-back-pattern">
-          <span>🎴</span>
-        </div>
-      </div>
-    );
-  }
-
   const cardClasses = [
     'card',
     `card-${size}`,
+    faceDown ? 'card-back' : '',
     isPlayable ? 'playable' : '',
     isSelected ? 'selected' : '',
-    isWildcard ? 'wildcard' : '',
-    isSkipCard ? 'skip-card' : '',
+    isWildcard && !faceDown ? 'wildcard' : '',
+    isSkipCard && !faceDown ? 'skip-card' : '',
   ].filter(Boolean).join(' ');
 
   return (
     <div
       className={cardClasses}
       onClick={handleClick}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
+      style={{ cursor: onClick && !faceDown ? 'pointer' : 'default' }}
     >
       {/* Special card indicators */}
-      {isWildcard && <div className="card-badge wildcard-badge">🌟</div>}
-      {isSkipCard && <div className="card-badge skip-badge">⏭️</div>}
-      
-      <div className="card-corner top-left" style={{ color: suitColor }}>
-        <span className="card-rank">{displayRank}</span>
-        <span className="card-suit">{suitSymbol}</span>
-      </div>
-      <div className="card-center" style={{ color: suitColor }}>
-        <span className="card-suit-large">{suitSymbol}</span>
-      </div>
-      <div className="card-corner bottom-right" style={{ color: suitColor }}>
-        <span className="card-rank">{displayRank}</span>
-        <span className="card-suit">{suitSymbol}</span>
-      </div>
+      {!faceDown && isWildcard && <div className="card-badge wildcard-badge">🌟</div>}
+      {!faceDown && isSkipCard && <div className="card-badge skip-badge">⏭️</div>}
+
+      <img
+        src={imagePath}
+        alt={faceDown ? 'Card back' : `${card.rank} of ${card.suit}`}
+        className="card-image"
+        draggable={false}
+      />
     </div>
   );
 };

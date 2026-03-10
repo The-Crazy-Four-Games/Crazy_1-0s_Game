@@ -1,11 +1,18 @@
 // shared/src/gameEngine.ts
-import type { PlayerID, RoundState, Card } from "./rules.js";
-import { initRound, applyDraw, applyPlay, passTurn, advanceTurn, isRoundOver, roundWinner, parseInSystem, formatInSystem, systemFromBaseId } from "./rules.js";
+import type { PlayerID, RoundState, Card, MathChallenge } from "./rules.js";
+import { initRound, applyDraw, applyPlay, passTurn, advanceTurn, isRoundOver, roundWinner, parseInSystem, formatInSystem, systemFromBaseId, getPlayableCards, canDraw } from "./rules.js";
 import type { BaseId, NumeralSystem } from "./systems.js";
 import { roundGainDec } from "./scoring.js";
 import { type GameAction, withTimestamp, assertTurn } from "./gameActions.js";
 
 export type GameStatus = "ONGOING" | "GAME_OVER";
+
+export type RoundResult = {
+  winner: string;
+  loser: string;
+  pointsGained: number;
+  scoresDec: Record<string, number>;
+};
 
 export type GameState = Readonly<{
   gameId: string;
@@ -16,17 +23,10 @@ export type GameState = Readonly<{
   actionLog: readonly GameAction[];
   lastSnapshot?: GameState;
   activeChallenge?: MathChallenge;
+  lastRoundResult?: RoundResult;
 }>;
 
-export type MathChallenge = Readonly<{
-  playerId: PlayerID;
-  type: '+' | '-' | '*' | '/';
-  op1: number;
-  op2: number;
-  answer: number;
-  reward: number;
-  shouldPassTurn: boolean;
-}>;
+export type { MathChallenge };
 
 export type CreateGameOptions = Readonly<{
   players: [PlayerID, PlayerID];
@@ -58,8 +58,17 @@ export function createGame(opts: CreateGameOptions): GameState {
 export function applyAction(game: GameState, action: GameAction): GameState {
   if (game.status === "GAME_OVER") throw new Error("GameOver");
 
+  // Clear lastRoundResult on any new action so the popup dismisses
+  if (game.lastRoundResult) {
+    game = { ...game, lastRoundResult: undefined };
+  }
+
   const a = withTimestamp(action);
-  assertTurn(game.round.turn, a);
+
+  // Skip turn check for ANSWER_CHALLENGE and CHEAT_WIN
+  if (a.type !== 'ANSWER_CHALLENGE' && a.type !== 'CHEAT_WIN') {
+    assertTurn(game.round.turn, a);
+  }
 
   const snapshot = game;
   let round = game.round;
@@ -69,36 +78,39 @@ export function applyAction(game: GameState, action: GameAction): GameState {
       round = applyDraw(game.sys, round, a.playerId);
       break;
     case "PLAY":
-      round = applyPlay(game.sys, round, a.playerId, a.card, a.chosenSuit);
+      round = applyPlay(game.sys, round, a.playerId, a.card, a.chosenSuit, a.chosenOperation);
       break;
     case "PASS":
       round = passTurn(round);
       break;
     case "ANSWER_CHALLENGE":
-          if (!round.activeChallenge) throw new Error("NoActiveChallenge");
-          if (round.activeChallenge.playerId !== a.playerId) throw new Error("NotYourChallenge");
+      if (!round.activeChallenge) throw new Error("NoActiveChallenge");
 
-          const isCorrect = round.activeChallenge.answer === a.answer;
-          // If correct, add points immediately to scoresDec
-          if (isCorrect) {
-            const reward = round.activeChallenge.reward;
-            game = {
-                ...game,
-                scoresDec: {
-                    ...game.scoresDec,
-                    [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
-                }
-            };
+      const isCorrect = round.activeChallenge.answer === a.answer;
+      // If correct, add points immediately to scoresDec
+      if (isCorrect) {
+        const reward = round.activeChallenge.reward;
+        game = {
+          ...game,
+          scoresDec: {
+            ...game.scoresDec,
+            [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
           }
+        };
+      }
 
-          // Clear challenge
-          const shouldPass = round.activeChallenge.shouldPassTurn;
-          round = { ...round, activeChallenge: undefined };
+      // Clear challenge
+      const shouldPass = round.activeChallenge.shouldPassTurn;
+      round = { ...round, activeChallenge: undefined };
 
-          if (shouldPass) {
-              round = advanceTurn(round);
-          }
-          break;
+      if (shouldPass) {
+        round = advanceTurn(round);
+      }
+      break;
+    case "CHEAT_WIN":
+      // Empty this player's hand → triggers round-over + scoring
+      round = { ...round, hands: { ...round.hands, [a.playerId]: [] } };
+      break;
   }
 
   let next: GameState = {
@@ -107,6 +119,17 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     actionLog: [...game.actionLog, a],
     lastSnapshot: snapshot,
   };
+
+  // Auto-pass: if current player has no playable cards and can't draw, pass their turn
+  if (!isRoundOver(next.round) && !next.round.activeChallenge) {
+    const currentPlayer = next.round.turn;
+    const playable = getPlayableCards(next.sys, next.round, currentPlayer);
+    const deckAvailable = next.round.deck.length > 0 || next.round.discard.length > 0;
+    const canDrawMore = canDraw(next.round) && deckAvailable;
+    if (playable.length === 0 && !canDrawMore) {
+      next = { ...next, round: passTurn(next.round) };
+    }
+  }
 
   // round end -> scoring + new round OR game over
   if (isRoundOver(next.round)) {
@@ -117,14 +140,21 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     const gainedDec = roundGainDec(next.round.hands[loser], next.sys);
     const scoresDec = { ...next.scoresDec, [winner]: (next.scoresDec[winner] ?? 0) + gainedDec };
 
+    const roundResult: RoundResult = {
+      winner,
+      loser,
+      pointsGained: gainedDec,
+      scoresDec,
+    };
+
     const targetDec = parseInSystem(next.sys.targetScoreText, next.sys);
     const over = Object.values(scoresDec).some(s => s >= targetDec);
 
     if (over) {
-      next = { ...next, scoresDec, status: "GAME_OVER" };
+      next = { ...next, scoresDec, status: "GAME_OVER", lastRoundResult: roundResult };
     } else {
       const newRound = initRound(next.sys, next.round.players, 7);
-      next = { ...next, scoresDec, round: newRound };
+      next = { ...next, scoresDec, round: newRound, lastRoundResult: roundResult };
     }
   }
 
@@ -146,6 +176,21 @@ export function getPublicState(game: GameState) {
     ? { ...game.round.activeChallenge, answer: undefined }
     : undefined;
 
+  // Format lastRoundResult with base-aware text
+  let lastRoundResultFormatted: any = undefined;
+  if (game.lastRoundResult) {
+    const r = game.lastRoundResult;
+    const scoresResultText: Record<string, string> = {};
+    for (const [pid, s] of Object.entries(r.scoresDec)) {
+      scoresResultText[pid] = formatInSystem(s, game.sys);
+    }
+    lastRoundResultFormatted = {
+      ...r,
+      pointsGainedText: formatInSystem(r.pointsGained, game.sys),
+      scoresText: scoresResultText,
+    };
+  }
+
   return {
     gameId: game.gameId,
     baseId: game.sys.id,
@@ -161,5 +206,6 @@ export function getPublicState(game: GameState) {
     targetScoreText: formatInSystem(targetDec, game.sys),
     faceRanks: game.sys.faceRanks,
     deckNumericSymbols: game.sys.deckNumericSymbols,
+    lastRoundResult: lastRoundResultFormatted,
   };
 }

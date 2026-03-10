@@ -8,6 +8,7 @@ import type {
   CredentialData,
   CredentialRecord,
   MatchResult,
+  MatchHistoryEntry,
   PlayerStats,
 } from "../../types/repository";
 import {
@@ -98,15 +99,31 @@ export class InMemoryRepository implements Repository {
     return rec;
   }
 
+  async changePassword(username: string, newPasswordHash: string): Promise<void> {
+    const rec = this.credentialsByUsername.get(username);
+    if (!rec) throw new RecordNotFound(`Credential not found for username: ${username}`);
+    this.credentialsByUsername.set(username, { ...rec, passwordHash: newPasswordHash });
+  }
+
   async saveMatchResult(result: MatchResult): Promise<void> {
     const list = this.matchResultsByPlayerId.get(result.playerId) ?? [];
     list.push(result);
     this.matchResultsByPlayerId.set(result.playerId, list);
   }
 
-  async getMatchHistory(playerId: PlayerID, limit: number, offset: number): Promise<MatchResult[]> {
+  async getMatchHistory(playerId: PlayerID, limit: number, offset: number): Promise<MatchHistoryEntry[]> {
     const list = this.matchResultsByPlayerId.get(playerId) ?? [];
-    return list.slice(offset, offset + limit);
+    const sorted = [...list].sort((a, b) => b.timestamp - a.timestamp);
+    const sliced = sorted.slice(offset, offset + limit);
+    // Resolve opponent nicknames
+    return sliced.map(r => {
+      let opponentNickname: string | undefined;
+      if (r.opponentId) {
+        const opp = this.playersById.get(r.opponentId);
+        opponentNickname = opp?.displayName || opp?.username;
+      }
+      return { ...r, opponentNickname };
+    });
   }
 
   async getPlayerStats(playerId: PlayerID): Promise<PlayerStats> {
@@ -124,5 +141,35 @@ export class InMemoryRepository implements Repository {
       else stats.draws++;
     }
     return stats;
+  }
+
+  /* ───── Session Tracking ───── */
+
+  private sessionIatByPlayerId = new Map<PlayerID, number>();
+
+  async setSessionIat(playerId: PlayerID, iat: number): Promise<void> {
+    this.sessionIatByPlayerId.set(playerId, iat);
+  }
+
+  async clearSessionIat(playerId: PlayerID): Promise<void> {
+    this.sessionIatByPlayerId.delete(playerId);
+  }
+
+  async getSessionIat(playerId: PlayerID): Promise<number | null> {
+    return this.sessionIatByPlayerId.get(playerId) ?? null;
+  }
+
+  /* ───── Admin ───── */
+
+  async searchPlayers(q: string): Promise<Player[]> {
+    const lower = q.toLowerCase();
+    return Array.from(this.playersById.values())
+      .filter(p => p.username.toLowerCase().includes(lower) ||
+        (p.displayName ?? '').toLowerCase().includes(lower))
+      .slice(0, 20);
+  }
+
+  async clearMatchHistory(playerId: PlayerID): Promise<void> {
+    this.matchResultsByPlayerId.delete(playerId);
   }
 }

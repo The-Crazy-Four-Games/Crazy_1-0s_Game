@@ -66,8 +66,8 @@ class GameRoom {
         this.state.status = "playing";
         this.deck.shuffle();
 
-        // starting hands with 5 cards each
-        for (let i = 0; i < 5; i++) {
+        // starting hands with 7 cards each
+        for (let i = 0; i < 7; i++) {
             this.players[0].hand.push(this.deck.draw());
             this.players[1].hand.push(this.deck.draw());
         }
@@ -135,11 +135,11 @@ class GameRoom {
             console.log(`[Game ${this.roomId}] Player ${winner.id} won this round, got ${roundScore} scores. Total: ${this.scores}`);
 
             // check for entire game win
-            if (this.scores[winnerIndex] >= 50) {
-                // --- if score > 50 ---
+            if (this.scores[winnerIndex] >= 100) {
+                // --- if score > 100 ---
                 this.state.status = "finished";
                 this.io.to(this.roomId).emit("gameOver",
-                    `Player ${winner.id} reached 50 first! Final Scores: ${this.scores[0]} - ${this.scores[1]}`
+                    `Player ${winner.id} reached 100 first! Final Scores: ${this.scores[0]} - ${this.scores[1]}`
                 );
                 // (game ended, waiting for player votes "requestRestart")
 
