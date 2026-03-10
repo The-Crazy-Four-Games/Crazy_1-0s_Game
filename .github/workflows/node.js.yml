@@ -1,48 +1,52 @@
-# CI for Rev0 branch only (code lives under src/Rev0)
+# CI for the Rev0 code under src/rev0
 name: Node.js CI (Rev0)
 
 on:
   push:
-    branches: ["Rev0"]
     paths:
       - "src/rev0/**"
-      - ".github/workflows/**"
+      - ".github/workflows/node.js.yml"
   pull_request:
-    branches: ["Rev0"]
     paths:
       - "src/rev0/**"
-      - ".github/workflows/**"
+      - ".github/workflows/node.js.yml"
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]     # keep CI faster; add 18.x/22.x later if you want
-        workspaces: [frontend, backend, shared] 
-
-    defaults:
-      run:
-        working-directory: src/rev0
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
           cache: npm
           cache-dependency-path: src/rev0/package-lock.json
 
-      - name: Install Dependencies (Root)
+      - name: Install dependencies
         run: npm ci
+        working-directory: src/rev0
 
-#      - name: Lint (if present)
-#        run: npm run lint --if-present
+      - name: Build shared package
+        run: npm run build -w shared
+        working-directory: src/rev0
 
-      - name: Build (if present)
-        run: npm run build -w ${{ matrix.workspace }} --if-present
-        continue-on-error: true
+      - name: Run shared test suite with coverage
+        run: npm run test:coverage -w shared
+        working-directory: src/rev0
 
+      - name: Build backend
+        run: npm run build -w backend
+        working-directory: src/rev0
+
+      - name: Build frontend
+        run: npm run build -w frontend
+        working-directory: src/rev0
+
+      - name: Upload shared coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-coverage
+          path: src/rev0/shared/coverage

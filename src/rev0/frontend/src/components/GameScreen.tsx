@@ -112,8 +112,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
   // Determine winner when game is over
   const isGameOver = ps.status === 'GAME_OVER';
-  const myHandCount = ps.handsCount[userId] || 0;
-  const iWon = isGameOver && myHandCount === 0;
+  const myScoreDec = ps.scoresDec[userId] || 0;
+  const opponentScoreDec = ps.scoresDec[opponentId] || 0;
+  const iWon = isGameOver && myScoreDec >= ps.targetScoreDec && myScoreDec >= opponentScoreDec;
 
   // Helper to check if card is wildcard (rank "10")
   const isWildcard = (rank: string) => rank === '10';

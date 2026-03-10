@@ -2324,20 +2324,34 @@ graduate attribute of Problem Analysis and Design.
 \input{../../Reflection.tex}
 
 \begin{enumerate}
-  \item What went well while writing this deliverable? 
+  \item What went well while writing this deliverable? \\
+The team iterated quickly on TA feedback (e.g., removing implementation-specific wording like JSX/Browser APIs and clarifying what belongs in MG vs MIS).
+We maintained traceability between the module decomposition/DAG and the MIS sections, so it is clear how modules relate and where responsibilities live.
   \item What pain points did you experience during this deliverable, and how
-    did you resolve them?
+    did you resolve them?\\
+During this deliverable, we updated the Module Guide dependency structure (the “Uses” relations and DAG graph) and also merged/split responsibilities across several modules. As a result, many MIS sections no longer matched the architecture and had to be rewritten (not just edited), especially the “Uses” lists, state variables, and access-program contracts. Once the Uses relations were revised, the order in which we wrote MIS modules mattered a lot. We had to start from leaf/low-dependency modules first, then move upward, otherwise we would reference types, exceptions, or semantics that were not yet defined. This created rework when an upstream module’s interface changed after a dependent module was already drafted. \\
+\textbf{Solution} : We stabilized the MG first, then rebuilt the MIS in dependency order (leaf modules → higher-level modules). We also created a shared checklist for each module (responsibility, Uses, assumptions, exceptions, and notation consistency) and did a consistency pass to ensure every reference matches the latest MG.
   \item Which of your design decisions stemmed from speaking to your client(s)
   or a proxy (e.g. your peers, stakeholders, potential users)? For those that
-  were not, why, and where did they come from?
+  were not, why, and where did they come from?\\
+Decisions influenced by client (Dr. Rapoport) feedback: Keeping the game flow simple for 1v1 play (clear turn structure) to reduce user confusion and reduce implementation risk.\\
+Decisions not directly from clients : The choice of a server-authoritative model came from standard distributed-systems practice for fairness and consistency in multiplayer games, and from risk management
   \item While creating the design doc, what parts of your other documents (e.g.
-  requirements, hazard analysis, etc), it any, needed to be changed, and why?
+  requirements, hazard analysis, etc), it any, needed to be changed, and why?\\
+We updated the MG-to-MIS mapping to reflect changes in the MG dependency structure (e.g., “Uses” relationships and leaf-module grouping) so the MIS matched the latest architecture.
   \item What are the limitations of your solution?  Put another way, given
-  unlimited resources, what could you do to make the project better? (LO\_ProbSolutions)
+  unlimited resources, what could you do to make the project better? (LO\_ProbSolutions)\\
+Limitations: The current design focuses on 1v1 and a core gameplay loop; scalability to many simultaneous rooms and advanced matchmaking is limited.
+Security is specified at a design level (auth gating, credential usage), but not hardened like a production deployment.\\
+With unlimited resources: Add comprehensive automated testing. Expand features (spectator mode, replays, richer profile/stats, better matchmaking, accessibility improvements).
   \item Give a brief overview of other design solutions you considered.  What
   are the benefits and tradeoffs of those other designs compared with the chosen
   design?  From all the potential options, why did you select the documented design?
-  (LO\_Explores)
+  (LO\_Explores)\\
+\textbf{Single monolithic module vs modular decomposition}: \\
+Benefits of monolith: faster to prototype initially, fewer interfaces.\\
+Tradeoffs: difficult to test; tight coupling; violates information hiding; changes ripple everywhere.\\
+Reason rejected: course expectations and long-term maintainability favor modular design with clear interfaces.
 \end{enumerate}
 
 

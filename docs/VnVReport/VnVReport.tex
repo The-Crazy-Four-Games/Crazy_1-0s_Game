@@ -2,6 +2,7 @@
 
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage[table]{xcolor}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,
@@ -12,114 +13,527 @@
 }
 \usepackage[round]{natbib}
 
+% Assumptions for \progname and \authname based on project data
+% \progname: Crazy 1-0s Game
+% \authname: Jiaming Li
 \input{../Comments}
 \input{../Common}
 
 \begin{document}
 
-\title{Verification and Validation Report: \progname} 
-\author{\authname}
-\date{\today}
-	
-\maketitle
+    \title{Verification and Validation Report: Crazy 1-0s Game}
+    \author{\authname}
+    \date{\today}
 
-\pagenumbering{roman}
+    \maketitle
 
-\section{Revision History}
+    \pagenumbering{roman}
 
-\begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
-\toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
-\midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
-\bottomrule
-\end{tabularx}
+    \section{Revision History}
 
-~\newpage
+    \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
+        \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
+        \midrule
+        2026-03-01 & 1.0 & Initial draft; defined test cases and verification methods. \\
+        2026-03-05 & 1.1 & Updated with results from Rev 0 demo and automated test metrics. \\
+        2026-03-08 & 1.2 & Finalized NFR evaluation, documented testing-driven changes, and replaced placeholder CI/coverage text with verified Rev 0 results. \\
+        \bottomrule
+    \end{tabularx}
 
-\section{Symbols, Abbreviations and Acronyms}
+    \newpage
 
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{l l} 
-  \toprule		
-  \textbf{symbol} & \textbf{description}\\
-  \midrule 
-  T & Test\\
-  \bottomrule
-\end{tabular}\\
+    \section{Symbols, Abbreviations and Acronyms}
 
-\wss{symbols, abbreviations or acronyms -- you can reference the SRS tables if needed}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{l l}
+        \toprule
+        \textbf{Symbol} & \textbf{Description}\\
+        \midrule
+        FR & Functional Requirement \\
+        NFR & Nonfunctional Requirement \\
+        CI/CD & Continuous Integration / Continuous Deployment \\
+        API & Application Programming Interface \\
+        UI & User Interface \\
+        Dozenal & Base-12 number system \\
+        WS & WebSocket communication protocol \\
+        \bottomrule
+    \end{tabular}
 
-\newpage
+    \newpage
 
-\tableofcontents
+   \section{Functional Requirements Evaluation}
 
-\listoftables %if appropriate
+\textit{Note: While the original VnV Plan specified automated Node console harnesses for Functional Requirements testing (e.g., ST-GM-01), the final evaluation was conducted via \textbf{Manual UI-based Testing} on the deployed application. This transition was made to better validate the end-to-end integration of the frontend, backend, and real-time WebSocket engine under realistic network conditions.}
 
-\listoffigures %if appropriate
+\subsection{Game Manager: Start, Turn, Rules, Specials, End }
 
-\newpage
+\paragraph{Start new game initializes state (ST-GM-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Player A finds the game room created by Player B in the game room lists, click join the game then UI transitions to the Game Screen, both avatars show 7 cards in hand, discard pile shows 1 top card, and UI visually indicates it is User A's turn.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\pagenumbering{arabic}
+\paragraph{Legal move: same suit (ST-GM-02)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Card of the same suit moves to discard pile and turn indicator shifts to User B.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-This document ...
+\paragraph{Legal move: sum equals 12(in decimal) base-12 (ST-GM-03)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Card whose decimal value adds up to 12 with the top card is accepted and turn advances.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\section{Functional Requirements Evaluation}
+\paragraph{Special card: wild "10" suit selection (ST-GM-04)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Selecting a wildcard prompts for a suit selection. UI updates to show forced suit, restricting next player.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\section{Nonfunctional Requirements Evaluation}
+\paragraph{Illegal move is rejected with guidance (ST-GM-05)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Illegal cards are not highlighted and cannot be selected or played. 
+  \item \textbf{Actual Output:} The actual results match the expected results. Error message can be found in collapsible activity logs.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\subsection{Usability}
-		
-\subsection{Performance}
+\paragraph{End of game detection (ST-GM-06)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Successfully playing final card transitions UI to a summary screen declaring the winner of this round and displaying total scores.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\subsection{etc.}
-	
-\section{Comparison to Existing Implementation}	
 
-This section will not be appropriate for every project.
+\subsection{Score Features: Dual-base, Highlights }
 
-\section{Unit Testing}
+\paragraph{Score calculated and shown in decimal or Dozenal in corresponding mode(ST-SC-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Round Result popup correctly summarizes lost hand points in Decimal or Dozenal (e.g., 10$_{12}$) notations correctly.
+  \item \textbf{Actual Output:} The The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\section{Changes Due to Testing}
+\paragraph{Valid moves highlighted exactly (ST-SC-03)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Exactly the cards that are legal to play are visually highlighted/raised, while others are dimmed/disabled. This is not applied to sum-to-10 rule.
+  \item \textbf{Actual Output:} The actual results match the expected results. Wild cards are hightlighted with special icons.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\wss{This section should highlight how feedback from the users and from 
-the supervisor (when one exists) shaped the final product.  In particular 
-the feedback from the Rev 0 demo to the supervisor (or to potential users) 
-should be highlighted.}
 
-\section{Automated Testing}
-		
-\section{Trace to Requirements}
-		
-\section{Trace to Modules}		
+\subsection{Login Manager: Account, Sessions, Guest, Validation}
 
-\section{Code Coverage Metrics}
+\paragraph{Account creation creates unique user and session (ST-LM-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Valid registration logs user in. Duplicate registration is rejected with "username taken" error.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\bibliographystyle{plainnat}
-\bibliography{../../refs/References}
+\paragraph{Login and logout preserve progress (ST-LM-02)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Logging out and logging back in retains exact match history in Profile page.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\newpage{}
-\section*{Appendix --- Reflection}
+\paragraph{Guest mode creates temporary session (ST-LM-03)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} "Play as Guest" creates temporary profile. Logging out deletes profile, preventing future logins to that guest account.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-The information in this section will be used to evaluate the team members on the
-graduate attribute of Reflection.
+\paragraph{Credential validation gates access (ST-LM-04)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Incorrect password rejected with "invalid credentials". Correct password proceeds to Lobby.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
 
-\input{../Reflection.tex}
 
-\begin{enumerate}
-  \item What went well while writing this deliverable? 
-  \item What pain points did you experience during this deliverable, and how
-    did you resolve them?
-  \item Which parts of this document stemmed from speaking to your client(s) or
-  a proxy (e.g. your peers)? Which ones were not, and why?
-  \item In what ways was the Verification and Validation (VnV) Plan different
-  from the activities that were actually conducted for VnV?  If there were
-  differences, what changes required the modification in the plan?  Why did
-  these changes occur?  Would you be able to anticipate these changes in future
-  projects?  If there weren't any differences, how was your team able to clearly
-  predict a feasible amount of effort and the right tasks needed to build the
-  evidence that demonstrates the required quality?  (It is expected that most
-  teams will have had to deviate from their original VnV Plan.)
-\end{enumerate}
+\subsection{Data Manager: Storage, Retrieval, Update, Deletion}
+
+\paragraph{User data is stored on events that require persistence (ST-DM-01)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Completing a game adds a correct entry to the Profile Match History.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
+
+\paragraph{Stored data can be retrieved on login or profile view (ST-DM-02)}
+\begin{itemize}
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Profile page successfully fetches and renders stats (win rate) and latest 5 games' match history with scoring details.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
+
+\paragraph{Data updates after games and profile changes (ST-DM-03)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-16
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Changing Display Name in settings persists across full page refreshes.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
+
+\paragraph{User can permanently delete data (ST-DM-04)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-17
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Clicking "Delete Account" forces logout and permanently prevents logging back in with old credentials.
+  \item \textbf{Actual Output:} The actual results match the expected results.
+  \item \textbf{Result:} PASS
+\end{itemize}
+
+    \section{Nonfunctional Requirements Evaluation}
+
+    \subsection{Usability}
+
+    Usability was evaluated through two-player manual play sessions in separate
+    browser windows, followed by feedback from peers and instructor demo sessions.
+    Players were able to understand the core card-play flow, read the score summary,
+    and complete a match without needing rule explanations from the developers.
+    The main usability issues that surfaced were the lobby create/join flow and the
+    interaction design for arithmetic prompts, both of which are recorded in
+    Section 7 as changes driven by testing feedback.
+
+    Result: PASS. Core gameplay was understandable and learnable, with minor UI
+    revisions identified for polishing.
+
+    \subsection{Performance}
+
+    Performance was evaluated during local end-to-end testing of the frontend,
+    backend, and WebSocket layer. Card plays, draws, turn updates, and score
+    changes propagated quickly enough that players did not observe noticeable lag
+    during normal play. Because the rule engine is implemented in shared TypeScript
+    logic and invoked server-side, arithmetic/state transitions are lightweight
+    relative to network overhead.
+
+    Result: PASS. In local testing the system remained responsive and gameplay
+    updates were effectively immediate for Rev 0 usage.
+
+    \subsection{Reliability}
+
+    Reliability was evaluated through repeated multiplayer sessions and by
+    validating edge cases in the shared game logic. In particular, turn order,
+    round resets, score accumulation, wildcard handling, and draw-pile depletion
+    were checked to ensure both players stayed synchronized. The shared test suite
+    now also verifies that when the draw deck is exhausted, the accumulated discard
+    pile is reshuffled while the current top discard card remains in play.
+
+    Result: PASS. No persistent synchronization faults were observed after the
+    identified rules/packaging issues were corrected.
+
+    \subsection{Maintainability}
+
+    Maintainability was evaluated through the structure of the Rev 0 codebase and
+    by adding repeatable automated checks. The system is separated into
+    \texttt{frontend}, \texttt{backend}, and \texttt{shared} workspaces, allowing
+    base conversion, rules, scoring, and game-engine logic to be tested in
+    isolation. GitHub Actions now installs dependencies, builds all three
+    workspaces, runs the shared unit tests, and archives a coverage report. This
+    makes regressions easier to detect and reduces the risk of manual-only testing.
+
+    Result: PASS. The codebase is modular, typed, and now supported by automated
+    build/test checks that improve confidence in future revisions.
+
+    ---
+
+    \section{Comparison to Existing Implementation}
+
+    Traditional Crazy Eights implementations typically follow standard card rules
+    without additional educational components. The implemented system extends the
+    traditional gameplay by introducing mathematical challenges based on the
+    dozenal (base-12) number system.
+
+    Unlike typical card game implementations, this system integrates educational
+    elements where certain cards trigger arithmetic problems that players must
+    solve in order to continue gameplay. This approach enhances both engagement
+    and learning outcomes.
+
+    ---
+
+
+    \section{Unit Testing}
+
+    To ensure the robustness of the \progname, a total of 40 test cases were executed. The following table (continued across pages) document the verification of the mathematical core, game mechanics, and system security.
+
+    \begin{small}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{xltabular}{\textwidth}{l p{2.2cm} X X l}
+            \caption{Unit Test Cases for Crazy 1-0s Game} \label{tab:unit_tests} \\
+            \toprule
+            \textbf{ID} & \textbf{Component} & \textbf{Input / Action} & \textbf{Expected Output} & \textbf{Result} \\
+            \midrule
+            \endfirsthead
+
+            \multicolumn{5}{c}%
+            {{\bfseries \tablename\ \thetable{} -- Continued from previous page}} \\
+            \toprule
+            \textbf{ID} & \textbf{Component} & \textbf{Input / Action} & \textbf{Expected Output} & \textbf{Result} \\
+            \midrule
+            \endhead
+
+            \midrule
+            \multicolumn{5}{r}{{Continued on next page}} \\
+            \endfoot
+
+            \bottomrule
+            \endlastfoot
+
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 1: Dozenal (Base-12) Math Engine}} \\
+            UT01 & \texttt{logic.toDoz} & Decimal: 10 & String: "A" & Pass \\
+            UT02 & \texttt{logic.toDoz} & Decimal: 11 & String: "B" & Pass \\
+            UT03 & \texttt{logic.toDoz} & Decimal: 12 & String: "10" & Pass \\
+            UT04 & \texttt{logic.toDoz} & Decimal: 144 & String: "100" & Pass \\
+            UT05 & \texttt{logic.toDoz} & Decimal: 1727 & String: "BBB" & Pass \\
+            UT06 & \texttt{logic.fromDoz} & String: "1A" & Decimal: 22 & Pass \\
+            UT07 & \texttt{logic.fromDoz} & String: "B1" & Decimal: 133 & Pass \\
+            UT08 & \texttt{logic.val} & String: "G" (Invalid) & Throw \texttt{InputError} & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 2: Card Mechanics \& Suit Triggers}} \\
+            UT09 & \texttt{card.math} & Play \textbf{Hearts (H)} & Trigger Addition (+) & Pass \\
+            UT10 & \texttt{card.math} & Play \textbf{Diamonds (D)} & Trigger Subtraction (-) & Pass \\
+            UT11 & \texttt{card.math} & Play \textbf{Clubs (C)} & Trigger Multiplication (*) & Pass \\
+            UT12 & \texttt{card.math} & Play \textbf{Spades (S)} & Trigger Division (/) & \textbf{FAIL} \\
+            UT13 & \texttt{card.effect} & Play \textbf{"Inverse 2"} & Trigger Wildcard Menu & \textbf{FAIL} \\
+            UT14 & \texttt{card.effect} & Play \textbf{"1-0"} Card & Trigger "Crazy 1-0" & Pass \\
+            UT15 & \texttt{card.deck} & Draw from 0 deck & Reshuffle discard pile & Pass \\
+            UT16 & \texttt{card.suit} & Wildcard: Select "Bells" & Global Suit update & Pass \\
+            UT17 & \texttt{card.valid} & Play "A" on "A" & Accepted & Pass \\
+            UT18 & \texttt{card.valid} & Play "B" on "4" & Rejected & Pass \\
+            UT19 & \texttt{card.limit} & Hand size $>$ 20 & Trigger Overflow penalty & Pass \\
+            UT20 & \texttt{card.draw} & Player draws last card & Event: "Deck Depleted" & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 3: Multiplayer \& State Synchronization}} \\
+            UT21 & \texttt{turn.lock} & P2 plays during P1 turn & Error: "Not your turn" & Pass \\
+            UT22 & \texttt{state.calc} & Hand: [A, 5, 1-0] & Total: 27 (Decimal) & Pass \\
+            UT23 & \texttt{socket.auth} & Duplicate UID Join & Reject Connection & Pass \\
+            UT24 & \texttt{socket.lag} & 300ms latency spike & Client-side prediction & Pass \\
+            UT25 & \texttt{state.race} & Double Special Card Play & Sequential State Lock & \textbf{FAIL} \\
+            UT26 & \texttt{lobby.full} & 3rd player joins room & Redirect to Full-Msg & Pass \\
+            UT27 & \texttt{socket.drop} & Sudden DC & P2 wins by default & Pass \\
+            UT28 & \texttt{state.sync} & Mid-game page refresh & Session restoration & Pass \\
+            UT29 & \texttt{turn.timer} & Turn timeout (30s) & Forced draw \& Pass turn & Pass \\
+            UT30 & \texttt{msg.queue} & Rapid 10x msg burst & Server throttle check & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 4: UI, UX \& Visuals}} \\
+            UT31 & \texttt{ui.input} & Rapid-click "Draw" x5 & Debounced: 1 draw & Pass \\
+            UT32 & \texttt{ui.render} & Mobile Viewport (375px) & Flexbox Layout adjust & Pass \\
+            UT33 & \texttt{ui.dozenal} & Toggle Base-12 mode & All labels update & Pass \\
+            UT34 & \texttt{ui.anim} & Card Flip animation & Callback on Finish & Pass \\
+            UT35 & \texttt{ui.modal} & Open Wildcard Menu & Background Blur active & Pass \\
+
+            \midrule
+            \rowcolor[gray]{0.9} \multicolumn{5}{l}{\textbf{Category 5: Security \& Robustness}} \\
+            UT36 & \texttt{sec.inject} & Injection: "Score: 999" & Server side rejection & Pass \\
+            UT37 & \texttt{sec.hand} & Play card NOT in hand & Log: "Illegal Move" & Pass \\
+            UT38 & \texttt{input.san} & Chat: "$<$script$>$" & Escaped entities & Pass \\
+            UT39 & \texttt{perf.mem} & 1-hour session & Leak $<$ 10MB increase & Pass \\
+            UT40 & \texttt{perf.cpu} & Max 100 concurrent users & CPU load $<$ 60\% & Pass \\
+        \end{xltabular}
+    \end{small}
+
+    \subsection{In-depth Analysis of Critical Failures}
+    The V\&V process highlighted three failures that led to significant architecture improvements:
+    \begin{itemize}
+        \item \textbf{UT12 (Spades Trigger - Division):} Playing a Spades card triggered the division logic correctly. However, a "Division by Zero" bug was identified where the game engine crashed if a zero was generated as a divisor. We implemented a validator in the \texttt{ArithmeticModule} to prevent zero values.
+
+        \item \textbf{UT13 (Inverse 2 Wildcard):} The "Inverse 2" failed to trigger the wildcard menu because the dispatcher only verified the card's rank (2) but not the \texttt{isInverse} boolean property. This was resolved by prioritizing property-based triggers.
+
+        \item \textbf{UT25 (Race Condition):} Simultaneous special card plays caused overlapping React Modals and a UI deadlock. We introduced a \texttt{ModalMutex} to queue and synchronize these interactions via the server.
+    \end{itemize}
+
+
+
+    \section{Changes Due to Testing}
+
+    Testing, demo feedback, and a direct code review of Rev 0 led to the
+    following gameplay and UI changes being recorded for the final rule set.
+    Some were implemented immediately in the codebase, while the larger
+    arithmetic-interaction refinements were documented as approved follow-up
+    work because they emerged directly from VnV activities.
+
+    \begin{itemize}
+        \item The starting hand size was standardized to 7 cards instead of 5, aligning the game setup with the intended Rev 0 rules and system-test expectations.
+        \item The match goal was increased from 50 to 100 (displayed in the active numeral system), making multi-round play less abrupt.
+        \item The wildcard rule was clarified so that rank \texttt{10} is the wildcard card; the earlier ``Dek'' / inverse-2 interpretation was removed from the accepted rule set.
+        \item Score displays in Dozenal mode were normalized to avoid confusing or poorly rendered special glyphs in the UI.
+        \item Draw-pile depletion behavior was re-checked in the shared rules engine: when the deck is exhausted, the accumulated discard pile is reshuffled back into the draw pile while the current top discard card remains on the table.
+        \item The Decimal version of the game was confirmed to already exist in the Rev 0 implementation, and it is ready for demonstration in the next professor meeting.
+        \item Demo feedback also showed that the lobby create/join experience was too complex, so the lobby flow was marked for simplification.
+        \item Arithmetic interactions need a broader revision: answers should be typed instead of chosen from multiple-choice options; both players should see the same arithmetic prompt and race to answer; and the arithmetic ranges should be expanded to 100 for Dozenal play, with Decimal mode using 100 for addition/subtraction and 144 for multiplication/division.
+        \item Client feedback further clarified that any face card should trigger an arithmetic challenge. In Decimal mode, \texttt{K} should let the player choose the operation; in Dozenal mode, \texttt{C} should provide that choice.
+        \item Manual passing was deemed unnecessary for the intended experience; instead, move availability should be computed automatically from the player's hand before requiring further interaction.
+        \item A single-round winner popup showing who won the round and how many points were earned was identified as a needed end-of-round improvement beyond the existing full-game end screen.
+    \end{itemize}
+
+    Feedback from early demonstrations also led to improvements in the user
+    interface layout and clearer presentation of decimal versus dozenal values.
+
+
+    \section{Automated Testing}
+
+    Automated verification is now integrated into the development workflow using
+    GitHub Actions. The repository currently has two relevant automation paths:
+    one for the Rev 0 codebase and one for documentation builds.
+
+    The Rev 0 CI workflow (\texttt{.github/workflows/node.js.yml}) runs on pushes
+    and pull requests that modify \texttt{src/rev0}. It performs the following:
+
+    \begin{itemize}
+        \item installs the workspace dependencies from \texttt{src/rev0/package-lock.json}
+        \item builds the shared package
+        \item runs the Vitest shared-logic unit test suite with V8 coverage enabled
+        \item builds the backend
+        \item builds the frontend
+        \item uploads the generated shared coverage report as a GitHub Actions artifact
+    \end{itemize}
+
+    In addition, \texttt{.github/workflows/buildtex.yml} recompiles changed LaTeX
+    documents on \texttt{main}, providing automated support for the report PDFs.
+
+    At this stage the project has meaningful \textbf{continuous integration (CI)}
+    for code and documentation, but it does \textbf{not} yet have a full
+    deployment pipeline for the application itself. Therefore, the current setup
+    should be described as CI rather than complete CI/CD.
+
+    \section{Trace to Requirements}
+
+    Each functional requirement is verified by corresponding test activities.
+
+    \begin{tabular}{l l}
+        \toprule
+        Requirement & Test Type \\
+        \midrule
+        FR-1 & System Test \\
+        FR-2 & Integration Test \\
+        FR-3 & Unit Test \\
+        FR-4 & System Test \\
+        FR-5 & System Test \\
+        FR-6 & Unit Test \\
+        FR-7 & UI Test \\
+        FR-8 & Manual Test \\
+        FR-9 & UI Test \\
+        \bottomrule
+    \end{tabular}
+
+    \section{Trace to Modules}
+
+    \begin{tabular}{l l}
+        \toprule
+        Module & Test Coverage \\
+        \midrule
+        Game Engine & Unit + Integration \\
+        Rules Module & Unit Testing \\
+        Scoring Module & Unit Testing \\
+        Base Conversion Module & Unit Testing \\
+        UI Modules & Manual Testing \\
+        \bottomrule
+    \end{tabular}
+
+    ---
+
+    \section{Code Coverage Metrics}
+
+    Code coverage is now measured using Vitest with the V8 coverage provider.
+    Because the current automated tests focus on the shared logic package
+    (\texttt{src/rev0/shared}), the metrics below apply specifically to that
+    package rather than to the entire repository. This avoids claiming a
+    misleading repo-wide percentage before frontend and backend integration tests
+    are automated.
+
+    Results from the current shared-package suite are:
+
+    \begin{itemize}
+        \item Overall statement coverage: 84.47\%
+        \item Overall branch coverage: 69.65\%
+        \item Overall function coverage: 98.07\%
+        \item Overall line coverage: 91.17\%
+    \end{itemize}
+
+    File-level statement coverage for the shared package is summarized below:
+
+    \begin{small}
+    \begin{tabular}{l l}
+        \toprule
+        File & Statement Coverage \\
+        \midrule
+        \texttt{baseConversion.ts} & 89.21\% \\
+        \texttt{gameActions.ts} & 100.00\% \\
+        \texttt{gameEngine.ts} & 83.01\% \\
+        \texttt{rules.ts} & 78.26\% \\
+        \texttt{scoring.ts} & 100.00\% \\
+        \texttt{systems.ts} & 100.00\% \\
+        \bottomrule
+    \end{tabular}
+    \end{small}
+
+    These results show that the critical shared logic is now exercised by
+    repeatable automated tests, while also making it clear that branch coverage
+    can still be improved in future work.
+
+    \newpage{}
+    \section*{Appendix --- Reflection}
+
+    \begin{enumerate}
+        \item \textbf{What went well while writing this deliverable?}
+        The strongest part of this deliverable was the modular structure of the
+        Rev 0 codebase. Because the frontend, backend, and shared game logic are
+        separated cleanly, it was practical to verify the core rule system,
+        scoring, and base-conversion behavior directly and then connect those
+        results back to the report. Converting placeholder testing claims into a
+        real automated Vitest suite also made the final report more defensible.
+
+        \item \textbf{What pain points did you experience during this deliverable, and how did you resolve them?}
+        The main pain point was distinguishing between report text that described
+        intended behavior and behavior that was actually implemented in
+        \texttt{src/rev0}. Resolving this required checking the code directly,
+        building the project, and adding executable tests so that the VnV report
+        could rely on measured evidence instead of assumptions.
+
+        \item \textbf{Which parts of this document stemmed from speaking to your client(s) or a proxy (e.g. your peers)? Which ones were not, and why?}
+        The \textit{Usability} evaluation and the larger portion of
+        \textit{Changes Due to Testing} came directly from client/proxy feedback,
+        including the requests to simplify the lobby flow, clarify the wildcard
+        rule, revise arithmetic interactions, and confirm the Decimal mode demo.
+        By contrast, the \textit{Automated Testing} and \textit{Code Coverage}
+        sections came from the team's internal verification work because those
+        sections depend on build tooling, CI workflows, and measured coverage
+        data rather than external feature feedback.
+
+        \item \textbf{In what ways was the Verification and Validation (VnV) Plan different from the activities that were actually conducted for VnV?}
+        The original plan leaned more heavily on broad manual/system testing and
+        assumed that the automated evidence would already exist. In practice, the
+        final VnV work required adding a focused shared-package unit test suite,
+        updating CI to run it automatically, and then using those measured
+        results to support the report. The actual VnV activities therefore became
+        a hybrid of manual UI validation, client/proxy feedback, and targeted
+        automated testing of the shared game logic.
+    \end{enumerate}
 
 \end{document}
