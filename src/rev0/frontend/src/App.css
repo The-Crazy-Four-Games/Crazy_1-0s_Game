@@ -1,0 +1,5 @@
+/* App-level styles - minimal reset */
+* {
+  box-sizing: border-box;
+}
+

@@ -1,0 +1,101 @@
+.lobby-screen {
+  padding: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  color: #fff;
+}
+
+.lobby-title {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.lobby-section {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.section-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.section-row input {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 14px;
+}
+
+.section-row input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.section-row select {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(30, 30, 46, 0.9);
+  color: #fff;
+  font-size: 14px;
+}
+
+.section-row button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #4caf50;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.section-row button:hover {
+  background: #45a049;
+}
+
+.section-info {
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.log-section {
+  max-height: 300px;
+}
+
+.log-container {
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow: auto;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.instructions {
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}

@@ -1,0 +1,259 @@
+.draw-pile,
+.discard-pile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pile-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pile-stack {
+  position: relative;
+  width: 90px;
+  height: 130px;
+}
+
+.pile-stack.can-draw {
+  cursor: pointer;
+}
+
+.pile-stack.can-draw:hover .pile-card:last-child {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pile-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 0.2s ease;
+}
+
+.pile-card.offset-1 {
+  top: 2px;
+  left: 2px;
+}
+
+.pile-card.offset-2 {
+  top: 4px;
+  left: 4px;
+}
+
+.empty-pile {
+  width: 90px;
+  height: 130px;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+.pile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.draws-left {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.wild-choice {
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 5px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+}
+
+/* Suit Selector */
+.suit-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.suit-selector {
+  background: #1e1e2e;
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.suit-selector h3 {
+  color: #fff;
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+}
+
+.suit-options {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.suit-button {
+  width: 70px;
+  height: 70px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suit-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.suit-symbol {
+  font-size: 2.5rem;
+}
+
+.cancel-button {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Turn Timer */
+.turn-timer {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 20px;
+}
+
+.timer-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.timer-bar-container {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.timer-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  transition: width 0.5s linear;
+  border-radius: 4px;
+}
+
+.timer-bar.low {
+  background: linear-gradient(90deg, #f44336, #ff5722);
+  animation: flash 0.5s infinite;
+}
+
+@keyframes flash {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.timer-text {
+  text-align: center;
+  margin-top: 5px;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.timer-text.low {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Game Actions */
+.game-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.action-button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.play-button {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+}
+
+.play-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.draw-button {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+}
+
+.draw-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.pass-button {
+  background: linear-gradient(135deg, #9e9e9e, #757575);
+  color: white;
+}
+
+.pass-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #757575, #616161);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(158, 158, 158, 0.4);
+}
