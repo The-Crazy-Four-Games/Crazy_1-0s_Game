@@ -2,6 +2,7 @@
 
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage[table]{xcolor}
 \usepackage{hyperref}
 \hypersetup{
@@ -28,6 +29,10 @@
     \maketitle
 
     \pagenumbering{roman}
+
+  \tableofcontents
+
+  \newpage
 
     \section{Revision History}
 
@@ -269,8 +274,6 @@
     Result: PASS. The codebase is modular, typed, and now supported by automated
     build/test checks that improve confidence in future revisions.
 
-    ---
-
     \section{Comparison to Existing Implementation}
 
     Traditional Crazy Eights implementations typically follow standard card rules
@@ -282,9 +285,6 @@
     elements where certain cards trigger arithmetic problems that players must
     solve in order to continue gameplay. This approach enhances both engagement
     and learning outcomes.
-
-    ---
-
 
     \section{Unit Testing}
 
