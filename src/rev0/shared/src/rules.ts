@@ -223,26 +223,12 @@ export function applyPlay(
 
   // Determine challenge type
   let challengeType: '+' | '-' | '*' | '/' | undefined;
-  const randomOp = (): '+' | '-' | '*' | '/' => {
-    const ops: ('+' | '-' | '*' | '/')[] = ['+', '-', '*', '/'];
-    return ops[Math.floor(Math.random() * ops.length)];
-  };
 
-  if (card.rank === sys.wildcardTenSymbol) {
-    // Wildcard 10 always triggers addition
-    challengeType = '+';
-  } else if (card.rank === 'J' || card.rank === 'Q') {
-    // J and Q trigger a random arithmetic operation
-    challengeType = randomOp();
-  } else if (sys.id === 'dec' && card.rank === 'K') {
-    // K in decimal: player selects operation (fallback to random)
-    challengeType = chosenOperation ?? randomOp();
-  } else if (sys.id === 'doz' && card.rank === 'C') {
-    // C in dozenal: player selects operation (fallback to random)
-    challengeType = chosenOperation ?? randomOp();
-  } else if (sys.id === 'doz' && card.rank === 'K') {
-    // K in dozenal: random (not player-selectable)
-    challengeType = randomOp();
+  if (card.rank === sys.wildcardTenSymbol || isFace(card.rank, sys)) {
+    if (card.suit === 'H') challengeType = '+';
+    else if (card.suit === 'D') challengeType = '-';
+    else if (card.suit === 'C') challengeType = '*';
+    else if (card.suit === 'S') challengeType = '/';
   }
 
   if (challengeType) {
