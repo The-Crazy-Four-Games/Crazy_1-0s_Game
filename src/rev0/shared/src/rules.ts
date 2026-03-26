@@ -120,6 +120,7 @@ export function isPlayable(sys: NumeralSystem, state: RoundState, playerId: Play
   if (state.turn !== playerId) return false;
 
   if (state.activeChallenge) return false;
+  // ✅ freePlay：无视 topCard/forcedSuit，可出任意手牌
   if (state.freePlayFor === playerId) return true;
 
   const hand = state.hands[playerId] ?? [];
@@ -165,6 +166,7 @@ export function applyDraw(sys: NumeralSystem, state: RoundState, playerId: Playe
     drawCountThisTurn: s.drawCountThisTurn + 1,
   };
 
+  // ✅ 抽满3次仍无可出牌：自动切到对面 + 对面 freePlay 1 次
   if (s.drawCountThisTurn >= 3 && getPlayableCards(sys, s, playerId).length === 0 && !s.activeChallenge) {
     const nxt = nextPlayer(s);
     s = {
@@ -230,27 +232,18 @@ export function applyPlay(
   }
 
   if (challengeType) {
-    // Determine operand range based on system and operation
-    let range: number;
-    if (challengeType === '*') {
-      // Limit multiplication to 12x12 regardless of system
-      range = 12;
-    } else if (sys.id === 'doz') {
-      // Dozenal: range 100 for all other operations
-      range = 100;
-    } else {
-      // Decimal: range 144 for division, 100 for addition/subtraction
-      range = (challengeType === '/') ? 144 : 100;
-    }
+    // Determine operand range: Multiplication caps at 12, Addition/Subtraction caps at 100
+    // (Division ignores this range and handles its own 1-12 boundary below)
+    const range = (challengeType === '*') ? 12 : 100;
 
     const op1 = Math.floor(Math.random() * range) + 1;
     let op2 = Math.floor(Math.random() * range) + 1;
 
     if (challengeType === '/') {
       // For division: create a clean division problem
-      // Pick two numbers, multiply them, then ask product / op1 = ?
-      const a = Math.floor(Math.random() * Math.floor(Math.sqrt(range))) + 1;
-      const b = Math.floor(Math.random() * Math.floor(Math.sqrt(range))) + 1;
+      // Pick two numbers exactly between 1-12, multiply them, then ask product / a = ?
+      const a = Math.floor(Math.random() * 12) + 1;
+      const b = Math.floor(Math.random() * 12) + 1;
       const product = a * b;
 
       return {
