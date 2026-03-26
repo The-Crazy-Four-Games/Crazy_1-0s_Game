@@ -120,7 +120,6 @@ export function isPlayable(sys: NumeralSystem, state: RoundState, playerId: Play
   if (state.turn !== playerId) return false;
 
   if (state.activeChallenge) return false;
-  // ✅ freePlay：无视 topCard/forcedSuit，可出任意手牌
   if (state.freePlayFor === playerId) return true;
 
   const hand = state.hands[playerId] ?? [];
@@ -166,7 +165,6 @@ export function applyDraw(sys: NumeralSystem, state: RoundState, playerId: Playe
     drawCountThisTurn: s.drawCountThisTurn + 1,
   };
 
-  // ✅ 抽满3次仍无可出牌：自动切到对面 + 对面 freePlay 1 次
   if (s.drawCountThisTurn >= 3 && getPlayableCards(sys, s, playerId).length === 0 && !s.activeChallenge) {
     const nxt = nextPlayer(s);
     s = {
