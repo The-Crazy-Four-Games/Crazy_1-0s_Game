@@ -224,7 +224,7 @@ export function applyPlay(
   // Determine challenge type
   let challengeType: '+' | '-' | '*' | '/' | undefined;
 
-  if (card.rank === sys.wildcardTenSymbol || isFace(card.rank, sys)) {
+  if (isFace(card.rank, sys)) {
     if (card.suit === 'H') challengeType = '+';
     else if (card.suit === 'D') challengeType = '-';
     else if (card.suit === 'C') challengeType = '*';

@@ -17,12 +17,12 @@ describe('Category 2: Card Mechanics & Suit Triggers', () => {
         // We simulate a valid play and check if addition triggers.
         // In rules.ts, J/Q or 10 wildcard can trigger +. We simulate playing a wildcard 10 (Heart).
         const { sys, initialRound } = setupState();
-        initialRound.hands['p1'].push({ suit: 'H', rank: '10' }); // 10 wildcard
-        initialRound.topCard = { suit: 'C', rank: '5' };
+        initialRound.hands['p1'].push({ suit: 'H', rank: 'J' }); // J face card
+        initialRound.topCard = { suit: 'H', rank: '5' };
         initialRound.turn = 'p1';
 
-        const nextState = applyPlay(sys, initialRound, 'p1', { suit: 'H', rank: '10' }, 'H');
-        // Wildcard 10 always triggers addition (+)
+        const nextState = applyPlay(sys, initialRound, 'p1', { suit: 'H', rank: 'J' });
+        // J triggers Hearts addition (+)
         expect(nextState.activeChallenge?.type).toBe('+');
     });
 
@@ -54,11 +54,11 @@ describe('Category 2: Card Mechanics & Suit Triggers', () => {
     // UT12 card.math Play Spades (S) Trigger Division (/) PASS
     it('UT12 card.math Play Spades (S) Trigger Division (/) PASS', () => {
          const { sys, initialRound } = setupState();
-         // Play rank 10 wildcard (suit S). It triggers challenge mapping S -> /
-         initialRound.hands['p1'].push({ suit: 'S', rank: '10' });
-         initialRound.topCard = { suit: 'C', rank: '2' };
+         // Play rank J face card (suit S). It triggers challenge mapping S -> /
+         initialRound.hands['p1'].push({ suit: 'S', rank: 'J' });
+         initialRound.topCard = { suit: 'S', rank: '2' };
          initialRound.turn = 'p1';
-         const nextState = applyPlay(sys, initialRound, 'p1', { suit: 'S', rank: '10' }, 'S');
+         const nextState = applyPlay(sys, initialRound, 'p1', { suit: 'S', rank: 'J' });
          expect(nextState.activeChallenge?.type).toBe('/');
     });
 
