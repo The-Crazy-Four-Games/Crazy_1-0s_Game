@@ -234,12 +234,15 @@ export function applyPlay(
   if (challengeType) {
     // Determine operand range based on system and operation
     let range: number;
-    if (sys.id === 'doz') {
-      // Dozenal: range 100 for all operations
+    if (challengeType === '*') {
+      // Limit multiplication to 12x12 regardless of system
+      range = 12;
+    } else if (sys.id === 'doz') {
+      // Dozenal: range 100 for all other operations
       range = 100;
     } else {
-      // Decimal: range 100 for +/-, 144 (12x12) for */÷
-      range = (challengeType === '*' || challengeType === '/') ? 144 : 100;
+      // Decimal: range 144 for division, 100 for addition/subtraction
+      range = (challengeType === '/') ? 144 : 100;
     }
 
     const op1 = Math.floor(Math.random() * range) + 1;
