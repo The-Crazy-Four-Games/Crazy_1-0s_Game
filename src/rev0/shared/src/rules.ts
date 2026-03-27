@@ -246,24 +246,18 @@ export function applyPlay(
   }
 
   if (challengeType) {
-    // Determine operand range based on system and operation
-    let range: number;
-    if (sys.id === 'doz') {
-      // Dozenal: range 100 for all operations
-      range = 100;
-    } else {
-      // Decimal: range 100 for +/-, 144 (12x12) for */÷
-      range = (challengeType === '*' || challengeType === '/') ? 144 : 100;
-    }
+    // Determine operand range: Multiplication caps at 12, Addition/Subtraction caps at 100
+    // (Division ignores this range and handles its own 1-12 boundary below)
+    const range = (challengeType === '*') ? 12 : 100;
 
     const op1 = Math.floor(Math.random() * range) + 1;
     let op2 = Math.floor(Math.random() * range) + 1;
 
     if (challengeType === '/') {
       // For division: create a clean division problem
-      // Pick two numbers, multiply them, then ask product / op1 = ?
-      const a = Math.floor(Math.random() * Math.floor(Math.sqrt(range))) + 1;
-      const b = Math.floor(Math.random() * Math.floor(Math.sqrt(range))) + 1;
+      // Pick two numbers exactly between 1-12, multiply them, then ask product / a = ?
+      const a = Math.floor(Math.random() * 12) + 1;
+      const b = Math.floor(Math.random() * 12) + 1;
       const product = a * b;
 
       return {
