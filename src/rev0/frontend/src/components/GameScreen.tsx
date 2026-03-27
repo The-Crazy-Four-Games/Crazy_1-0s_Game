@@ -302,21 +302,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Get the numeral system for sum-to-10 checks
   const sys: NumeralSystem = ps.baseId === 'doz' ? DOZENAL_SYSTEM : DECIMAL_SYSTEM;
 
-  // Playable cards — full list (always computed for validation)
-  const playableCards = useMemo(() => {
-    if (!ps) return [];
-    const effSuit = ps.forcedSuit ?? ps.topCard.suit;
-    const targetSumDec = parseInSystem(sys.targetSumText, sys);
-    return myHand.filter(
-      (c) =>
-        c.suit === effSuit ||
-        c.rank === ps.topCard.rank ||
-        isWildcard(c.rank) ||
-        isSkipCard(c.rank) ||
-        (!isFace(c.rank, sys) && !isFace(ps.topCard.rank, sys) &&
-          numericValueDec(c.rank, sys) + numericValueDec(ps.topCard.rank, sys) === targetSumDec)
-    );
-  }, [ps, myHand]);
+
+
 
   // Highlighted cards — filtered by active toggles
   const highlightedCards = useMemo(() => {
@@ -340,8 +327,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const isHighlighted = (card: CardType) =>
     highlightedCards.some((c) => c.suit === card.suit && c.rank === card.rank);
 
-  const isPlayable = (card: CardType) =>
-    playableCards.some((c) => c.suit === card.suit && c.rank === card.rank);
+
 
   const isSelected = (card: CardType) =>
     selectedCard && selectedCard.suit === card.suit && selectedCard.rank === card.rank;
