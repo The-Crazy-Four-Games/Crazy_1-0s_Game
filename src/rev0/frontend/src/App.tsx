@@ -614,7 +614,8 @@ export default function App() {
     if (!gameId) return pushLog("No active game");
     s.emit(WS.DECLINE_RESTART, { gameId });
     pushLog("Declined rematch.");
-    handleBackToLobby();
+    // Delay to let server process DECLINE_RESTART before we disconnect
+    setTimeout(() => handleBackToLobby(), 300);
   }
 
   function sendChat(text: string) {
@@ -631,8 +632,10 @@ export default function App() {
     setSavedGameId("");
     sessionStorage.removeItem("savedGameId");
     // Emit LEAVE_GAME before disconnecting so server can notify opponent
-    if (sockRef.current && gameId) {
-      sockRef.current.emit(WS.LEAVE_GAME, { gameId });
+    const s = sockRef.current;
+    const gid = gameId;
+    if (s && gid) {
+      s.emit(WS.LEAVE_GAME, { gameId: gid });
     }
     setGameJoined(false);
     setPs(null);
@@ -643,9 +646,12 @@ export default function App() {
     setGameId("");
     setLobbyId("");
     setChatMessages([]);
-    if (sockRef.current) {
-      sockRef.current.disconnect();
-      sockRef.current = null;
+    // Delay disconnect so server has time to process LEAVE_GAME and notify opponent
+    if (s) {
+      setTimeout(() => {
+        s.disconnect();
+        if (sockRef.current === s) sockRef.current = null;
+      }, 300);
     }
   }
 
