@@ -1,0 +1,293 @@
+\documentclass[12pt, titlepage]{article}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=red,
+    urlcolor=blue
+}
+\usepackage[round]{natbib}
+
+\input{../Comments}
+\input{../Common}
+
+\begin{document}
+
+\title{Verification and Validation Report: \progname} 
+\author{\authname}
+\date{\today}
+	
+\maketitle
+
+\pagenumbering{roman}
+
+\section{Revision History}
+
+\begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
+\toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
+\midrule
+Date 1 & 1.0 & Notes\\
+Date 2 & 1.1 & Notes\\
+\bottomrule
+\end{tabularx}
+
+~\newpage
+
+\section{Symbols, Abbreviations and Acronyms}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l l} 
+  \toprule		
+  \textbf{symbol} & \textbf{description}\\
+  \midrule 
+  T & Test\\
+  \bottomrule
+\end{tabular}\\
+
+\wss{symbols, abbreviations or acronyms -- you can reference the SRS tables if needed}
+
+\newpage
+
+\tableofcontents
+
+\listoftables %if appropriate
+
+\listoffigures %if appropriate
+
+\newpage
+
+\pagenumbering{arabic}
+
+This document ...
+
+\section{Functional Requirements Evaluation}
+
+\textit{Note: While the original VnV Plan specified automated Node console harnesses for Functional Requirements testing (e.g., ST-GM-01), the final evaluation was conducted via \textbf{Manual UI-based Testing} on the deployed application. This transition was made to better validate the end-to-end integration of the frontend, backend, and real-time WebSocket engine under realistic network conditions.}
+
+\subsection{Game Manager: Start, Turn, Rules, Specials, End (FR-1..FR-5)}
+
+\paragraph{Start new game initializes state (ST-GM-01)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-1
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} UI transitions to the Game Screen, both avatars show 7 cards in hand, discard pile shows 1 top card, and UI visually indicates it is User A's turn.
+  \item \textbf{Actual Output:} \wss{Fill in your actual observation here (e.g., "Observed 7 cards per player, UI highlights Player A's turn, top card is visible.")}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+  \item \textbf{Notes:} \wss{Any deviations or extra notes}
+\end{itemize}
+
+\paragraph{Legal move: same suit (ST-GM-02)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-3
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Card of the same suit moves to discard pile and turn indicator shifts to User B.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Legal move: sum equals 12 base-12 (ST-GM-03)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-3
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Card whose decimal value adds up to 12 with the top card is accepted and turn advances.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Special card: wild ten suit selection (ST-GM-04)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-4
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Selecting a wildcard prompts for a new suit. UI updates to show forced suit, restricting next player.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+  \item \textbf{Notes:} Note that implementation uses rank "10" as wild instead of "8" as originally written in VnVPlan.
+\end{itemize}
+
+\paragraph{Illegal move is rejected with guidance (ST-GM-05)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-3
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Illegal cards are not highlighted and cannot be selected or played.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{End of game detection (ST-GM-06)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-5
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Successfully playing final card transitions UI to a summary screen declaring the winner and displaying total scores.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+
+\subsection{Score Features: Dual-base, Highlights (FR-6..FR-9)}
+
+\paragraph{Score calculated and shown in decimal and Dozenal (ST-SC-01)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-6
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Round Result popup correctly summarizes lost hand points in both Decimal and Dozenal (e.g., 10$_{12}$) notations side by side.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Valid moves highlighted exactly (ST-SC-03)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-9
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Exactly the cards that are legal to play are visually highlighted/raised, while others are dimmed/disabled.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Primary base toggle affects labeling only (ST-SC-04)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-7
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Score displays correctly reflect dual-base formats consistently throughout the UI.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+
+\subsection{Login Manager: Account, Sessions, Guest, Validation (FR-10..FR-13)}
+
+\paragraph{Account creation creates unique user and session (ST-LM-01)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-10
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Valid registration logs user in. Duplicate registration is rejected with "username taken" error.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Login and logout preserve progress (ST-LM-02)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-11
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Logging out and logging back in retains exact match history in Profile page.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Guest mode creates temporary session (ST-LM-03)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-12
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} "Play as Guest" creates temporary profile. Logging out deletes profile, preventing future logins to that guest account.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Credential validation gates access (ST-LM-04)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-13
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Incorrect password rejected with "invalid credentials". Correct password proceeds to Lobby.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+
+\subsection{Data Manager: Storage, Retrieval, Update, Deletion (FR-14..FR-17)}
+
+\paragraph{User data is stored on events that require persistence (ST-DM-01)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-14
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Completing a game adds a correct entry to the Profile Match History.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Stored data can be retrieved on login or profile view (ST-DM-02)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-15
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Profile page successfully fetches and renders stats (win rate) and match history.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{Data updates after games and profile changes (ST-DM-03)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-16
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Changing Display Name in settings persists across full page refreshes.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\paragraph{User can permanently delete data (ST-DM-04)}
+\begin{itemize}
+  \item \textbf{Requirement:} FR-17
+  \item \textbf{Test Type:} Manual UI
+  \item \textbf{Expected Output:} Clicking "Delete Account" forces logout and permanently prevents logging back in with old credentials.
+  \item \textbf{Actual Output:} \wss{Fill in actual observation}
+  \item \textbf{Result:} \wss{PASS / FAIL}
+\end{itemize}
+
+\section{Nonfunctional Requirements Evaluation}
+
+\subsection{Usability}
+		
+\subsection{Performance}
+
+\subsection{etc.}
+	
+\section{Comparison to Existing Implementation}	
+
+This section will not be appropriate for every project.
+
+\section{Unit Testing}
+
+\section{Changes Due to Testing}
+
+\wss{This section should highlight how feedback from the users and from 
+the supervisor (when one exists) shaped the final product.  In particular 
+the feedback from the Rev 0 demo to the supervisor (or to potential users) 
+should be highlighted.}
+
+\section{Automated Testing}
+		
+\section{Trace to Requirements}
+		
+\section{Trace to Modules}		
+
+\section{Code Coverage Metrics}
+
+\bibliographystyle{plainnat}
+\bibliography{../../refs/References}
+
+\newpage{}
+\section*{Appendix --- Reflection}
+
+The information in this section will be used to evaluate the team members on the
+graduate attribute of Reflection.
+
+\input{../Reflection.tex}
+
+\begin{enumerate}
+  \item What went well while writing this deliverable? 
+  \item What pain points did you experience during this deliverable, and how
+    did you resolve them?
+  \item Which parts of this document stemmed from speaking to your client(s) or
+  a proxy (e.g. your peers)? Which ones were not, and why?
+  \item In what ways was the Verification and Validation (VnV) Plan different
+  from the activities that were actually conducted for VnV?  If there were
+  differences, what changes required the modification in the plan?  Why did
+  these changes occur?  Would you be able to anticipate these changes in future
+  projects?  If there weren't any differences, how was your team able to clearly
+  predict a feasible amount of effort and the right tasks needed to build the
+  evidence that demonstrates the required quality?  (It is expected that most
+  teams will have had to deviate from their original VnV Plan.)
+\end{enumerate}
+
+\end{document}

@@ -12,6 +12,10 @@ interface CardProps {
   isWildcard?: boolean;
   isSkipCard?: boolean;
   size?: 'small' | 'medium' | 'large';
+  cardBack?: string;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  animClass?: string;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -23,8 +27,12 @@ export const Card: React.FC<CardProps> = ({
   isWildcard = false,
   isSkipCard = false,
   size = 'medium',
+  cardBack,
+  draggable = false,
+  onDragStart,
+  animClass,
 }) => {
-  const imagePath = getCardImagePath(card, faceDown);
+  const imagePath = getCardImagePath(card, faceDown, cardBack);
 
   const handleClick = () => {
     if (onClick && !faceDown) {
@@ -40,13 +48,16 @@ export const Card: React.FC<CardProps> = ({
     isSelected ? 'selected' : '',
     isWildcard && !faceDown ? 'wildcard' : '',
     isSkipCard && !faceDown ? 'skip-card' : '',
+    animClass || '',
   ].filter(Boolean).join(' ');
 
   return (
     <div
       className={cardClasses}
       onClick={handleClick}
-      style={{ cursor: onClick && !faceDown ? 'pointer' : 'default' }}
+      style={{ cursor: (onClick && !faceDown) || draggable ? 'pointer' : 'default' }}
+      draggable={draggable}
+      onDragStart={onDragStart}
     >
       {/* Special card indicators */}
       {!faceDown && isWildcard && <div className="card-badge wildcard-badge">🌟</div>}

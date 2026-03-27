@@ -20,12 +20,15 @@ export const WS = {
   RESTART_DECLINED: "restart_declined",
   // Leave events
   OPPONENT_LEFT: "opponent_left",
+  LEAVE_GAME: "leave_game",
   FORCE_LOGOUT: "force_logout",
   // Chat
   CHAT_SEND: "chat_send",
   CHAT_MSG: "chat_msg",
   // Admin
   ROOM_DELETED: "room_deleted",
+  // Challenge result (server → individual player)
+  CHALLENGE_RESULT: "challenge_result",
 } as const;
 
 export type JoinGamePayload = { gameId: string };
@@ -157,8 +160,14 @@ export function makeRealtimeGateway(deps: {
         // only players can act
         assertPlayerInGame(cur, userId);
 
+        // Capture score before action to detect if this player scored
+        const scoreBefore = cur.scoresDec?.[userId] ?? 0;
+        const hadChallenge = !!cur.round?.activeChallenge;
+
         const next = applyAction(cur, payload.action);
         gameSessions.set(payload.gameId, next);
+
+        const scoreAfter = next.scoresDec?.[userId] ?? 0;
 
         audit.logGameplayEvent?.({ type: "ACTION", at: Date.now(), userId, gameId: payload.gameId, action: payload.action });
 
@@ -168,6 +177,14 @@ export function makeRealtimeGateway(deps: {
 
         // emit private hands to players
         await emitHandsToRoom(payload.gameId, next);
+
+        // Send challenge result feedback to the answering player
+        if (hadChallenge && (payload.action as any).type === "ANSWER_CHALLENGE") {
+          const won = scoreAfter > scoreBefore;
+          const stillActive = !!next.round?.activeChallenge;
+          // won = scored points (correct + first), correct = challenge cleared, tooLate = n/a
+          socket.emit(WS.CHALLENGE_RESULT, { won, correct: !stillActive, tooLate: false });
+        }
 
         // Record match results when game ends
         if (next.status === "GAME_OVER" && pubState.lastRoundResult) {
@@ -209,6 +226,11 @@ export function makeRealtimeGateway(deps: {
           }
         }
       } catch (e: any) {
+        // If it's a late challenge answer (NoActiveChallenge), send feedback instead of generic error
+        if (e?.message === "NoActiveChallenge" && (payload?.action as any)?.type === "ANSWER_CHALLENGE") {
+          socket.emit(WS.CHALLENGE_RESULT, { won: false, correct: false, tooLate: true });
+          return;
+        }
         emitError(socket, "ACTION_FAILED", e?.message ?? "Action failed");
       }
     });
@@ -328,6 +350,40 @@ export function makeRealtimeGateway(deps: {
           text: msg,
           ts: Date.now(),
         });
+      } catch { /* ignore */ }
+    });
+
+    // --- Leave Game (voluntarily back to lobby) ---
+    socket.on(WS.LEAVE_GAME, (payload: { gameId: string }) => {
+      try {
+        const userId = (socket.data as any).userId as string;
+        if (!payload?.gameId) return;
+        const gameId = payload.gameId;
+        const room = roomForGame(gameId);
+
+        // Clean up restart requests
+        restartRequests.delete(gameId);
+
+        // Check if game is still ongoing
+        const game = gameSessions.get(gameId);
+        const wasOngoing = game && game.status !== "GAME_OVER";
+
+        if (wasOngoing) {
+          gameSessions.delete(gameId);
+          audit.logSystemEvent?.({ type: "GAME_PLAYER_LEFT", at: Date.now(), userId, gameId });
+        }
+
+        // Notify opponent
+        socket.to(room).emit(WS.OPPONENT_LEFT, {
+          userId,
+          message: wasOngoing
+            ? "Opponent left the game. No match recorded."
+            : "Opponent has left.",
+          aborted: !!wasOngoing,
+        });
+
+        // Leave the WS room
+        socket.leave(room);
       } catch { /* ignore */ }
     });
 

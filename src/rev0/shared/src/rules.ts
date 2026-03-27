@@ -228,10 +228,7 @@ export function applyPlay(
     return ops[Math.floor(Math.random() * ops.length)];
   };
 
-  if (card.rank === sys.wildcardTenSymbol) {
-    // Wildcard 10 always triggers addition
-    challengeType = '+';
-  } else if (card.rank === 'J' || card.rank === 'Q') {
+  if (card.rank === 'J' || card.rank === 'Q') {
     // J and Q trigger a random arithmetic operation
     challengeType = randomOp();
   } else if (sys.id === 'dec' && card.rank === 'K') {

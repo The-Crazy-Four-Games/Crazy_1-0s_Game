@@ -87,8 +87,8 @@ export function applyAction(game: GameState, action: GameAction): GameState {
       if (!round.activeChallenge) throw new Error("NoActiveChallenge");
 
       const isCorrect = round.activeChallenge.answer === a.answer;
-      // If correct, add points immediately to scoresDec
       if (isCorrect) {
+        // Correct answer: add points and clear challenge
         const reward = round.activeChallenge.reward;
         game = {
           ...game,
@@ -97,15 +97,15 @@ export function applyAction(game: GameState, action: GameAction): GameState {
             [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
           }
         };
-      }
 
-      // Clear challenge
-      const shouldPass = round.activeChallenge.shouldPassTurn;
-      round = { ...round, activeChallenge: undefined };
+        const shouldPass = round.activeChallenge.shouldPassTurn;
+        round = { ...round, activeChallenge: undefined };
 
-      if (shouldPass) {
-        round = advanceTurn(round);
+        if (shouldPass) {
+          round = advanceTurn(round);
+        }
       }
+      // Wrong answer: challenge stays active, other player can still attempt
       break;
     case "CHEAT_WIN":
       // Empty this player's hand → triggers round-over + scoring

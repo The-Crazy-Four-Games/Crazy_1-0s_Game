@@ -1,8 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import Card from './Card';
+import CardEffects from './CardEffects';
 import ArithmeticPopup from './ArithmeticPopup';
 import { SUIT_SYMBOLS, SUIT_COLORS, sanitizeDozenalDisplay, isSelectOpCard as checkSelectOpCard } from '../types/game';
 import type { Suit, MathChallenge } from '../types/game';
+import { isFace, numericValueDec, parseInSystem, DECIMAL_SYSTEM, DOZENAL_SYSTEM } from '@rev0/shared';
+import type { NumeralSystem } from '@rev0/shared';
 import './GameScreen.css';
 
 type CardType = { suit: Suit; rank: string };
@@ -45,6 +48,7 @@ interface GameScreenProps {
   onDraw: () => void;
   onPlay: (card: CardType, chosenSuit?: Suit, chosenOperation?: '+' | '-' | '*' | '/') => void;
   onAnswerChallenge: (answer: number) => void;
+  challengeResult?: { won: boolean; correct: boolean; tooLate: boolean } | null;
 
   // Back button
   onBackToLobby: () => void;
@@ -60,6 +64,9 @@ interface GameScreenProps {
 
   // Cheat (testing)
   onCheatWin?: () => void;
+
+  // Opponent disconnect notification
+  opponentLeftMsg?: string;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({
@@ -71,6 +78,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   onDraw,
   onPlay,
   onAnswerChallenge,
+  challengeResult,
   onBackToLobby,
   restartStatus,
   onRequestRestart,
@@ -78,6 +86,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   chatMessages,
   onSendChat,
   onCheatWin,
+  opponentLeftMsg,
 }) => {
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [showSuitPicker, setShowSuitPicker] = useState(false);
@@ -85,7 +94,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const [showGameOverModal, setShowGameOverModal] = useState(true);
   const [showRoundEndModal, setShowRoundEndModal] = useState(true);
   const [showLog, setShowLog] = useState(false);
-  const [showChat, setShowChat] = useState(true);
+  const [showChat, setShowChat] = useState(false);
   const [chatSide, setChatSide] = useState<'left' | 'right'>('right');
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = React.useRef<HTMLDivElement>(null);
@@ -98,6 +107,150 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const [pendingOpCard, setPendingOpCard] = useState<CardType | null>(null);
   const [pendingOpSuit, setPendingOpSuit] = useState<Suit | undefined>(undefined);
 
+  // Highlight options (all default OFF)
+  const [highlightSuit, setHighlightSuit] = useState(false);
+  const [highlightRank, setHighlightRank] = useState(false);
+  const [highlightSum, setHighlightSum] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+
+  // Track hand changes for deal-in animation
+  const prevHandSizeRef = useRef(myHand.length);
+  const [newCardIndices, setNewCardIndices] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const prevSize = prevHandSizeRef.current;
+    const currentSize = myHand.length;
+    if (currentSize > prevSize) {
+      // New cards were added — mark them for animation
+      const indices = new Set<number>();
+      for (let i = prevSize; i < currentSize; i++) {
+        indices.add(i);
+      }
+      setNewCardIndices(indices);
+      // Clear animation class after animation completes
+      const timer = setTimeout(() => setNewCardIndices(new Set()), 500);
+      prevHandSizeRef.current = currentSize;
+      return () => clearTimeout(timer);
+    }
+    prevHandSizeRef.current = currentSize;
+  }, [myHand.length]);
+
+  // Top card animation key + card play effect
+  const [topCardKey, setTopCardKey] = useState(0);
+  const [cardEffect, setCardEffect] = useState<'skip' | 'wildcard' | 'facecard' | null>(null);
+  const [effectKey, setEffectKey] = useState(0);
+  const prevTopCardRef = useRef(ps.topCard);
+  useEffect(() => {
+    if (prevTopCardRef.current.rank !== ps.topCard.rank || prevTopCardRef.current.suit !== ps.topCard.suit) {
+      setTopCardKey(k => k + 1);
+
+      // Determine effect type based on the new top card
+      const newRank = ps.topCard.rank;
+      const skip = ps.baseId === 'doz' ? '6' : '5';
+      if (newRank === skip) {
+        setCardEffect('skip');
+        setEffectKey(k => k + 1);
+      } else if (newRank === '10') {
+        setCardEffect('wildcard');
+        setEffectKey(k => k + 1);
+      } else if (['J', 'Q', 'K', 'C'].includes(newRank)) {
+        setCardEffect('facecard');
+        setEffectKey(k => k + 1);
+      }
+
+      prevTopCardRef.current = ps.topCard;
+    }
+  }, [ps.topCard]);
+
+  // Drag-and-drop state
+  const [dragOverDiscard, setDragOverDiscard] = useState(false);
+  const [draggedCard, setDraggedCard] = useState<CardType | null>(null);
+
+  const handleDragStart = useCallback((card: CardType, e: React.DragEvent) => {
+    setDraggedCard(card);
+    e.dataTransfer.effectAllowed = 'move';
+    // Set a transparent drag image for custom feel
+    const el = e.currentTarget as HTMLElement;
+    e.dataTransfer.setDragImage(el, 40, 60);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedCard(null);
+    setDragOverDiscard(false);
+  }, []);
+
+  const handleDiscardDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverDiscard(true);
+  }, []);
+
+  const handleDiscardDragLeave = useCallback(() => {
+    setDragOverDiscard(false);
+  }, []);
+
+  const handleDiscardDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverDiscard(false);
+    if (draggedCard && myTurn) {
+      // Directly play the card (skip the select step)
+      if (isWildcard(draggedCard.rank)) {
+        setPendingCard(draggedCard);
+        setShowSuitPicker(true);
+      } else if (isSelectOp(draggedCard.rank)) {
+        setPendingOpCard(draggedCard);
+        setPendingOpSuit(undefined);
+        setShowOpPicker(true);
+      } else {
+        onPlay(draggedCard);
+        setSelectedCard(null);
+      }
+    }
+    setDraggedCard(null);
+  }, [draggedCard, myTurn]);
+
+  // Card back selection (persisted in localStorage)
+  const CARD_BACKS = [
+    { id: 'default', path: '/cards/back.svg.png', label: 'Default' },
+    { id: 'cyberpunk', path: '/cards/backs/back_cyberpunk.png', label: 'Cyberpunk' },
+    { id: 'dark', path: '/cards/backs/back_dark.png', label: 'Dark' },
+    { id: 'jhe', path: '/cards/backs/back_jhe.png', label: 'JHE' },
+    { id: 'persona', path: '/cards/backs/back_persona.png', label: 'Persona' },
+    { id: 'persona3', path: '/cards/backs/back_persona3.png', label: 'Persona 3' },
+  ];
+  const [cardBack, setCardBack] = useState(() => localStorage.getItem('cardBack') || '/cards/back.svg.png');
+  const handleCardBackChange = (path: string) => {
+    setCardBack(path);
+    localStorage.setItem('cardBack', path);
+  };
+
+  // Snapshot of the challenge to keep popup alive after ps.activeChallenge clears
+  const [activeChallengeCopy, setActiveChallengeCopy] = useState<MathChallenge | null>(null);
+
+  // When a new challenge appears, snapshot it; when it clears, auto-dismiss if no result
+  React.useEffect(() => {
+    if (ps.activeChallenge) {
+      setActiveChallengeCopy(ps.activeChallenge);
+    } else if (activeChallengeCopy && !challengeResult) {
+      // Challenge cleared by server (opponent answered), but we didn't get a result
+      // Auto-dismiss after 2s
+      const timer = setTimeout(() => {
+        setActiveChallengeCopy(null);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [ps.activeChallenge]);
+
+  // Auto-dismiss popup 2s after receiving our own challengeResult
+  React.useEffect(() => {
+    if (challengeResult && activeChallengeCopy) {
+      const timer = setTimeout(() => {
+        setActiveChallengeCopy(null);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [challengeResult]);
+
   // Get opponent info
   const opponentId = useMemo(() => {
     const players = Object.keys(ps.handsCount);
@@ -109,6 +262,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const myScore = ps.scoresText?.[userId] ?? String(ps.scoresDec?.[userId] ?? 0);
   const opponentScore = ps.scoresText?.[opponentId] ?? String(ps.scoresDec?.[opponentId] ?? 0);
   const targetScore = ps.targetScoreText ?? String(ps.targetScoreDec ?? 100);
+
+  // Score change animation
+  const prevMyScoreRef = useRef(myScore);
+  const [scoreGain, setScoreGain] = useState<string | null>(null);
+  const [scoreAnimKey, setScoreAnimKey] = useState(0);
+  useEffect(() => {
+    if (prevMyScoreRef.current !== myScore && prevMyScoreRef.current !== '0') {
+      // Score changed! Show gain animation
+      const prevDec = ps.scoresDec[userId] || 0;
+      const prevPrev = parseInt(prevMyScoreRef.current, 10) || 0;
+      if (prevDec > prevPrev || myScore !== prevMyScoreRef.current) {
+        setScoreGain(`+`);
+        setScoreAnimKey(k => k + 1);
+        const timer = setTimeout(() => setScoreGain(null), 1500);
+        prevMyScoreRef.current = myScore;
+        return () => clearTimeout(timer);
+      }
+    }
+    prevMyScoreRef.current = myScore;
+  }, [myScore]);
 
   // Determine winner when game is over
   const isGameOver = ps.status === 'GAME_OVER';
@@ -126,18 +299,46 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Helper to check if card triggers operation selection (K in decimal, C in dozenal)
   const isSelectOp = (rank: string) => checkSelectOpCard(rank, ps.baseId);
 
-  // Playable cards hint (client-side weak check)
+  // Get the numeral system for sum-to-10 checks
+  const sys: NumeralSystem = ps.baseId === 'doz' ? DOZENAL_SYSTEM : DECIMAL_SYSTEM;
+
+  // Playable cards — full list (always computed for validation)
   const playableCards = useMemo(() => {
     if (!ps) return [];
     const effSuit = ps.forcedSuit ?? ps.topCard.suit;
+    const targetSumDec = parseInSystem(sys.targetSumText, sys);
     return myHand.filter(
       (c) =>
         c.suit === effSuit ||
         c.rank === ps.topCard.rank ||
         isWildcard(c.rank) ||
-        isSkipCard(c.rank)
+        isSkipCard(c.rank) ||
+        (!isFace(c.rank, sys) && !isFace(ps.topCard.rank, sys) &&
+          numericValueDec(c.rank, sys) + numericValueDec(ps.topCard.rank, sys) === targetSumDec)
     );
   }, [ps, myHand]);
+
+  // Highlighted cards — filtered by active toggles
+  const highlightedCards = useMemo(() => {
+    if (!ps) return [];
+    if (!highlightSuit && !highlightRank && !highlightSum) return [];
+    const effSuit = ps.forcedSuit ?? ps.topCard.suit;
+    const targetSumDec = parseInSystem(sys.targetSumText, sys);
+    return myHand.filter((c) => {
+      // Wildcards and skip cards: always highlighted if any toggle is on
+      if (isWildcard(c.rank) || isSkipCard(c.rank)) return true;
+      if (highlightSuit && c.suit === effSuit) return true;
+      if (highlightRank && c.rank === ps.topCard.rank) return true;
+      if (highlightSum && !isFace(c.rank, sys) && !isFace(ps.topCard.rank, sys)) {
+        const sum = numericValueDec(c.rank, sys) + numericValueDec(ps.topCard.rank, sys);
+        if (sum === targetSumDec) return true;
+      }
+      return false;
+    });
+  }, [ps, myHand, highlightSuit, highlightRank, highlightSum]);
+
+  const isHighlighted = (card: CardType) =>
+    highlightedCards.some((c) => c.suit === card.suit && c.rank === card.rank);
 
   const isPlayable = (card: CardType) =>
     playableCards.some((c) => c.suit === card.suit && c.rank === card.rank);
@@ -204,8 +405,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
   return (
     <>
+      <CardEffects effectType={cardEffect} effectKey={effectKey} />
       <div className="game-screen">
-        {/* Header */}
         <header className="game-header">
           <button className="back-button" onClick={onBackToLobby}>
             ← Back
@@ -218,8 +419,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         {/* Score Summary */}
         <div className="score-summary">
-          <span>
-            You: <strong>{myScore}</strong>
+          <span className={`score-you ${scoreGain ? 'score-pulse' : ''}`} style={{ position: 'relative' }}>
+            You: <strong key={`sc-${scoreAnimKey}`} className={scoreGain ? 'score-highlight-anim' : ''}>{myScore}</strong>
+            {scoreGain && (
+              <span key={`gain-${scoreAnimKey}`} className="score-gain-float">{scoreGain}</span>
+            )}
           </span>
           <span className="score-divider">|</span>
           <span>
@@ -387,7 +591,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           <div className="opponent-hand">
             {opponentCards.map((card, idx) => (
               <div key={idx} className="opponent-card-wrapper" style={{ marginLeft: idx > 0 ? '-30px' : '0' }}>
-                <Card card={card} faceDown size="small" />
+                <Card card={card} faceDown size="small" cardBack={cardBack} />
               </div>
             ))}
           </div>
@@ -399,7 +603,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           <div className="pile-section">
             <div className="pile-label">Draw Pile</div>
             <div className="draw-pile-stack" onClick={myTurn ? onDraw : undefined}>
-              <Card card={{ suit: 'S', rank: '?' }} faceDown size="large" />
+              <Card card={{ suit: 'S', rank: '?' }} faceDown size="large" cardBack={cardBack} />
             </div>
             <button className="action-btn" disabled={!myTurn} onClick={onDraw}>
               Draw
@@ -407,13 +611,20 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           </div>
 
           {/* Discard Pile / Top Card */}
-          <div className="pile-section">
-            <div className="pile-label">Discard Pile</div>
+          <div
+            className={`pile-section ${dragOverDiscard ? 'discard-drop-active' : ''}`}
+            onDragOver={handleDiscardDragOver}
+            onDragLeave={handleDiscardDragLeave}
+            onDrop={handleDiscardDrop}
+          >
+            <div className="pile-label">Discard Pile {dragOverDiscard && '⬇️'}</div>
             <div className="top-card-display">
               <Card
+                key={`top-${topCardKey}`}
                 card={ps.topCard}
                 size="large"
                 isPlayable={false}
+                animClass="card-arrive-top"
               />
             </div>
             {ps.forcedSuit && (
@@ -426,36 +637,79 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         {/* Player Hand */}
         <div className="player-area">
-          <div className="player-label">Your Hand ({myHand.length} cards)</div>
+          <div className="player-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>Your Hand ({myHand.length} cards)</span>
+            <button
+              className="options-gear-btn"
+              onClick={() => setShowOptions(v => !v)}
+              title="Highlight Options"
+            >
+              ⚙️
+            </button>
+          </div>
+
+          {/* Options Panel */}
+          {showOptions && (
+            <div className="options-panel">
+              <div className="options-section">
+                <div className="options-section-title">Highlight</div>
+                <div className="options-toggles">
+                  <label className="option-toggle">
+                    <input type="checkbox" checked={highlightSuit} onChange={e => setHighlightSuit(e.target.checked)} />
+                    <span>Suit Match</span>
+                  </label>
+                  <label className="option-toggle">
+                    <input type="checkbox" checked={highlightRank} onChange={e => setHighlightRank(e.target.checked)} />
+                    <span>Rank Match</span>
+                  </label>
+                  <label className="option-toggle">
+                    <input type="checkbox" checked={highlightSum} onChange={e => setHighlightSum(e.target.checked)} />
+                    <span>Sum to {sanitizeDozenalDisplay(sys.targetSumText)}</span>
+                  </label>
+                </div>
+              </div>
+              <div className="options-section">
+                <div className="options-section-title">Card Back</div>
+                <div className="card-back-picker">
+                  {CARD_BACKS.map(b => (
+                    <button
+                      key={b.id}
+                      className={`card-back-option ${cardBack === b.path ? 'selected' : ''}`}
+                      onClick={() => handleCardBackChange(b.path)}
+                      title={b.label}
+                    >
+                      <img src={b.path} alt={b.label} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="player-hand">
             {myHand.map((card, idx) => (
               <div
                 key={`${card.rank}${card.suit}-${idx}`}
                 className="hand-card-wrapper"
-                style={{ marginLeft: idx > 0 ? '-20px' : '0', zIndex: idx }}
+                style={{ marginLeft: idx > 0 ? '-8px' : '0', zIndex: idx, animationDelay: newCardIndices.has(idx) ? `${(idx - Math.min(...newCardIndices)) * 0.06}s` : undefined }}
+                onDragEnd={handleDragEnd}
               >
                 <Card
                   card={card}
                   size="medium"
-                  isPlayable={myTurn && isPlayable(card)}
+                  isPlayable={myTurn && isHighlighted(card)}
                   isSelected={isSelected(card) || false}
                   isWildcard={isWildcard(card.rank)}
                   isSkipCard={isSkipCard(card.rank)}
                   onClick={() => handleCardClick(card)}
+                  draggable={myTurn}
+                  onDragStart={(e) => handleDragStart(card, e)}
+                  animClass={newCardIndices.has(idx) ? 'card-deal-in' : undefined}
                 />
               </div>
             ))}
           </div>
 
-          {/* Playable hint */}
-          <div className="hint-section">
-            <span className="hint-label">Playable:</span>
-            <span className="hint-cards">
-              {playableCards.length > 0
-                ? playableCards.map((c) => `${sanitizeDozenalDisplay(c.rank)}${c.suit}`).join(' ')
-                : '(none)'}
-            </span>
-          </div>
         </div>
 
         {/* Action Buttons */}
@@ -536,12 +790,34 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         )}
 
         {/* Arithmetic Challenge Popup - shown to BOTH players */}
-        {ps.activeChallenge && (
+        {activeChallengeCopy && (
           <ArithmeticPopup
-            challenge={ps.activeChallenge}
+            challenge={activeChallengeCopy}
             onAnswer={onAnswerChallenge}
             baseId={ps.baseId}
+            challengeResult={challengeResult}
           />
+        )}
+
+        {/* Opponent disconnect notification */}
+        {opponentLeftMsg && (
+          <div className="arithmetic-overlay">
+            <div className="arithmetic-popup" style={{ minWidth: '360px' }}>
+              <div className="popup-header">
+                <h2>⚠️ Opponent Left</h2>
+              </div>
+              <div className="challenge-card-info" style={{ marginBottom: '20px', fontSize: '1.1rem' }}>
+                {opponentLeftMsg}
+              </div>
+              <button
+                className="submit-btn"
+                style={{ width: '100%', height: '50px', fontSize: '1.1rem', borderRadius: '12px', cursor: 'pointer' }}
+                onClick={onBackToLobby}
+              >
+                🚪 Return to Lobby
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Log Section — collapsible */}
@@ -567,7 +843,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         {/* Instructions */}
         <div className="game-instructions">
-          <strong>Card Legend:</strong> 🌟 = Wildcard (10, changes suit + Addition) | ⏭️ = Skip ({skipRank}, grants free play) | Face Cards (J, Q{ps.baseId === 'doz' ? ', K' : ''}) = Random Arithmetic | {ps.baseId === 'dec' ? 'K' : 'C'} = Choose Arithmetic Op
+          <strong>Card Legend:</strong> 🌟 = Wildcard (10, changes suit) | ⏭️ = Skip ({skipRank}, grants free play) | Face Cards (J, Q{ps.baseId === 'doz' ? ', K' : ''}) = Random Arithmetic | {ps.baseId === 'dec' ? 'K' : 'C'} = Choose Arithmetic Op
         </div>
       </div>
 

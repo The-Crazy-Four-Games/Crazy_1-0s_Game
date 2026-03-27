@@ -131,16 +131,9 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
       const l = lobbies.get(lobbyId);
       if (!l) return;
       if (l.hostId === userId) {
-        // Host leaves: if guest exists, promote guest to host
-        if (l.guestId) {
-          const updated: Lobby = { ...l, hostId: l.guestId, guestId: undefined };
-          lobbies.set(lobbyId, updated);
-          deps.audit.logSystemEvent({ type: "LOBBY_HOST_LEFT", at: Date.now(), data: { lobbyId, userId } });
-        } else {
-          // No one left, delete
-          lobbies.delete(lobbyId);
-          deps.audit.logSystemEvent({ type: "LOBBY_DELETED", at: Date.now(), data: { lobbyId } });
-        }
+        // Host leaves: always delete the room
+        lobbies.delete(lobbyId);
+        deps.audit.logSystemEvent({ type: "LOBBY_HOST_LEFT_DELETED", at: Date.now(), data: { lobbyId, userId } });
       } else if (l.guestId === userId) {
         const updated: Lobby = { ...l, guestId: undefined };
         lobbies.set(lobbyId, updated);

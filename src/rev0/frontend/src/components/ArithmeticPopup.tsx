@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { MathChallenge } from '../types/game';
 import { getChallengeLabel, computeChallengeAnswer, sanitizeDozenalDisplay } from '../types/game';
 import { toBaseFromNumber, fromBaseToNumber, DOZENAL_SPEC } from '@rev0/shared';
@@ -19,17 +19,18 @@ interface ArithmeticPopupProps {
   challenge: MathChallenge;
   onAnswer: (answer: number) => void;
   baseId: 'doz' | 'dec';
+  challengeResult?: { won: boolean; correct: boolean; tooLate: boolean } | null;
 }
 
 export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
   challenge,
   onAnswer,
   baseId,
+  challengeResult,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [submittedAnswer, setSubmittedAnswer] = useState<number | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [wrongFlash, setWrongFlash] = useState(false);
 
   const correctAnswer = useMemo(
     () => computeChallengeAnswer(challenge.type, challenge.op1, challenge.op2),
@@ -47,38 +48,55 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
     }
   };
 
-  // Auto-focus the input field
+  // When server says wrong answer (correct: false, tooLate: false), reset to allow retry
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
+    if (challengeResult && !challengeResult.correct && !challengeResult.tooLate && submitted) {
+      setWrongFlash(true);
+      const timer = setTimeout(() => {
+        setSubmitted(false);
+        setInputValue('');
+        setWrongFlash(false);
+      }, 1200);
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [challengeResult]);
 
   const handleSubmit = () => {
     if (submitted) return;
     const parsed = parseInput(inputValue.trim());
     if (parsed === null) return;
 
-    setSubmittedAnswer(parsed);
     setSubmitted(true);
-
-    // Brief delay to show feedback, then send answer
-    setTimeout(() => {
-      onAnswer(parsed);
-    }, 1000);
+    onAnswer(parsed);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSubmit();
-    }
-  };
-
-  const isCorrect = submittedAnswer === correctAnswer;
   const label = getChallengeLabel(challenge.type);
 
   // Operator display
   const opSymbol = challenge.type === '*' ? '×' : challenge.type === '/' ? '÷' : challenge.type;
+
+  // Numpad digits
+  const numpadDigits = baseId === 'doz'
+    ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '↊', '0', '↋']
+    : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ''];
+
+  const handleNumpadClick = (digit: string) => {
+    if (submitted || !digit) return;
+    setInputValue(prev => prev + digit);
+  };
+
+  const handleBackspace = () => {
+    if (submitted) return;
+    setInputValue(prev => prev.slice(0, -1));
+  };
+
+  // Display value with proper dozenal symbols
+  const displayInput = sanitizeDozenalDisplay(inputValue);
+
+  // Final result (won or tooLate) — these dismiss the popup
+  const isFinalResult = challengeResult && (challengeResult.correct || challengeResult.tooLate);
+  const isWon = challengeResult?.won ?? false;
+  const isTooLate = challengeResult?.tooLate ?? false;
 
   return (
     <div className="arithmetic-overlay">
@@ -91,10 +109,11 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
 
         {/* Card info */}
         <div className="challenge-card-info">
-          {challenge.type === '+' && '10 card played — Addition!'}
-          {challenge.type === '-' && 'Jack played — Subtraction!'}
-          {challenge.type === '*' && 'Queen played — Multiplication!'}
-          {challenge.type === '/' && 'King played — Division!'}
+          Face card played —{' '}
+          {challenge.type === '+' && 'Addition!'}
+          {challenge.type === '-' && 'Subtraction!'}
+          {challenge.type === '*' && 'Multiplication!'}
+          {challenge.type === '/' && 'Division!'}
         </div>
 
         {/* Equation */}
@@ -103,46 +122,66 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
           <span className="operator">{opSymbol}</span>
           <span className="operand">{formatNum(challenge.op2)}</span>
           <span className="equals">=</span>
-          {!submitted ? (
-            <span className="operand answer-blank">?</span>
-          ) : (
-            <span className={`operand ${isCorrect ? 'answer-correct' : 'answer-incorrect'}`}>
-              {formatNum(submittedAnswer!)}
-            </span>
-          )}
+          <span className={`operand answer-blank ${wrongFlash ? 'answer-incorrect' : ''}`}>
+            {displayInput || '?'}
+          </span>
         </div>
 
-        {/* Typed answer input */}
-        {!submitted && (
-          <div className="challenge-input-area">
-            <input
-              ref={inputRef}
-              type="text"
-              className="challenge-input"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={baseId === 'doz' ? 'Dozenal answer (use X for ↊, E for ↋)...' : 'Type your answer...'}
-              autoFocus
-            />
-            <button
-              className="submit-btn"
-              onClick={handleSubmit}
-              disabled={inputValue.trim() === '' || parseInput(inputValue.trim()) === null}
-            >
-              Submit
-            </button>
+        {/* Numpad input — show when not submitted or after wrong answer reset */}
+        {!submitted && !isFinalResult && (
+          <div className="numpad-area">
+            <div className="numpad-grid">
+              {numpadDigits.map((digit, i) => (
+                <button
+                  key={i}
+                  className={`numpad-btn ${!digit ? 'numpad-empty' : ''}`}
+                  onClick={() => handleNumpadClick(digit)}
+                  disabled={!digit}
+                >
+                  {digit}
+                </button>
+              ))}
+            </div>
+            <div className="numpad-actions">
+              <button className="numpad-action-btn backspace-btn" onClick={handleBackspace}>
+                ⌫
+              </button>
+              <button
+                className="numpad-action-btn submit-btn"
+                onClick={handleSubmit}
+                disabled={inputValue.trim() === '' || parseInput(inputValue.trim()) === null}
+              >
+                ✓ Submit
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Feedback */}
-        {submitted && (
-          <div className={`result-message ${isCorrect ? 'correct' : 'incorrect'}`}>
-            <span className="result-icon">{isCorrect ? '✅' : '❌'}</span>
+        {/* Wrong answer flash */}
+        {wrongFlash && (
+          <div className="result-message incorrect">
+            <span className="result-icon">❌</span>
+            <span>Wrong! Try again...</span>
+          </div>
+        )}
+
+        {/* Waiting for server result */}
+        {submitted && !challengeResult && !wrongFlash && (
+          <div className="result-message waiting">
+            <span>⏳ Waiting for result...</span>
+          </div>
+        )}
+
+        {/* Final result (correct or too late) */}
+        {isFinalResult && (
+          <div className={`result-message ${isWon ? 'correct' : 'incorrect'}`}>
+            <span className="result-icon">{isWon ? '✅' : '❌'}</span>
             <span>
-              {isCorrect
-                ? `Correct! +${formatNum(challenge.reward)} points!`
-                : `Wrong! The answer was ${formatNum(correctAnswer)}`}
+              {isTooLate
+                ? `Too slow! Opponent answered first. Answer: ${formatNum(correctAnswer)}`
+                : isWon
+                  ? `Correct! +${formatNum(challenge.reward)} points!`
+                  : `Wrong! The answer was ${formatNum(correctAnswer)}`}
             </span>
           </div>
         )}

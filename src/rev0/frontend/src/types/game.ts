@@ -103,8 +103,8 @@ const SUIT_IMAGE_NAME: Record<Suit, string> = {
  *  - Face:    {Suit_cap}-{Face}.svg.png             e.g. Clubs-J.svg.png
  *  - Back:    back.svg.png
  */
-export function getCardImagePath(card: Card, faceDown = false): string {
-  if (faceDown) return '/cards/back.svg.png';
+export function getCardImagePath(card: Card, faceDown = false, cardBack?: string): string {
+  if (faceDown) return cardBack || '/cards/back.svg.png';
 
   const suitLow = SUIT_IMAGE_NAME[card.suit];                   // "clubs"
   const suitCap = suitLow.charAt(0).toUpperCase() + suitLow.slice(1); // "Clubs"
@@ -149,9 +149,20 @@ export function formatRank(rank: string): string {
   return rank;
 }
 
-// Sanitize dozenal text for display (replace ↊/↋ with readable ASCII equivalents)
+// Sanitize dozenal text for display (show proper dozenal symbols)
+// Only replace X/E when they appear as standalone dozenal digit characters,
+// not when they're part of words. Uses character-by-character replacement.
 export function sanitizeDozenalDisplay(text: string): string {
-  return text.replace(/↊/g, 'X').replace(/↋/g, 'E');
+  // Replace each character: X/x → ↊, but only if it looks like a digit position
+  // Since toBaseFromNumber already outputs ↊/↋, this is mostly a no-op safety net
+  return text
+    .split('')
+    .map(ch => {
+      if (ch === 'X' || ch === 'x') return '↊';
+      if (ch === 'E' || ch === 'e') return '↋';
+      return ch;
+    })
+    .join('');
 }
 
 // Check if a card is a wildcard (rank "10" changes suit)

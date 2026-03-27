@@ -103,87 +103,112 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
 
   const baseName = (bid: string) => bid === 'doz' ? 'Dozenal' : 'Decimal';
 
+  // Show game-themed login screen when not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="login-screen">
+        {/* Animated background cards */}
+        <div className="login-bg-cards">
+          {['♠', '♥', '♦', '♣', '🃏', '♠', '♥', '♦', '♣', '🃏'].map((s, i) => (
+            <span key={i} className="floating-suit" style={{
+              '--x': `${10 + (i * 9) % 80}%`,
+              '--delay': `${i * 0.7}s`,
+              '--duration': `${6 + (i % 4) * 2}s`,
+              '--size': `${1.5 + (i % 3) * 1.2}rem`,
+            } as React.CSSProperties}>{s}</span>
+          ))}
+        </div>
+
+        {/* Title */}
+        <div className="login-header">
+          <h1 className="login-game-title">Crazy 1-0's</h1>
+          <p className="login-game-subtitle">The Dozenal Card Game</p>
+        </div>
+
+        {/* Login Card */}
+        <div className="login-card">
+          <div className="login-card-suits">♠ ♥ ♦ ♣</div>
+          <h2 className="login-card-title">Enter the Game</h2>
+
+          <div className="login-form">
+            <div className="login-input-group">
+              <span className="login-input-icon">👤</span>
+              <input
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && onLogin()}
+              />
+            </div>
+            <div className="login-input-group">
+              <span className="login-input-icon">🔒</span>
+              <input
+                placeholder="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && onLogin()}
+              />
+            </div>
+
+            <button className="login-btn-play" onClick={onLogin}>
+              ▶ PLAY
+            </button>
+            <button className="login-btn-register" onClick={onRegister}>
+              Create Account
+            </button>
+            <div className="login-divider"><span>or</span></div>
+            <button className="login-btn-guest" onClick={onGuestLogin}>
+              🎭 Quick Play as Guest
+            </button>
+          </div>
+
+          <button className="login-admin-link" onClick={onAdminLogin}>
+            Admin Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="lobby-screen">
-      <h1 className="lobby-title">Crazy 1-0's</h1>
-      <p className="lobby-subtitle">Dozenal Card Game</p>
-
-      {/* Step 1: Auth */}
-      <div className="lobby-section">
-        <h3 className="section-title">
-          {isLoggedIn ? '✅ Logged In' : '1. Sign In'}
-        </h3>
-
-        {!isLoggedIn ? (
-          <div className="auth-form">
-            <input
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <input
-              placeholder="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <div className="auth-buttons">
-              <button className="btn-primary" onClick={onLogin}>
-                Login
-              </button>
-              <button className="btn-secondary" onClick={onRegister}>
-                Register
-              </button>
-            </div>
-            <button
-              className="btn-outline"
-              onClick={onGuestLogin}
-              style={{ marginTop: '8px', width: '100%', padding: '8px', fontSize: '0.85rem' }}
-            >
-              🎭 Play as Guest
-            </button>
-            <button
-              className="admin-login-link"
-              onClick={onAdminLogin}
-              style={{
-                background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)',
-                cursor: 'pointer', fontSize: '0.75rem', marginTop: '6px',
-                textDecoration: 'underline',
-              }}
-            >
-              Admin Login
-            </button>
-          </div>
-        ) : (
-          <div className="auth-logged-in">
-            <span className="user-badge">👤 {username}{isGuest ? ' (Guest)' : ''}</span>
-            <div className="auth-actions">
-              {!isGuest && (
-                <button className="btn-small btn-outline" onClick={onOpenProfile}>
-                  Profile
-                </button>
-              )}
-              <button className="btn-small btn-outline" onClick={onLogout}>
-                Logout
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="lobby-screen lobby-loggedin">
+      {/* Floating bg suits */}
+      <div className="login-bg-cards">
+        {['♠', '♥', '♦', '♣', '🃏', '♠', '♥', '♦', '♣'].map((s, i) => (
+          <span key={i} className="floating-suit" style={{
+            '--x': `${5 + (i * 11) % 90}%`,
+            '--delay': `${i * 1.1}s`,
+            '--duration': `${8 + (i % 3) * 3}s`,
+            '--size': `${1.2 + (i % 3) * 0.8}rem`,
+          } as React.CSSProperties}>{s}</span>
+        ))}
       </div>
 
-      {/* Step 2: Game Room - only show when logged in */}
-      {isLoggedIn && lobbyStatus === 'idle' && (
-        <div className="lobby-section">
-          <h3 className="section-title">2. Game Rooms</h3>
+      {/* Header bar */}
+      <div className="lobby-header-bar">
+        <h1 className="lobby-title-game">Crazy 1-0's</h1>
+        <div className="lobby-user-bar">
+          <span className="lobby-user-name">👤 {username}{isGuest ? ' (Guest)' : ''}</span>
+          <div className="lobby-user-actions">
+            {!isGuest && (
+              <button className="lobby-icon-btn" onClick={onOpenProfile} title="Profile">📊</button>
+            )}
+            <button className="lobby-icon-btn" onClick={onLogout} title="Logout">🚪</button>
+          </div>
+        </div>
+      </div>
 
-          {/* Rejoin button */}
+      {/* Game Room Section */}
+      {lobbyStatus === 'idle' && (
+        <div className="lobby-section lobby-section-game">
+          <h3 className="section-title-game">🎮 Game Rooms</h3>
+
+          {/* Rejoin */}
           {savedGameId && onRejoinGame && (
-            <div className="lobby-action-group" style={{ marginBottom: '1rem' }}>
-              <button className="btn-primary btn-large" onClick={onRejoinGame}>
-                🔄 Rejoin Active Game
-              </button>
-              <span className="action-hint">You have an active game in progress</span>
-            </div>
+            <button className="lobby-rejoin-btn" onClick={onRejoinGame}>
+              🔄 Rejoin Active Game
+            </button>
           )}
 
           {/* Create room */}
@@ -196,7 +221,7 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
               <option value="doz">Dozenal (Base 12)</option>
               <option value="dec">Decimal (Base 10)</option>
             </select>
-            <button className="btn-primary" onClick={onCreateLobby}>
+            <button className="btn-create-room" onClick={onCreateLobby}>
               + Create Room
             </button>
           </div>
@@ -247,10 +272,10 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
         </div>
       )}
 
-      {/* Host created room - waiting + start */}
-      {isLoggedIn && lobbyStatus === 'created' && (
-        <div className="lobby-section">
-          <h3 className="section-title">Your Room</h3>
+      {/* Host waiting */}
+      {lobbyStatus === 'created' && (
+        <div className="lobby-section lobby-section-game">
+          <h3 className="section-title-game">🏠 Your Room</h3>
           <div className="lobby-waiting">
             {roomHasGuest ? (
               <div className="waiting-indicator room-ready">
@@ -261,44 +286,35 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                 <span className="dots">⏳</span> Waiting for an opponent to join...
               </div>
             )}
-
-            <button className="btn-primary btn-large btn-start" onClick={onStartGame} disabled={!roomHasGuest}>
-              Start Game
+            <button className="btn-start-game" onClick={onStartGame} disabled={!roomHasGuest}>
+              🚀 Start Game
             </button>
-            <button className="btn-secondary" onClick={onLeaveRoom} style={{ marginTop: '8px' }}>
+            <button className="btn-leave-room" onClick={onLeaveRoom}>
               🚪 Leave Room
             </button>
-            {!roomHasGuest && (
-              <span className="action-hint">
-                Game will start once an opponent joins
-              </span>
-            )}
           </div>
         </div>
       )}
 
-      {/* Joiner - waiting for host to start */}
-      {isLoggedIn && lobbyStatus === 'joined' && (
-        <div className="lobby-section">
-          <h3 className="section-title">Joined Room</h3>
+      {/* Joiner waiting */}
+      {lobbyStatus === 'joined' && (
+        <div className="lobby-section lobby-section-game">
+          <h3 className="section-title-game">🎯 Joined Room</h3>
           <div className="lobby-waiting">
             <div className="waiting-indicator">
               <span className="spinner">⏳</span>
               <span>Waiting for host to start the game...</span>
             </div>
-            <button className="btn-secondary" onClick={onLeaveRoom} style={{ marginTop: '8px' }}>
+            <button className="btn-leave-room" onClick={onLeaveRoom}>
               🚪 Leave Room
             </button>
-            <span className="action-hint">
-              The game will start automatically when the host begins
-            </span>
           </div>
         </div>
       )}
 
       {/* Starting */}
-      {isLoggedIn && lobbyStatus === 'starting' && (
-        <div className="lobby-section">
+      {lobbyStatus === 'starting' && (
+        <div className="lobby-section lobby-section-game">
           <div className="lobby-waiting">
             <div className="waiting-indicator">
               <span className="spinner">🔄</span>
@@ -313,10 +329,6 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
         <button
           className="log-toggle"
           onClick={() => setShowLog(v => !v)}
-          style={{
-            background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
-            cursor: 'pointer', fontSize: '0.85rem', padding: '4px 0',
-          }}
         >
           📋 Activity Log {showLog ? '▼' : '▶'}
         </button>
@@ -330,16 +342,12 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
       </div>
 
       {/* Instructions */}
-      <div className="instructions">
-        <strong>How to play:</strong> Open this page in two different browsers
-        (or one normal + one incognito window).
-        <br />
-        Player 1: Login → Create Room → Wait for opponent → Start Game
-        <br />
-        Player 2: Login → Browse rooms → Join → Game starts automatically!
+      <div className="lobby-instructions">
+        <strong>🎴 How to play:</strong> Open in two browsers. Create a room, wait for opponent, start!
       </div>
     </div>
   );
 };
 
 export default LobbyScreen;
+

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.2s ease;
   user-select: none;
   overflow: hidden;
 }
@@ -32,49 +32,72 @@
   height: 150px;
 }
 
+/* === Hover: dramatic lift + scale + glow === */
 .card.playable {
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.6);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.7);
   border: 2px solid #4caf50;
 }
 
 .card.playable:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+  transform: translateY(-28px) scale(1.15) rotate(-2deg);
+  box-shadow: 0 20px 40px rgba(76, 175, 80, 0.6), 0 0 30px rgba(76, 175, 80, 0.4);
+  z-index: 200 !important;
+}
+
+/* Non-playable hand card hover */
+.hand-card-wrapper .card:not(.playable):not(.selected):hover {
+  transform: translateY(-20px) scale(1.08);
+  box-shadow: 0 14px 25px rgba(255, 255, 255, 0.2);
+  z-index: 200 !important;
 }
 
 .card.selected {
-  transform: translateY(-15px);
-  box-shadow: 0 0 15px rgba(33, 150, 243, 0.8);
+  transform: translateY(-25px) scale(1.1);
+  box-shadow: 0 0 25px rgba(33, 150, 243, 0.9), 0 0 50px rgba(33, 150, 243, 0.3);
   border: 3px solid #2196f3;
+  z-index: 200 !important;
 }
 
-/* Wildcard (rank 10) styling */
+/* Wildcard (rank 10) styling — vivid gold/orange */
 .card.wildcard {
-  border: 2px solid #ffc107;
+  border: 3px solid #ff9800;
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.6);
 }
 
 .card.wildcard.playable {
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
-  border: 2px solid #ffc107;
+  box-shadow: 0 0 25px rgba(255, 152, 0, 0.9), 0 0 50px rgba(255, 193, 7, 0.5);
+  border: 3px solid #ffab00;
 }
 
 .card.wildcard.playable:hover {
-  box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+  transform: translateY(-28px) scale(1.15) rotate(-2deg);
+  box-shadow: 0 20px 40px rgba(255, 152, 0, 0.8), 0 0 60px rgba(255, 193, 7, 0.6);
 }
 
-/* Skip card (rank 6) styling */
+/* Skip card (rank 6) styling — electric cyan/blue */
 .card.skip-card {
-  border: 2px solid #2196f3;
+  border: 3px solid #00e5ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
 }
 
 .card.skip-card.playable {
-  box-shadow: 0 0 15px rgba(33, 150, 243, 0.7);
-  border: 2px solid #2196f3;
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.9), 0 0 50px rgba(0, 176, 255, 0.5);
+  border: 3px solid #00e5ff;
 }
 
 .card.skip-card.playable:hover {
-  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.5);
+  transform: translateY(-28px) scale(1.15) rotate(-2deg);
+  box-shadow: 0 20px 40px rgba(0, 229, 255, 0.8), 0 0 60px rgba(0, 176, 255, 0.6);
+}
+
+/* Dragging state */
+.card[draggable="true"] {
+  cursor: grab;
+}
+
+.card[draggable="true"]:active {
+  cursor: grabbing;
 }
 
 /* Card badges for special cards */
@@ -121,4 +144,73 @@
 /* Card Back */
 .card-back {
   border: 2px solid #0d47a1;
+}
+
+/* ===== Card Animations — DRAMATIC ===== */
+
+/* Card dealt into hand (big slide up + overshoot bounce) */
+@keyframes cardDealIn {
+  0% {
+    opacity: 0;
+    transform: translateY(120px) scale(0.4) rotate(-15deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.12) rotate(3deg);
+  }
+  70% {
+    transform: translateY(5px) scale(0.97) rotate(-1deg);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+.card-deal-in {
+  animation: cardDealIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Card played (fly up and shrink with spin) */
+@keyframes cardPlayOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120px) scale(0.3) rotate(20deg);
+  }
+}
+
+.card-play-out {
+  animation: cardPlayOut 0.4s ease-out forwards;
+}
+
+/* Top card arrive — dramatic slam + glow pulse */
+@keyframes cardArriveTop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(20deg) translateY(-60px);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.25) rotate(-5deg) translateY(5px);
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
+  }
+  60% {
+    transform: scale(0.92) rotate(2deg) translateY(-3px);
+  }
+  80% {
+    transform: scale(1.05) rotate(-1deg);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.card-arrive-top {
+  animation: cardArriveTop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }

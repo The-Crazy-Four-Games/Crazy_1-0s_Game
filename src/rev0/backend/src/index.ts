@@ -45,7 +45,11 @@ async function main() {
   // HTTP + WS server
   const app = createApp({ repo, audit, auth, matchmaking, gameSessions });
   const server = http.createServer(app);
-  const io = new IOServer(server, { cors: { origin: "*" } });
+  const io = new IOServer(server, {
+    cors: { origin: "*" },
+    pingTimeout: 60000,   // 60s — wait longer for pong before disconnecting
+    pingInterval: 30000,  // 30s — heartbeat interval
+  });
 
   // WS gateway (uses gameSessions, tracks users for force-logout)
   const gateway = makeRealtimeGateway({ io, auth, audit, gameSessions, repo });
