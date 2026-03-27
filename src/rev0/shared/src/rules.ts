@@ -120,6 +120,7 @@ export function isPlayable(sys: NumeralSystem, state: RoundState, playerId: Play
   if (state.turn !== playerId) return false;
 
   if (state.activeChallenge) return false;
+  // ✅ freePlay：无视 topCard/forcedSuit，可出任意手牌
   if (state.freePlayFor === playerId) return true;
 
   const hand = state.hands[playerId] ?? [];
@@ -165,7 +166,7 @@ export function applyDraw(sys: NumeralSystem, state: RoundState, playerId: Playe
     drawCountThisTurn: s.drawCountThisTurn + 1,
   };
 
-
+  // ✅ 抽满3次仍无可出牌：自动切到对面 + 对面 freePlay 1 次
   if (s.drawCountThisTurn >= 3 && getPlayableCards(sys, s, playerId).length === 0 && !s.activeChallenge) {
     const nxt = nextPlayer(s);
     s = {
@@ -222,27 +223,47 @@ export function applyPlay(
 
   // Determine challenge type
   let challengeType: '+' | '-' | '*' | '/' | undefined;
+  const randomOp = (): '+' | '-' | '*' | '/' => {
+    const ops: ('+' | '-' | '*' | '/')[] = ['+', '-', '*', '/'];
+    return ops[Math.floor(Math.random() * ops.length)];
+  };
 
-  if (isFace(card.rank, sys)) {
-    if (card.suit === 'H') challengeType = '+';
-    else if (card.suit === 'D') challengeType = '-';
-    else if (card.suit === 'C') challengeType = '*';
-    else if (card.suit === 'S') challengeType = '/';
+  if (card.rank === sys.wildcardTenSymbol) {
+    // Wildcard 10 always triggers addition
+    challengeType = '+';
+  } else if (card.rank === 'J' || card.rank === 'Q') {
+    // J and Q trigger a random arithmetic operation
+    challengeType = randomOp();
+  } else if (sys.id === 'dec' && card.rank === 'K') {
+    // K in decimal: player selects operation (fallback to random)
+    challengeType = chosenOperation ?? randomOp();
+  } else if (sys.id === 'doz' && card.rank === 'C') {
+    // C in dozenal: player selects operation (fallback to random)
+    challengeType = chosenOperation ?? randomOp();
+  } else if (sys.id === 'doz' && card.rank === 'K') {
+    // K in dozenal: random (not player-selectable)
+    challengeType = randomOp();
   }
 
   if (challengeType) {
-    // Determine operand range: Multiplication caps at 12, Addition/Subtraction caps at 100
-    // (Division ignores this range and handles its own 1-12 boundary below)
-    const range = (challengeType === '*') ? 12 : 100;
+    // Determine operand range based on system and operation
+    let range: number;
+    if (sys.id === 'doz') {
+      // Dozenal: range 100 for all operations
+      range = 100;
+    } else {
+      // Decimal: range 100 for +/-, 144 (12x12) for */÷
+      range = (challengeType === '*' || challengeType === '/') ? 144 : 100;
+    }
 
     const op1 = Math.floor(Math.random() * range) + 1;
     let op2 = Math.floor(Math.random() * range) + 1;
 
     if (challengeType === '/') {
       // For division: create a clean division problem
-      // Pick two numbers exactly between 1-12, multiply them, then ask product / a = ?
-      const a = Math.floor(Math.random() * 12) + 1;
-      const b = Math.floor(Math.random() * 12) + 1;
+      // Pick two numbers, multiply them, then ask product / op1 = ?
+      const a = Math.floor(Math.random() * Math.floor(Math.sqrt(range))) + 1;
+      const b = Math.floor(Math.random() * Math.floor(Math.sqrt(range))) + 1;
       const product = a * b;
 
       return {
