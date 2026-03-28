@@ -96,6 +96,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const [showLog, setShowLog] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [chatSide, setChatSide] = useState<'left' | 'right'>('right');
+  const [showHints, setShowHints] = useState(false);
+  const [hintsTab, setHintsTab] = useState<'rules' | 'addition' | 'multiplication'>('rules');
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -895,6 +897,64 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           </button>
         )
       }
+
+      {/* Hints Floating Button */}
+      <button
+        className={`hints-open-btn ${chatSide === 'right' ? 'left' : 'right'}`}
+        onClick={() => setShowHints(true)}
+        title="Game Hints & Reference"
+      >
+        📖
+      </button>
+
+      {/* Hints Popup Modal */}
+      {showHints && (
+        <div className="hints-overlay" onClick={() => setShowHints(false)}>
+          <div className="hints-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="hints-header">
+              <h2>📖 Game Reference</h2>
+              <button className="hints-close-btn" onClick={() => setShowHints(false)}>✖</button>
+            </div>
+            <div className="hints-tabs">
+              <button
+                className={`hints-tab ${hintsTab === 'rules' ? 'active' : ''}`}
+                onClick={() => setHintsTab('rules')}
+              >
+                🎴 Game Rules
+              </button>
+              <button
+                className={`hints-tab ${hintsTab === 'addition' ? 'active' : ''}`}
+                onClick={() => setHintsTab('addition')}
+              >
+                ➕ Addition Table
+              </button>
+              <button
+                className={`hints-tab ${hintsTab === 'multiplication' ? 'active' : ''}`}
+                onClick={() => setHintsTab('multiplication')}
+              >
+                ✖️ Multiplication Table
+              </button>
+            </div>
+            <div className="hints-content">
+              {hintsTab === 'rules' && (
+                <div className="hints-image-wrapper">
+                  <img src="/hints/gameplay_rules.png" alt="Game Rules" />
+                </div>
+              )}
+              {hintsTab === 'addition' && (
+                <div className="hints-image-wrapper">
+                  <img src="/hints/dozenal_addition_table.png" alt="Dozenal Addition Table" />
+                </div>
+              )}
+              {hintsTab === 'multiplication' && (
+                <div className="hints-image-wrapper">
+                  <img src="/hints/dozenal_multiplication_table.png" alt="Dozenal Multiplication Table" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
