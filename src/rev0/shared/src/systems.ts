@@ -79,7 +79,7 @@ export const DOZENAL_SYSTEM: NumeralSystem = (() => {
     targetScoreText: "100",   // base12 "100" => 144 dec
     wildcardTenSymbol: "10",
     wildcardSkipSymbol: "6",
-    facePointsDec: 10,
+    facePointsDec: 12,
   };
 })();
 
