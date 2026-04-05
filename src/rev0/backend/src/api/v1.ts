@@ -9,13 +9,14 @@ import { makeAuthRouter } from "./auth";
 import { makeHealthRouter } from "./health";
 import { makeProfileRouter } from "./profile";
 import { makeLobbyRouter } from "./lobby";
+import { makeAdminRouter } from "./admin";
 
 export function makeV1Router(deps: {
   auth: AuthService;
   repo: Repository;
   audit: AuditStore;
   matchmaking: MatchmakingService;
-  gameSessions: Map<string, any>; 
+  gameSessions: Map<string, any>;
 }) {
   const router = Router();
 
@@ -24,7 +25,10 @@ export function makeV1Router(deps: {
   router.use("/profile", makeProfileRouter(deps.auth, deps.repo));
 
   // send gameSessions to lobby router
-  router.use("/lobby", makeLobbyRouter(deps.matchmaking, deps.gameSessions));
+  router.use("/lobby", makeLobbyRouter(deps.matchmaking, deps.gameSessions, deps.repo));
+
+  // admin panel
+  router.use("/admin", makeAdminRouter(deps.auth, deps.repo, deps.matchmaking));
 
   return router;
 }

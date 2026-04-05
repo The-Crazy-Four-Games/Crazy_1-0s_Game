@@ -34,7 +34,7 @@ export type NumeralSystem = Readonly<{
 
 export const DECIMAL_SPEC: BaseSpec = {
   base: 10,
-  digits: ["0","1","2","3","4","5","6","7","8","9"] as const,
+  digits: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] as const,
   allowPlusSign: true,
   stripLeadingZeros: true,
 };
@@ -42,7 +42,7 @@ export const DECIMAL_SPEC: BaseSpec = {
 
 // decimal system
 export const DECIMAL_SYSTEM: NumeralSystem = (() => {
-  const deckNumericSymbols = ["1","2","3","4","5","6","7","8","9","10"] as const;
+  const deckNumericSymbols = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"] as const;
   const valueOf: Record<string, number> = {};
   for (let i = 0; i <= 9; i++) valueOf[String(i)] = i;
   valueOf["X"] = 10;
@@ -52,7 +52,7 @@ export const DECIMAL_SYSTEM: NumeralSystem = (() => {
     name: "Decimal",
     spec: DECIMAL_SPEC,
     deckNumericSymbols,
-    faceRanks: ["J","Q","K"] as const,
+    faceRanks: ["J", "Q", "K"] as const,
     valueOf,
     targetSumText: "10",     // base10 10
     targetScoreText: "100",  // base10 100
@@ -64,7 +64,7 @@ export const DECIMAL_SYSTEM: NumeralSystem = (() => {
 
 // dozenal system
 export const DOZENAL_SYSTEM: NumeralSystem = (() => {
-  const digits = ["1","2","3","4","5","6","7","8","9","10","↊","↋"] as const;
+  const digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "↊", "↋"] as const;
   const valueOf: Record<string, number> = {};
   digits.forEach((d, i) => (valueOf[d] = i));
 
@@ -73,13 +73,13 @@ export const DOZENAL_SYSTEM: NumeralSystem = (() => {
     name: "Dozenal",
     spec: DOZENAL_SPEC,
     deckNumericSymbols: digits,
-    faceRanks: ["J","Q","K","C"] as const,
+    faceRanks: ["J", "Q", "K", "C"] as const,
     valueOf,
     targetSumText: "10",     // base12 "10" => 12 dec
-    targetScoreText: "100",  // base12 "100" => 144 dec
+    targetScoreText: "100",   // base12 "100" => 144 dec
     wildcardTenSymbol: "10",
     wildcardSkipSymbol: "6",
-    facePointsDec: 10,
+    facePointsDec: 12,
   };
 })();
 

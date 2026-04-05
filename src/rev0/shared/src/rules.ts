@@ -185,7 +185,8 @@ export function applyPlay(
   state: RoundState,
   playerId: PlayerID,
   card: Card,
-  chosenSuit?: Suit
+  chosenSuit?: Suit,
+  chosenOperation?: '+' | '-' | '*' | '/'
 ): RoundState {
   if (!isPlayable(sys, state, playerId, card)) throw new Error("IllegalMove");
 
@@ -202,10 +203,10 @@ export function applyPlay(
     forcedSuit = chosenSuit;
   }
 
-  // ✅ 默认：本次出牌后清除 freePlay（因为已经“用掉”了）
+  // After playing, clear freePlay (it's been used)
   let nextFreePlayFor: PlayerID | undefined = undefined;
 
-  // ✅ skip：同一玩家继续，并获得 1 次 freePlay（下一张随便出）
+  // Skip card: same player continues with a free play
   if (card.rank === sys.wildcardSkipSymbol) {
     nextFreePlayFor = playerId;
   }
@@ -220,48 +221,85 @@ export function applyPlay(
     drawCountThisTurn: 0,
   };
 
+  // Determine challenge type
   let challengeType: '+' | '-' | '*' | '/' | undefined;
+  const randomOp = (): '+' | '-' | '*' | '/' => {
+    const ops: ('+' | '-' | '*' | '/')[] = ['+', '-', '*', '/'];
+    return ops[Math.floor(Math.random() * ops.length)];
+  };
 
-  if (card.rank === sys.wildcardTenSymbol) challengeType = '+';
-  else if (card.rank === "J") challengeType = '-';
-  else if (card.rank === "Q") challengeType = '*';
-  else if (card.rank === "K") challengeType = '/';
+  if (card.rank === 'J' || card.rank === 'Q') {
+    // J and Q trigger a random arithmetic operation
+    challengeType = randomOp();
+  } else if (sys.id === 'dec' && card.rank === 'K') {
+    // K in decimal: player selects operation (fallback to random)
+    challengeType = chosenOperation ?? randomOp();
+  } else if (sys.id === 'doz' && card.rank === 'C') {
+    // C in dozenal: player selects operation (fallback to random)
+    challengeType = chosenOperation ?? randomOp();
+  } else if (sys.id === 'doz' && card.rank === 'K') {
+    // K in dozenal: random (not player-selectable)
+    challengeType = randomOp();
+  }
 
   if (challengeType) {
-    const op1 = Math.floor(Math.random() * 12) + 1;
-    let op2 = Math.floor(Math.random() * 12) + 1;
+    // Determine operand range: Multiplication caps at 12, Addition/Subtraction caps at 100
+    // (Division ignores this range and handles its own 1-12 boundary below)
+    const range = (challengeType === '*') ? 12 : 100;
+
+    const op1 = Math.floor(Math.random() * range) + 1;
+    let op2 = Math.floor(Math.random() * range) + 1;
 
     if (challengeType === '/') {
-      const product = op1 * op2;
-      const answer = op2;
+      // For division: create a clean division problem
+      // Pick two numbers exactly between 1-12, multiply them, then ask product / a = ?
+      const a = Math.floor(Math.random() * 12) + 1;
+      const b = Math.floor(Math.random() * 12) + 1;
+      const product = a * b;
 
       return {
         ...after,
         activeChallenge: {
-          playerId,
+          playerId: 'both',
           type: '/',
           op1: product,
-          op2: op1,
-          answer,
-          reward: 10,
+          op2: a,
+          answer: b,
+          reward: sys.spec.base,
+          shouldPassTurn: true
+        }
+      };
+    } else if (challengeType === '-') {
+      // Ensure non-negative answer: make op1 >= op2
+      const high = Math.max(op1, op2);
+      const low = Math.min(op1, op2);
+
+      return {
+        ...after,
+        activeChallenge: {
+          playerId: 'both',
+          type: '-',
+          op1: high,
+          op2: low,
+          answer: high - low,
+          reward: sys.spec.base,
           shouldPassTurn: true
         }
       };
     } else {
       let answer = 0;
       if (challengeType === '+') answer = op1 + op2;
-      if (challengeType === '-') answer = op1 - op2;
       if (challengeType === '*') answer = op1 * op2;
 
       return {
         ...after,
         activeChallenge: {
-          playerId,
+          playerId: 'both',
           type: challengeType,
           op1,
           op2,
           answer,
-          reward: 10,
+          reward: sys.spec.base,
           shouldPassTurn: true
         }
       };
@@ -290,10 +328,10 @@ export function passTurn(state: RoundState): RoundState {
 }
 
 export function isRoundOver(state: RoundState): boolean {
-    if (state.activeChallenge) return false;
+  if (state.activeChallenge) return false;
 
-    const [p1, p2] = state.players;
-    return state.hands[p1].length === 0 || state.hands[p2].length === 0;
+  const [p1, p2] = state.players;
+  return state.hands[p1].length === 0 || state.hands[p2].length === 0;
 }
 
 export function roundWinner(state: RoundState): PlayerID | null {

@@ -74,3 +74,10 @@ export class LogStoreError extends Error {
     this.name = "LogStoreError";
   }
 }
+
+export class AlreadyLoggedIn extends Error {
+  constructor(message = "This account is already logged in elsewhere") {
+    super(message);
+    this.name = "AlreadyLoggedIn";
+  }
+}

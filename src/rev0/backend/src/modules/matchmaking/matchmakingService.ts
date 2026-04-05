@@ -8,14 +8,16 @@ export type AuditStore = {
 };
 
 export type MatchmakingService = {
-  createLobby(hostId: UserID): Lobby;
+  createLobby(hostId: UserID, hostUsername: string, baseId: "dec" | "doz"): Lobby;
   joinLobby(lobbyId: LobbyID, userId: UserID): Lobby;
   startMatch(
     lobbyId: LobbyID,
-    hostId: UserID,
-    baseId?: "dec" | "doz"
+    hostId: UserID
   ): { gameId: GameID; lobby: Lobby; publicState: unknown; game: unknown };
   getLobby(lobbyId: LobbyID): Lobby | undefined;
+  listOpenRooms(): Lobby[];
+  leaveLobby(lobbyId: LobbyID, userId: UserID): void;
+  deleteLobby(lobbyId: LobbyID): void;
 };
 
 export class LobbyError extends Error {
@@ -51,7 +53,7 @@ export class LobbyAlreadyStarted extends LobbyError {
 
 export function makeMatchmakingService(deps: { audit: AuditStore }): MatchmakingService {
   const lobbies = new Map<LobbyID, Lobby>();
-  
+
   function getLobbyOrThrow(lobbyId: LobbyID): Lobby {
     const l = lobbies.get(lobbyId);
     if (!l) throw new LobbyNotFound();
@@ -59,12 +61,14 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
   }
 
   return {
-    createLobby(hostId) {
+    createLobby(hostId, hostUsername, baseId) {
       const lobbyId = `l_${randomUUID().slice(0, 8)}`;
       const lobby: Lobby = {
         lobbyId,
         hostId,
+        hostUsername,
         guestId: undefined,
+        baseId,
         createdAt: Date.now(),
         status: "OPEN",
       };
@@ -85,7 +89,7 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
       return updated;
     },
 
-    startMatch(lobbyId, hostId, baseId = "doz") {
+    startMatch(lobbyId, hostId) {
       const l = getLobbyOrThrow(lobbyId);
       if (l.status !== "OPEN") throw new LobbyAlreadyStarted();
       if (l.hostId !== hostId) throw new NotLobbyHost();
@@ -94,7 +98,7 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
       const players = [l.hostId, l.guestId] as [string, string];
 
       const game = createGame({
-        baseId,
+        baseId: l.baseId,
         players,
         initialHandSize: 7,
       });
@@ -104,9 +108,9 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
       const updated: Lobby = { ...l, status: "STARTED" };
       lobbies.set(lobbyId, updated);
 
-      deps.audit.logSystemEvent({ type: "MATCH_STARTED", at: Date.now(), data: { lobbyId, gameId, baseId } });
+      deps.audit.logSystemEvent({ type: "MATCH_STARTED", at: Date.now(), data: { lobbyId, gameId, baseId: l.baseId } });
 
-    
+
       return {
         gameId,
         lobby: updated,
@@ -118,5 +122,29 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
     getLobby(lobbyId) {
       return lobbies.get(lobbyId);
     },
+
+    listOpenRooms() {
+      return Array.from(lobbies.values()).filter(l => l.status === "OPEN");
+    },
+
+    leaveLobby(lobbyId, userId) {
+      const l = lobbies.get(lobbyId);
+      if (!l) return;
+      if (l.hostId === userId) {
+        // Host leaves: always delete the room
+        lobbies.delete(lobbyId);
+        deps.audit.logSystemEvent({ type: "LOBBY_HOST_LEFT_DELETED", at: Date.now(), data: { lobbyId, userId } });
+      } else if (l.guestId === userId) {
+        const updated: Lobby = { ...l, guestId: undefined };
+        lobbies.set(lobbyId, updated);
+        deps.audit.logSystemEvent({ type: "LOBBY_GUEST_LEFT", at: Date.now(), data: { lobbyId, userId } });
+      }
+    },
+
+    deleteLobby(lobbyId) {
+      lobbies.delete(lobbyId);
+      deps.audit.logSystemEvent({ type: "LOBBY_FORCE_DELETED", at: Date.now(), data: { lobbyId } });
+    },
   };
 }
+

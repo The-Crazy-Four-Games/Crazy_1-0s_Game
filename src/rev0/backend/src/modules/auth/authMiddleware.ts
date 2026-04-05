@@ -8,7 +8,7 @@ declare global {
       user?: {
         userId: string;
         username?: string;
-        role: "guest" | "user";
+        role: "guest" | "user" | "admin";
       };
     }
   }
@@ -44,6 +44,16 @@ export function requireUser(auth: AuthService) {
   return (req: Request, res: Response, next: NextFunction) => {
     mw(req, res, () => {
       if (req.user?.role !== "user") return res.status(403).json({ error: "User role required" });
+      next();
+    });
+  };
+}
+
+export function requireAdmin(auth: AuthService) {
+  const mw = requireAuth(auth);
+  return (req: Request, res: Response, next: NextFunction) => {
+    mw(req, res, () => {
+      if (req.user?.role !== "admin") return res.status(403).json({ error: "Admin role required" });
       next();
     });
   };
