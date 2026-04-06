@@ -63,6 +63,7 @@ Jan 17th & Rev0 & update m1,4,5,6,9,13,16,17,18\\
 Jan 18th & Rev0 & update the remaining part\\
 Jan 21th & Rev0 & update notation table, fix some errors from feedback\\
 Jan 21th & Rev0 & fixed a table format error\\
+Apr 5th & Rev1 & Use out:=/exc:= notation, remove void outputs, abstract SQL, add M20, update all modules for NumeralSystem/MathChallenge/new actions\\
 \bottomrule
 \end{tabularx}
 
@@ -143,29 +144,31 @@ The following table is taken directly from the Module Guide document for this pr
 \multirow{1}{0.3\textwidth}{Hardware-Hiding Module} & ~ & (None) \\
 \midrule
 
-\multirow{5}{0.3\textwidth}{Behaviour-Hiding Module} & (Core Domain Logic) & \hyperref[sec:game-engine-module]{M15} \\
+\multirow{12}{0.3\textwidth}{Behaviour-Hiding Module}
+& \multirow{6}{0.26\textwidth}{Core Domain Logic} & \hyperref[sec:game-engine-module]{M15} \\
 & & \hyperref[sec:rules-module]{M16} \\
 & & \hyperref[sec:scoring-module]{M17} \\
 & & \hyperref[sec:base-conversion-module]{M18} \\
 & & \hyperref[sec:game-actions-module]{M19} \\
-
-\midrule
-
-\multirow{14}{0.3\textwidth}{Software Decision Module} & \multirow{6}{0.3\textwidth}{Backend (Server)} & \hyperref[sec:api-module]{M1} \\
-& & \hyperref[sec:realtime-gateway-module]{M2} \\
-& & \hyperref[sec:matchmaking-module]{M3} \\
-& & \hyperref[sec:authentication-module]{M4} \\
-& & \hyperref[sec:repository-module]{M5} \\
-& & \hyperref[sec:audit-module]{M6} \\
+& & \hyperref[sec:numeral-system-module]{M20} \\
 \cmidrule{2-3}
-& \multirow{8}{0.3\textwidth}{Frontend (Client)} & \hyperref[sec:realtime-client-module]{M7} \\
-& & \hyperref[sec:app-shell-module]{M8} \\
-& & \hyperref[sec:authentication-client-module]{M9} \\
+& \multirow{6}{0.26\textwidth}{Gameplay Interaction} & \hyperref[sec:matchmaking-module]{M3} \\
 & & \hyperref[sec:lobby-view-module]{M10} \\
 & & \hyperref[sec:game-board-view-module]{M11} \\
 & & \hyperref[sec:move-controller-module]{M12} \\
 & & \hyperref[sec:scoreboard-view-module]{M13} \\
 & & \hyperref[sec:profile-view-module]{M14} \\
+\midrule
+
+\multirow{8}{0.3\textwidth}{Software Decision Module} & \multirow{5}{0.26\textwidth}{Backend (Server)} & \hyperref[sec:api-module]{M1} \\
+& & \hyperref[sec:realtime-gateway-module]{M2} \\
+& & \hyperref[sec:authentication-module]{M4} \\
+& & \hyperref[sec:repository-module]{M5} \\
+& & \hyperref[sec:audit-module]{M6} \\
+\cmidrule{2-3}
+& \multirow{3}{0.26\textwidth}{Frontend (Client)} & \hyperref[sec:realtime-client-module]{M7} \\
+& & \hyperref[sec:app-shell-module]{M8} \\
+& & \hyperref[sec:authentication-client-module]{M9} \\
 \bottomrule
 
 \end{tabular}
@@ -236,58 +239,56 @@ None. (Stateless HTTP routes; no persistent state is maintained by this module.)
 
 \noindent\textbf{postRegister}(\textit{req})
 \begin{itemize}
-    \item transition: Validate \textit{req} payload (username/password). Call \textbf{Auth.createAccount}. Log an authentication audit event via \textbf{Audit.logAuthEvent}.
-    \item output: Return \texttt{HttpResponse} containing success status and auth token (on success).
-    \item exception: \texttt{BadRequest} if payload invalid. Propagate \texttt{UsernameTaken}/\texttt{WeakPassword} from authentication logic.
+    \item transition: \textit{result} := Auth.createAccount(\textit{req}.username, \textit{req}.password); Audit.logAuthEvent(``REGISTER'', \textit{req}.username)
+    \item out := \texttt{HttpResponse}(\textit{result}.token, \textit{result}.userId)
+    \item exc := (\textit{req} invalid $\Rightarrow$ \texttt{BadRequest} $|$ username exists $\Rightarrow$ \texttt{UsernameTaken} $|$ password weak $\Rightarrow$ \texttt{WeakPassword})
 \end{itemize}
 
 \noindent\textbf{postLogin}(\textit{req})
 \begin{itemize}
-    \item transition: Validate \textit{req}. Call \textbf{Auth.login}. Log auth event via \textbf{Audit.logAuthEvent}.
-    \item output: Return \texttt{HttpResponse} containing auth token (on success).
-    \item exception: \texttt{BadRequest} if payload invalid. \texttt{InvalidCredentials}/\texttt{AccountNotFound} if login fails.
+    \item transition: \textit{result} := Auth.login(\textit{req}.username, \textit{req}.password); Audit.logAuthEvent(``LOGIN'', \textit{req}.username)
+    \item out := \texttt{HttpResponse}(\textit{result}.token)
+    \item exc := (\textit{req} invalid $\Rightarrow$ \texttt{BadRequest} $|$ credentials wrong $\Rightarrow$ \texttt{InvalidCredentials} $|$ account missing $\Rightarrow$ \texttt{AccountNotFound})
 \end{itemize}
 
 \noindent\textbf{postGuestSession}(\textit{req})
 \begin{itemize}
-    \item transition: Validate \textit{req}. Call \textbf{Auth.createGuestSession}. Log auth event via \textbf{Audit.logAuthEvent}.
-    \item output: Return \texttt{HttpResponse} containing guest token.
-    \item exception: \texttt{BadRequest} if payload invalid.
+    \item transition: \textit{result} := Auth.createGuestSession(\textit{req}.deviceId); Audit.logAuthEvent(``GUEST'', \textit{req}.deviceId)
+    \item out := \texttt{HttpResponse}(\textit{result}.token)
+    \item exc := (\textit{req} invalid $\Rightarrow$ \texttt{BadRequest})
 \end{itemize}
 
 \noindent\textbf{postLogout}(\textit{req})
 \begin{itemize}
-    \item transition: Validate \textit{req}. Call \textbf{Auth.logout}. Log auth event via \textbf{Audit.logAuthEvent}.
-    \item output: Return \texttt{HttpResponse} confirming logout.
-    \item exception: \texttt{BadRequest} if payload invalid. \texttt{InvalidToken} if token invalid.
+    \item transition: Auth.logout(\textit{req}.token); Audit.logAuthEvent(``LOGOUT'', \textit{req}.userId)
+    \item out := \texttt{HttpResponse}(success=true)
+    \item exc := (\textit{req} invalid $\Rightarrow$ \texttt{BadRequest} $|$ token invalid $\Rightarrow$ \texttt{InvalidToken})
 \end{itemize}
 
 \noindent\textbf{getProfile}(\textit{req})
 \begin{itemize}
-    \item transition: Verify token from \textit{req} by calling \textbf{Auth.verifyToken}. On success, read user profile from \textbf{Repository} (e.g., \texttt{getPlayerProfile}/equivalent). Log a profile access event via \textbf{Audit.logSystemEvent}.
-    \item output: Return \texttt{HttpResponse} containing the user profile data.
-    \item exception: \texttt{Unauthorized} if token invalid/expired. \texttt{RecordNotFound} if profile/user does not exist.
+    \item transition: \textit{claims} := Auth.verifyToken(\textit{req}.token); \textit{profile} := Repository.findPlayer(\textit{claims}.userId); Audit.logSystemEvent(``PROFILE\_VIEW'')
+    \item out := \texttt{HttpResponse}(\textit{profile})
+    \item exc := (token invalid $\Rightarrow$ \texttt{Unauthorized} $|$ player absent $\Rightarrow$ \texttt{RecordNotFound})
 \end{itemize}
 
 \noindent\textbf{putProfile}(\textit{req})
 \begin{itemize}
-    \item transition: Verify token via \textbf{Auth.verifyToken}. Validate profile update payload. Update profile via \textbf{Repository} (e.g., \texttt{updatePlayerProfile}/equivalent). Log update event via \textbf{Audit.logSystemEvent}.
-    \item output: Return \texttt{HttpResponse} containing updated profile.
-    \item exception: \texttt{BadRequest} if payload invalid. \texttt{Unauthorized} if token invalid/expired. \texttt{RecordNotFound} if user/profile not found.
+    \item transition: \textit{claims} := Auth.verifyToken(\textit{req}.token); \textit{updated} := Repository.updatePlayer(\textit{claims}.userId, \textit{req}.data); Audit.logSystemEvent(``PROFILE\_UPDATE'')
+    \item out := \texttt{HttpResponse}(\textit{updated})
+    \item exc := (\textit{req}.data invalid $\Rightarrow$ \texttt{BadRequest} $|$ token invalid $\Rightarrow$ \texttt{Unauthorized} $|$ player absent $\Rightarrow$ \texttt{RecordNotFound})
 \end{itemize}
 
 \noindent\textbf{postNewGame}(\textit{req})
 \begin{itemize}
-    \item transition: Verify token via \textbf{Auth.verifyToken}. Validate request body (game setup parameters). Persist/initialize game bootstrap data via \textbf{Repository} as required by the SRS. Log gameplay/system event via \textbf{Audit.logGameplayEvent} or \textbf{Audit.logSystemEvent}. (Real-time gameplay proceeds through M2.)
-    \item output: Return \texttt{HttpResponse} confirming game creation/bootstrapping and any returned identifiers.
-    \item exception: \texttt{BadRequest} if payload invalid. \texttt{Unauthorized} if token invalid/expired.
+    \item transition: \textit{claims} := Auth.verifyToken(\textit{req}.token); \textit{lobby} := Matchmaking.createLobby(\textit{claims}.userId, \textit{req}.baseId); Audit.logSystemEvent(``GAME\_BOOTSTRAP'')
+    \item out := \texttt{HttpResponse}(\textit{lobby}.lobbyId)
+    \item exc := (\textit{req} invalid $\Rightarrow$ \texttt{BadRequest} $|$ token invalid $\Rightarrow$ \texttt{Unauthorized})
 \end{itemize}
 
 \noindent\textbf{getHealth}(\textit{req})
 \begin{itemize}
-    \item transition: Return basic service status (optionally include shallow checks of dependencies).
-    \item output: Return \texttt{HttpResponse} with status \texttt{200 OK} when the API server is up.
-    \item exception: None.
+    \item out := \texttt{HttpResponse}(status=``OK'')
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -322,16 +323,17 @@ None.
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-    \begin{tabular}{p{4.5cm} p{4cm} p{3.5cm} p{3.5cm}}
+    \begin{tabular}{p{4.0cm} p{4.5cm} p{3.0cm} p{3.5cm}}
         \toprule
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
-        handleConnection & socket: ClientSocket & void & SessionError \\
-        handleJoinGame & socket: ClientSocket, gameID: GameID & void & SessionError, NotFound \\
-        handleSubmitAction & socket: ClientSocket, action: Action & void & InvalidAction, SessionError \\
-        registerGameSession & gameID: GameID, state: GameState & void & SessionError \\
-        emitGameState & socket: ClientSocket, state: GameState & void &  \\
-        broadcastGameState & gameID: GameID, state: GameState & void &  \\
+        handleConnection & socket: ClientSocket & -- & SessionError \\
+        handleJoinGame & socket: ClientSocket, gameId: string & -- & SessionError, NotFound \\
+        handleSubmitAction & socket: ClientSocket, gameId: string, action: Action & -- & InvalidAction, SessionError \\
+        registerGameSession & gameId: string, state: GameState & -- & SessionError \\
+        handleChatSend & socket: ClientSocket, gameId: string, text: string & -- & -- \\
+        handleRequestRestart & socket: ClientSocket, gameId: string & -- & SessionError \\
+        handleLeaveGame & socket: ClientSocket, gameId: string & -- & -- \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -340,12 +342,14 @@ None.
 
 \subsubsection{State Variables}
 \begin{itemize}
-    \item \textbf{activeSessions}: Map<GameID, GameState> --- Stores the current authoritative game state for each active game session.
+    \item \textit{activeSessions}: map(string, GameState) --- the current authoritative game state for each active game session.
+    \item \textit{restartRequests}: map(string, set(string)) --- tracks which players have requested restart per game.
+    \item \textit{userSockets}: map(string, string) --- maps userId to socketId for targeted events.
 \end{itemize}
 
 \subsubsection{Environment Variables}
 \begin{itemize}
-    \item \textbf{RealtimeAdapter}: The WebSocket or socket-based runtime environment managing client connections.
+    \item \textbf{RealtimeAdapter}: The bidirectional event-driven runtime managing client connections.
     \item \textbf{ClientSocket}: An opaque reference representing a connected client.
 \end{itemize}
 
@@ -360,42 +364,42 @@ None.
 
 \noindent\textbf{handleConnection}(\textit{socket})
 \begin{itemize}
-    \item transition: Registers the \textit{socket} with the \textbf{RealtimeAdapter} and initializes session metadata.
-    \item output: \texttt{void}.
-    \item exception: \texttt{SessionError} if the connection cannot be established.
+    \item transition: \textit{claims} := Auth.verifyToken(\textit{socket}.token); \textit{userSockets}[\textit{claims}.userId] := \textit{socket}.id; Audit.logAuthEvent(``WS\_CONNECT'', \textit{claims}.userId)
+    \item exc := (token invalid $\Rightarrow$ \texttt{SessionError})
 \end{itemize}
 
-\noindent\textbf{handleJoinGame}(\textit{socket, gameID})
+\noindent\textbf{handleJoinGame}(\textit{socket, gameId})
 \begin{itemize}
-    \item transition:
-    \begin{itemize}
-        \item Looks up the game state from \textbf{activeSessions}.
-        \item Associates the \textit{socket} with the specified \textit{gameID}.
-        \item Logs the join event using M6.
-    \end{itemize}
-    \item output: Sends the current \texttt{GameState} to the client via \texttt{emitGameState}.
-    \item exception: \texttt{NotFound} if the game session does not exist.
+    \item transition: \textit{game} := \textit{activeSessions}[\textit{gameId}]; assert \textit{socket}.userId $\in$ \textit{game}.players; associate \textit{socket} with room(\textit{gameId}); emit public state and private hand to \textit{socket}
+    \item exc := (\textit{gameId} $\notin$ \textit{activeSessions} $\Rightarrow$ \texttt{NotFound} $|$ user not in game $\Rightarrow$ \texttt{SessionError})
 \end{itemize}
 
-\noindent\textbf{handleSubmitAction}(\textit{socket, action})
+\noindent\textbf{handleSubmitAction}(\textit{socket, gameId, action})
 \begin{itemize}
-    \item transition:
-    \begin{itemize}
-        \item Retrieves the associated \texttt{GameState} from \textbf{activeSessions}.
-        \item Calls \texttt{M15.processTurn(action)} to validate and apply the action.
-        \item Updates the stored \texttt{GameState} with the returned result.
-        \item Persists significant state changes using M5.
-        \item Logs the action execution using M6.
-    \end{itemize}
-    \item output: Broadcasts the updated \texttt{GameState} to all connected players.
-    \item exception: \texttt{InvalidAction} if the action is rejected by M15.
+    \item transition: \textit{cur} := \textit{activeSessions}[\textit{gameId}]; \textit{next} := M15.applyAction(\textit{cur}, \textit{action}); \textit{activeSessions}[\textit{gameId}] := \textit{next}; broadcast public state to room; emit private hands to each player; if \textit{next}.status = ``GAME\_OVER'' then persist match results via M5
+    \item exc := (action rejected by M15 $\Rightarrow$ \texttt{InvalidAction} $|$ user not in game $\Rightarrow$ \texttt{SessionError})
 \end{itemize}
 
-\noindent\textbf{registerGameSession}(\textit{gameID, state})
+\noindent\textbf{registerGameSession}(\textit{gameId, state})
 \begin{itemize}
-    \item transition: Inserts a new entry into \textbf{activeSessions}.
-    \item output: \texttt{void}.
-    \item exception: \texttt{SessionError} if the gameID already exists.
+    \item transition: \textit{activeSessions}[\textit{gameId}] := \textit{state}
+    \item exc := (\textit{gameId} $\in$ \textit{activeSessions} $\Rightarrow$ \texttt{SessionError})
+\end{itemize}
+
+\noindent\textbf{handleChatSend}(\textit{socket, gameId, text})
+\begin{itemize}
+    \item transition: broadcast message \{from: \textit{socket}.userId, text: \textit{text}[0..200], ts: now()\} to room(\textit{gameId})
+\end{itemize}
+
+\noindent\textbf{handleRequestRestart}(\textit{socket, gameId})
+\begin{itemize}
+    \item transition: \textit{restartRequests}[\textit{gameId}] := \textit{restartRequests}[\textit{gameId}] $\cup$ \{\textit{socket}.userId\}; if all players $\in$ \textit{restartRequests}[\textit{gameId}] then create new game via M15.createGame, \textit{activeSessions}[\textit{newGameId}] := \textit{newGame}, notify all players; else notify opponent of pending request
+    \item exc := (game not over $\Rightarrow$ \texttt{SessionError})
+\end{itemize}
+
+\noindent\textbf{handleLeaveGame}(\textit{socket, gameId})
+\begin{itemize}
+    \item transition: remove \textit{socket} from room(\textit{gameId}); \textit{restartRequests} := \textit{restartRequests} $\setminus$ \{\textit{gameId}\}; if game ongoing then delete \textit{activeSessions}[\textit{gameId}]; notify opponent
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -403,7 +407,7 @@ None.
 
 \subsubsection{Considerations}
 \begin{itemize}
-    \item \textbf{Secret:} the mapping between client sockets and authoritative game sessions.
+    \item \textbf{Secret:} the mapping between client sockets and authoritative game sessions; restart negotiation protocol; chat relay.
     \item This module is server-authoritative but delegates all rule enforcement and state transitions to M15.
     \item Networking concerns are isolated here to avoid coupling game logic with transport mechanisms.
 \end{itemize}
@@ -417,8 +421,8 @@ Matchmaking
 
 \subsection{Uses}
 \begin{itemize}
-    \item \hyperref[sec:realtime-gateway-module]{M2 Real-time Gateway Module}
-    \item \hyperref[sec:repository-module]{M5 Repository Module}
+    \item \hyperref[sec:game-engine-module]{M15 Game Engine Module}
+    \item \hyperref[sec:audit-module]{M6 Audit Module}
 \end{itemize}
 
 \subsection{Syntax}
@@ -429,13 +433,16 @@ None.
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-    \begin{tabular}{p{4cm} p{5cm} p{3.5cm} p{3.5cm}}
+    \begin{tabular}{p{3.5cm} p{5cm} p{3cm} p{3.5cm}}
         \toprule
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
-        createLobby & hostID: UserID & LobbyID & LobbyError \\
-        joinLobby & lobbyID: LobbyID, userID: UserID & void & LobbyFull, LobbyNotFound \\
-        startMatch & lobbyID: LobbyID, hostID: UserID & GameID & LobbyNotFound, NotLobbyHost \\
+        createLobby & hostId: string, hostUsername: string, baseId: BaseId & Lobby & LobbyError \\
+        joinLobby & lobbyId: string, userId: string & Lobby & LobbyFull, LobbyNotFound, LobbyAlreadyStarted \\
+        startMatch & lobbyId: string, hostId: string & GameId, Lobby, GameState & LobbyNotFound, NotLobbyHost, LobbyError \\
+        listOpenRooms & -- & list(Lobby) & -- \\
+        leaveLobby & lobbyId: string, userId: string & -- & -- \\
+        deleteLobby & lobbyId: string & -- & -- \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -444,7 +451,7 @@ None.
 
 \subsubsection{State Variables}
 \begin{itemize}
-    \item \textbf{lobbies}: Map<LobbyID, Lobby> --- Stores all active waiting lobbies.
+    \item \textit{lobbies}: map(string, Lobby) --- all active waiting lobbies, keyed by lobbyId.
 \end{itemize}
 
 \subsubsection{Environment Variables}
@@ -454,58 +461,44 @@ None.
 \begin{itemize}
     \item User identities are authenticated before invoking this module.
     \item M2 is available to register real-time game sessions.
-    \item Persistent storage (M5) is available.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
-\noindent\textbf{createLobby}(\textit{hostID})
+\noindent\textbf{createLobby}(\textit{hostId, hostUsername, baseId})
 \begin{itemize}
-    \item transition:
-    \begin{itemize}
-        \item Generates a unique \texttt{LobbyID}.
-        \item Creates a \texttt{Lobby} object containing \texttt{hostID} and initial player list.
-        \item Stores the lobby in \textbf{lobbies}.
-        \item Persists lobby metadata via M5.
-    \end{itemize}
-    \item output: Returns the created \texttt{LobbyID}.
-    \item exception: \texttt{LobbyError} if creation fails.
+    \item transition: \textit{id} := generateUniqueId(); \textit{lobbies}[\textit{id}] := Lobby(\textit{hostId}, \textit{hostUsername}, \textit{baseId}, status=``OPEN'')
+    \item out := \textit{lobbies}[\textit{id}]
+    \item exc := (creation fails $\Rightarrow$ \texttt{LobbyError})
 \end{itemize}
 
-\noindent\textbf{joinLobby}(\textit{lobbyID, userID})
+\noindent\textbf{joinLobby}(\textit{lobbyId, userId})
 \begin{itemize}
-    \item transition:
-    \begin{itemize}
-        \item Retrieves the lobby from \textbf{lobbies}.
-        \item Verifies lobby capacity and status.
-        \item Adds \textit{userID} to the lobby player list.
-        \item Updates lobby state via M5.
-    \end{itemize}
-    \item output: \texttt{void}.
-    \item exception:
-    \begin{itemize}
-        \item \texttt{LobbyFull} if maximum players reached.
-        \item \texttt{LobbyNotFound} if the lobby does not exist.
-    \end{itemize}
+    \item transition: \textit{l} := \textit{lobbies}[\textit{lobbyId}]; \textit{l}.guestId := \textit{userId}
+    \item out := \textit{l}
+    \item exc := (\textit{lobbyId} $\notin$ \textit{lobbies} $\Rightarrow$ \texttt{LobbyNotFound} $|$ \textit{l}.status $\neq$ ``OPEN'' $\Rightarrow$ \texttt{LobbyAlreadyStarted} $|$ \textit{l}.guestId $\neq$ None $\Rightarrow$ \texttt{LobbyFull})
 \end{itemize}
 
-\noindent\textbf{startMatch}(\textit{lobbyID, hostID})
+\noindent\textbf{startMatch}(\textit{lobbyId, hostId})
 \begin{itemize}
-    \item transition:
-    \begin{itemize}
-        \item Retrieves the lobby from \textbf{lobbies}.
-        \item Verifies \textit{hostID} matches the lobby host.
-        \item Generates a \texttt{GameID}.
-        \item Calls \texttt{M2.registerGameSession(GameID, lobby.players)}.
-        \item Removes the lobby from \textbf{lobbies}.
-        \item Persists match metadata via M5.
-    \end{itemize}
-    \item output: Returns the generated \texttt{GameID}.
-    \item exception:
-    \begin{itemize}
-        \item \texttt{LobbyNotFound} if the lobby does not exist.
-        \item \texttt{NotLobbyHost} if the caller is not the lobby host.
-    \end{itemize}
+    \item transition: \textit{l} := \textit{lobbies}[\textit{lobbyId}]; \textit{game} := M15.createGame([\textit{l}.hostId, \textit{l}.guestId], \textit{l}.baseId); \textit{l}.status := ``STARTED''
+    \item out := (\textit{game}.gameId, \textit{l}, \textit{game})
+    \item exc := (\textit{lobbyId} $\notin$ \textit{lobbies} $\Rightarrow$ \texttt{LobbyNotFound} $|$ \textit{hostId} $\neq$ \textit{l}.hostId $\Rightarrow$ \texttt{NotLobbyHost} $|$ \textit{l}.guestId = None $\Rightarrow$ \texttt{LobbyError})
+\end{itemize}
+
+\noindent\textbf{listOpenRooms}()
+\begin{itemize}
+    \item out := $\{\textit{l} \in \textit{lobbies} \mid \textit{l}.\text{status} = \text{``OPEN''}\}$
+\end{itemize}
+
+\noindent\textbf{leaveLobby}(\textit{lobbyId, userId})
+\begin{itemize}
+    \item transition: $(\textit{userId} = \textit{lobbies}[\textit{lobbyId}].\text{hostId} \Rightarrow \text{delete } \textit{lobbies}[\textit{lobbyId}] \mid \textit{userId} = \textit{lobbies}[\textit{lobbyId}].\text{guestId} \Rightarrow \textit{lobbies}[\textit{lobbyId}].\text{guestId} := \text{None})$
+\end{itemize}
+
+\noindent\textbf{deleteLobby}(\textit{lobbyId})
+\begin{itemize}
+    \item transition: delete \textit{lobbies}[\textit{lobbyId}]
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -513,7 +506,7 @@ None.
 
 \subsubsection{Considerations}
 \begin{itemize}
-    \item \textbf{Secret:} lobby lifecycle management and session handoff logic.
+    \item \textbf{Secret:} lobby lifecycle management, numeral-system selection, and session handoff logic.
     \item This module deliberately avoids any game rule or state logic.
     \item All real-time behavior is delegated to M2 after match creation.
 \end{itemize}
@@ -542,7 +535,7 @@ None.
 createAccount & username: string, password: string & AuthResult & UsernameTaken, WeakPassword, CredentialStoreError \\
 login & username: string, password: string & AuthResult & InvalidCredentials, AccountNotFound, CredentialStoreError \\
 createGuestSession & deviceId: string & AuthResult & CredentialStoreError \\
-logout & token: SessionToken & void & InvalidToken \\
+logout & token: SessionToken & -- & InvalidToken \\
 issueToken & userId: UserID, role: UserRole & SessionToken & TokenSigningError \\
 verifyToken & token: SessionToken & TokenClaims & InvalidToken, ExpiredToken, TokenSigningError \\
 refreshToken & token: SessionToken & SessionToken & InvalidToken, ExpiredToken, TokenSigningError \\
@@ -660,12 +653,12 @@ findPlayerByUsername & username: string & Player & RecordNotFound, DatabaseConne
 findPlayerById & playerId: PlayerID & Player & RecordNotFound, DatabaseConnectionError \\
 createPlayer & data: PlayerData & Player & UniqueConstraintViolation, DatabaseConnectionError \\
 updatePlayerProfile & playerId: PlayerID, data: PlayerProfileData & Player & RecordNotFound, DatabaseConnectionError \\
-storeCredential & playerId: PlayerID, cred: CredentialData & void & RecordNotFound, UniqueConstraintViolation, DatabaseConnectionError \\
+storeCredential & playerId: PlayerID, cred: CredentialData & -- & RecordNotFound, UniqueConstraintViolation, DatabaseConnectionError \\
 getCredentialByUsername & username: string & CredentialRecord & RecordNotFound, DatabaseConnectionError \\
-saveMatchResult & result: MatchResult & void & DatabaseConnectionError \\
+saveMatchResult & result: MatchResult & -- & DatabaseConnectionError \\
 getMatchHistory & playerId: PlayerID, limit: nat, offset: nat & seq of MatchResult & DatabaseConnectionError \\
 getPlayerStats & playerId: PlayerID & PlayerStats & RecordNotFound, DatabaseConnectionError \\
-deletePlayer & playerId: PlayerID & void & RecordNotFound, DatabaseConnectionError \\
+deletePlayer & playerId: PlayerID & -- & RecordNotFound, DatabaseConnectionError \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -674,92 +667,84 @@ deletePlayer & playerId: PlayerID & void & RecordNotFound, DatabaseConnectionErr
 
 \subsubsection{State Variables}
 \begin{itemize}
-    \item \textbf{dbConnectionPool}: A connection pool managing active connections to the PostgreSQL database.
+    \item \textit{store}: The internal persistent storage driver (implementation-defined).
 \end{itemize}
 
 \subsubsection{Environment Variables}
 \begin{itemize}
-    \item \textbf{PostgreSQLServer}: The external PostgreSQL database instance that executes all SQL queries.
-    \item \textbf{DBConnectionString}: A secure configuration value used to initialize database connectivity.
+    \item \textbf{PersistenceBackend}: The external storage system accessible to this module.
+    \item \textbf{ConnectionConfig}: A secure configuration value used to initialize storage connectivity.
 \end{itemize}
 
 \subsubsection{Assumptions}
 \begin{itemize}
-    \item \textbf{PostgreSQLServer} is running and reachable from the server-side runtime.
-    \item \textbf{DBConnectionString} is provided securely and grants appropriate permissions.
-    \item The database schema for players, credentials, match history, and statistics is initialized and consistent with this module's queries.
+    \item \textbf{PersistenceBackend} is running and reachable from the server-side runtime.
+    \item \textbf{ConnectionConfig} is provided securely and grants appropriate permissions.
+    \item The data model for players, credentials, match history, and statistics is initialized and consistent with this module's access routines.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
 \noindent\textbf{findPlayerByUsername}(\textit{username})
 \begin{itemize}
-    \item transition: Acquire a connection from \textbf{dbConnectionPool}. Execute a SQL \texttt{SELECT} over the player table filtered by \textit{username}.
-    \item output: Return the \texttt{Player} record.
-    \item exception: \texttt{RecordNotFound} if no player matches \textit{username}. \texttt{DatabaseConnectionError} if query/connection fails.
+    \item out := \textit{p} $\in$ \textit{store}.Players such that \textit{p}.username = \textit{username}
+    \item exc := ($\nexists$ such \textit{p} $\Rightarrow$ \texttt{RecordNotFound} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{findPlayerById}(\textit{playerId})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{SELECT} over the player table filtered by \textit{playerId}.
-    \item output: Return the \texttt{Player} record.
-    \item exception: \texttt{RecordNotFound} if \textit{playerId} does not exist. \texttt{DatabaseConnectionError} if query/connection fails.
+    \item out := \textit{p} $\in$ \textit{store}.Players such that \textit{p}.id = \textit{playerId}
+    \item exc := ($\nexists$ such \textit{p} $\Rightarrow$ \texttt{RecordNotFound} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{createPlayer}(\textit{data})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{INSERT} to create a new player using \textit{data}.
-    \item output: Return the created \texttt{Player} (including generated \texttt{PlayerID}).
-    \item exception: \texttt{UniqueConstraintViolation} if a unique field (e.g., username) already exists. \texttt{DatabaseConnectionError} if query/connection fails.
+    \item transition: $\textit{store}.\text{Players} := \textit{store}.\text{Players} \cup \{\text{new Player from } \textit{data}\}$
+    \item out := the created Player (including generated id)
+    \item exc := (username already exists $\Rightarrow$ \texttt{UniqueConstraintViolation} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{updatePlayerProfile}(\textit{playerId, data})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{UPDATE} to modify the profile fields for \textit{playerId} using \textit{data}.
-    \item output: Return the updated \texttt{Player}.
-    \item exception: \texttt{RecordNotFound} if \textit{playerId} does not exist. \texttt{DatabaseConnectionError} if query/connection fails.
+    \item transition: \textit{p} := findPlayerById(\textit{playerId}); update \textit{p}'s fields with \textit{data}
+    \item out := the updated Player
+    \item exc := ($\nexists$ player with \textit{playerId} $\Rightarrow$ \texttt{RecordNotFound} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{storeCredential}(\textit{playerId, cred})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{INSERT} (or \texttt{UPSERT}, if supported by the schema) to store credential material for \textit{playerId}.
-    \item output: \texttt{void}.
-    \item exception: \texttt{RecordNotFound} if \textit{playerId} does not exist. \texttt{UniqueConstraintViolation} if the credential record violates a uniqueness rule. \texttt{DatabaseConnectionError} if query/connection fails.
+    \item transition: $\textit{store}.\text{Credentials} := \textit{store}.\text{Credentials} \cup \{(\textit{playerId}, \textit{cred})\}$
+    \item exc := ($\nexists$ player with \textit{playerId} $\Rightarrow$ \texttt{RecordNotFound} $|$ credential already exists $\Rightarrow$ \texttt{UniqueConstraintViolation} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{getCredentialByUsername}(\textit{username})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{SELECT} joining username $\rightarrow$ player $\rightarrow$ credential record (schema-dependent).
-    \item output: Return the \texttt{CredentialRecord}.
-    \item exception: \texttt{RecordNotFound} if no credential is found for \textit{username}. \texttt{DatabaseConnectionError} if query/connection fails.
+    \item out := \textit{c} $\in$ \textit{store}.Credentials such that \textit{c}.player.username = \textit{username}
+    \item exc := ($\nexists$ such \textit{c} $\Rightarrow$ \texttt{RecordNotFound} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{saveMatchResult}(\textit{result})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{INSERT} into match history / results tables using \textit{result}.
-    \item output: \texttt{void}.
-    \item exception: \texttt{DatabaseConnectionError} if query/connection fails.
+    \item transition: $\textit{store}.\text{MatchHistory} := \textit{store}.\text{MatchHistory} \cup \{\textit{result}\}$
+    \item exc := (store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{getMatchHistory}(\textit{playerId, limit, offset})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{SELECT} over match history filtered by \textit{playerId}, ordered by time, returning a window defined by \textit{limit} and \textit{offset}.
-    \item output: Return a sequence of \texttt{MatchResult}.
-    \item exception: \texttt{DatabaseConnectionError} if query/connection fails.
+    \item out := $\langle m_1, \ldots, m_k \rangle$ where each $m_i \in \textit{store}.\text{MatchHistory}$, $m_i.\text{playerId} = \textit{playerId}$, ordered by time descending, $k \leq \textit{limit}$, starting from \textit{offset}
+    \item exc := (store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{getPlayerStats}(\textit{playerId})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute a SQL \texttt{SELECT} (and/or aggregate queries) to retrieve computed statistics for \textit{playerId}.
-    \item output: Return \texttt{PlayerStats}.
-    \item exception: \texttt{RecordNotFound} if \textit{playerId} does not exist (or has no stats record per schema). \texttt{DatabaseConnectionError} if query/connection fails.
+    \item out := aggregated statistics for \textit{playerId} derived from \textit{store}.MatchHistory
+    \item exc := ($\nexists$ player with \textit{playerId} $\Rightarrow$ \texttt{RecordNotFound} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \noindent\textbf{deletePlayer}(\textit{playerId})
 \begin{itemize}
-    \item transition: Acquire a connection. Execute SQL \texttt{DELETE} operations (possibly cascading per schema) to remove the player and related records.
-    \item output: \texttt{void}.
-    \item exception: \texttt{RecordNotFound} if \textit{playerId} does not exist. \texttt{DatabaseConnectionError} if query/connection fails.
+    \item transition: $\textit{store}.\text{Players} := \textit{store}.\text{Players} \setminus \{\textit{p} \mid \textit{p}.\text{id} = \textit{playerId}\}$; cascade removal of associated credentials and match records
+    \item exc := ($\nexists$ player with \textit{playerId} $\Rightarrow$ \texttt{RecordNotFound} $|$ store unreachable $\Rightarrow$ \texttt{StorageError})
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -767,10 +752,10 @@ None.
 
 \subsubsection{Considerations}
 \begin{itemize}
-    \item \textbf{Secret:} the database implementation (PostgreSQL), schema design, optimized SQL queries, and database access strategies (e.g., pooling, transactions).
-    \item \textbf{Service:} provides a clean persistence interface for storing and retrieving players, credentials, match history, and statistics, shielding callers from database specifics.
-    \item This module abstracts all CRUD operations and schema details; callers never issue SQL directly.
-    \item If the persistence technology changes (e.g., PostgreSQL to another DB), only this module needs to be rewritten; callers remain unchanged.
+    \item \textbf{Secret:} the storage technology, data model design, and data access strategies (e.g., pooling, transactions).
+    \item \textbf{Service:} provides a clean persistence interface for storing and retrieving players, credentials, match history, and statistics, shielding callers from storage specifics.
+    \item This module abstracts all CRUD operations and data model details; callers never interact with the storage technology directly.
+    \item If the persistence technology changes, only this module needs to be rewritten; callers remain unchanged.
 \end{itemize}
 
 \newpage
@@ -797,12 +782,12 @@ None.
 \toprule
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \midrule
-logAuthEvent & event: AuthAuditEvent & void & LogStoreError \\
-logGameplayEvent & event: GameplayAuditEvent & void & LogStoreError \\
-logSystemEvent & event: SystemAuditEvent & void & LogStoreError \\
+logAuthEvent & event: AuthAuditEvent & -- & LogStoreError \\
+logGameplayEvent & event: GameplayAuditEvent & -- & LogStoreError \\
+logSystemEvent & event: SystemAuditEvent & -- & LogStoreError \\
 queryAuditEvents & filter: AuditQueryFilter & seq of AuditEvent & LogStoreError \\
 purgeExpiredEvents & retentionDays: nat & nat & LogStoreError \\
-redactEventPayload & eventId: AuditEventID, fields: seq of string & void & RecordNotFound, LogStoreError \\
+redactEventPayload & eventId: AuditEventID, fields: seq of string & -- & RecordNotFound, LogStoreError \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -906,10 +891,10 @@ None.
         \toprule
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
-        connect & serverURL: string & void & ConnectionFailed \\
-        disconnect & -- & void & -- \\
-        emit & event: string, payload: Data & void & ConnectionFailed \\
-        on & event: string, handler: Callback & void & -- \\
+        connect & serverURL: string & -- & ConnectionFailed \\
+        disconnect & -- & -- & -- \\
+        emit & event: string, payload: Data & -- & ConnectionFailed \\
+        on & event: string, handler: Callback & -- & -- \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -1094,9 +1079,9 @@ renderSignupForm & None & ViewModel & None \\
 submitLogin & username: string, password: string & AuthViewState & InvalidInput, AuthFailed, NetworkError \\
 submitSignup & username: string, password: string & AuthViewState & InvalidInput, AuthFailed, NetworkError \\
 submitLogout & None & AuthViewState & NetworkError \\
-storeToken & token: string & void & TokenStorageError \\
+storeToken & token: string & -- & TokenStorageError \\
 loadToken & None & OptionalString & TokenStorageError \\
-clearToken & None & void & TokenStorageError \\
+clearToken & None & -- & TokenStorageError \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1216,9 +1201,9 @@ None.
         \midrule
         Render & props: ViewProps & ViewModel & None \\
         handleCreateLobby & token: SessionToken & LobbyID & CreateLobbyError, NetworkError \\
-        handleJoinLobby & token: SessionToken, lobbyID: LobbyID & void & JoinLobbyError, NetworkError \\
+        handleJoinLobby & token: SessionToken, lobbyID: LobbyID & -- & JoinLobbyError, NetworkError \\
         handleStartMatch & token: SessionToken, lobbyID: LobbyID & GameID & StartMatchError, NetworkError \\
-        subscribeLobbyUpdates & lobbyID: LobbyID & void & ConnectionFailed \\
+        subscribeLobbyUpdates & lobbyID: LobbyID & -- & ConnectionFailed \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -1336,9 +1321,9 @@ None.
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
         Render & state: RoundState, playerId: PlayerID, scores: ScoreboardData & ViewModel & None \\
-        onSelectCard & card: Card & void & None \\
-        onPlaySelected & chosenSuit: Suit? & void & InvalidMoveUI, ConnectionFailed \\
-        onDraw & -- & void & InvalidMoveUI, ConnectionFailed \\
+        onSelectCard & card: Card & -- & None \\
+        onPlaySelected & chosenSuit: Suit? & -- & InvalidMoveUI, ConnectionFailed \\
+        onDraw & -- & -- & InvalidMoveUI, ConnectionFailed \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -1447,8 +1432,8 @@ None.
         \toprule
         \textbf{Routine Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
-        handlePlayCard & state: RoundState, playerId: PlayerID, card: Card, chosenSuit: Suit? & void & InvalidMoveUI, ConnectionFailed \\
-        handleDrawCard & state: RoundState, playerId: PlayerID & void & InvalidMoveUI, ConnectionFailed \\
+        handlePlayCard & state: RoundState, playerId: PlayerID, card: Card, chosenSuit: Suit? & -- & InvalidMoveUI, ConnectionFailed \\
+        handleDrawCard & state: RoundState, playerId: PlayerID & -- & InvalidMoveUI, ConnectionFailed \\
         getClientValidMoves & state: RoundState, playerId: PlayerID & seq of Card & InvalidMoveUI \\
         \bottomrule
     \end{tabular}
@@ -1561,10 +1546,10 @@ Scoreboard View
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \midrule
 renderScoreboard & data: ScoreboardData & ViewModel & InvalidScoreData \\
-toggleScoreBase & base: nat & void & InvalidBase \\
+toggleScoreBase & base: nat & -- & InvalidBase \\
 formatScore & score: int, base: nat & string & InvalidBase, InvalidScoreData \\
 renderRoundSummary & summary: RoundSummaryData & ViewModel & InvalidScoreData \\
-animateRoundTransition & from: ViewModel, to: ViewModel & void & None \\
+animateRoundTransition & from: ViewModel, to: ViewModel & -- & None \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1661,8 +1646,8 @@ None.
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
         Render & state: ProfileViewState & ViewModel & None \\
-        loadProfile & session: SessionToken & void & NetworkError, Unauthorized \\
-        updateProfile & session: SessionToken, data: ProfileUpdateData & void & NetworkError, InvalidInput, Unauthorized \\
+        loadProfile & session: SessionToken & -- & NetworkError, Unauthorized \\
+        updateProfile & session: SessionToken, data: ProfileUpdateData & -- & NetworkError, InvalidInput, Unauthorized \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -1742,27 +1727,36 @@ Game Engine
 \begin{itemize}
     \item \hyperref[sec:rules-module]{M16 Rules Module}
     \item \hyperref[sec:scoring-module]{M17 Scoring Module}
+    \item \hyperref[sec:game-actions-module]{M19 Game Actions Module}
+    \item \hyperref[sec:numeral-system-module]{M20 Numeral System Module}
 \end{itemize}
 
 \subsection{Syntax}
 
 \subsubsection{Exported Constants}
 \begin{itemize}
-    \item \textbf{MaxPlayers}: nat := 2
+    \item \textbf{MaxPlayers}: $\mathbb{N}$ := 2
+\end{itemize}
+
+\subsubsection{Exported Types}
+\begin{itemize}
+    \item \texttt{GameStatus} $\in$ \{``ONGOING'', ``GAME\_OVER''\}
+    \item \texttt{GameState} := record(\textit{gameId}: string, \textit{sys}: NumeralSystem, \textit{round}: RoundState, \textit{scoresDec}: map(PlayerID, $\mathbb{Z}$), \textit{status}: GameStatus, \textit{actionLog}: seq(GameAction), \textit{lastSnapshot}: GameState $\cup$ \{None\}, \textit{activeChallenge}: MathChallenge $\cup$ \{None\}, \textit{lastRoundResult}: RoundResult $\cup$ \{None\})
+    \item \texttt{RoundResult} := record(\textit{winner}: string, \textit{loser}: string, \textit{pointsGained}: $\mathbb{Z}$, \textit{scoresDec}: map(string, $\mathbb{Z}$))
+    \item \texttt{CreateGameOptions} := record(\textit{players}: [PlayerID, PlayerID], \textit{baseId}: BaseId, \textit{initialHandSize}: $\mathbb{N}$, \textit{rngDeck}: seq(Card) $\cup$ \{None\}, \textit{gameId}: string $\cup$ \{None\})
 \end{itemize}
 
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-    \begin{tabular}{p{4.5cm} p{4.5cm} p{3.5cm} p{3.5cm}}
+    \begin{tabular}{p{3.5cm} p{5cm} p{3.0cm} p{3.5cm}}
         \toprule
         \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
         \midrule
-        createGame & players: seq of PlayerID, options: GameOptions & state: GameState & InvalidSetup \\
-        getState & None & GameState & NotInitialized \\
-        applyTurn & action: Action & GameState & InvalidAction, NotYourTurn, GameOver \\
-        isGameOver & None & boolean & NotInitialized \\
-        getWinner & None & PlayerID & NotInitialized, GameNotOver \\
+        createGame & opts: CreateGameOptions & GameState & InvalidSetup \\
+        applyAction & game: GameState, action: GameAction & GameState & GameOver, NotYourTurn, IllegalMove \\
+        undo & game: GameState & GameState & -- \\
+        getPublicState & game: GameState & PublicState & -- \\
         \bottomrule
     \end{tabular}
 \end{center}
@@ -1770,65 +1764,54 @@ Game Engine
 \subsection{Semantics}
 
 \subsubsection{State Variables}
-\begin{itemize}
-    \item \textbf{gameState}: GameState \quad (current authoritative game state)
-    \item \textbf{isInitialized}: boolean := \texttt{false}
-\end{itemize}
+None. (This module is a pure function library; game state is passed in and returned.)
 
 \subsubsection{Environment Variables}
 \begin{itemize}
-    \item \textbf{RNG}: Source of randomness used for shuffling and dealing (implementation-defined).
+    \item \textbf{RNG}: Source of randomness used for shuffling and dealing.
 \end{itemize}
 
 \subsubsection{Assumptions}
 \begin{itemize}
-    \item This module is server-side and acts as the source of truth for game state.
+    \item This module is the source of truth for game state.
     \item The rules for legal moves and round transitions are provided by M16.
     \item Round scoring at the end of a round is provided by M17.
-    \item A game is initialized with exactly \textbf{MaxPlayers} players.
+    \item A game is created with exactly \textbf{MaxPlayers} players and a valid \textit{baseId}.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
-\noindent\textbf{createGame}(\textit{players, options})
+\noindent\textbf{createGame}(\textit{opts})
 \begin{itemize}
-    \item transition: Validate \textit{players} size and uniqueness. Initialize a fresh deck and shuffle using \textbf{RNG}. Call \texttt{M16.initRound(deck, players)} to create the initial round state. Initialize scores for players (0 in decimal, stored as project-defined representation). Set \textbf{gameState} to the newly created state and set \textbf{isInitialized} := \texttt{true}.
-    \item output: Return the initialized \texttt{GameState}.
-    \item exception: \texttt{InvalidSetup} if \textit{players} is invalid or initialization fails.
+    \item transition: \textit{sys} := M20.getSystem(\textit{opts}.baseId); \textit{round} := M16.initRound(\textit{sys}, \textit{opts}.players, \textit{opts}.initialHandSize)
+    \item out := GameState(\textit{gameId}: generateId(), \textit{sys}, \textit{round}, \textit{scoresDec}: $\{p \mapsto 0 \mid p \in \textit{opts}.\text{players}\}$, \textit{status}: ``ONGOING'', \textit{actionLog}: $\langle\rangle$)
+    \item exc := (\textit{opts}.players invalid $\Rightarrow$ \texttt{InvalidSetup})
 \end{itemize}
 
-\noindent\textbf{getState}()
+\noindent\textbf{applyAction}(\textit{game, action})
 \begin{itemize}
-    \item output: Return \textbf{gameState}.
-    \item exception: \texttt{NotInitialized} if \textbf{isInitialized} is \texttt{false}.
+    \item transition: Let \textit{a} := M19.withTimestamp(\textit{action}). Depending on \textit{a}.type:
+    \begin{itemize}
+        \item ``DRAW'' $\Rightarrow$ \textit{round'} := M16.applyDraw(\textit{game}.sys, \textit{game}.round, \textit{a}.playerId)
+        \item ``PLAY'' $\Rightarrow$ \textit{round'} := M16.applyPlay(\textit{game}.sys, \textit{game}.round, \textit{a}.playerId, \textit{a}.card, \textit{a}.chosenSuit, \textit{a}.chosenOperation)
+        \item ``PASS'' $\Rightarrow$ \textit{round'} := M16.passTurn(\textit{game}.round)
+        \item ``ANSWER\_CHALLENGE'' $\Rightarrow$ if \textit{a}.answer = \textit{round}.activeChallenge.answer then add reward to scorer, clear challenge; else challenge stays active
+        \item ``CHEAT\_WIN'' $\Rightarrow$ empty \textit{a}.playerId's hand (triggers round-over)
+    \end{itemize}
+    Auto-pass: if current player has no playable cards and cannot draw, apply M16.passTurn.\\
+    Round-end: if M16.isRoundOver(\textit{round'}) then \textit{gainDec} := M17.roundGainDec(loser's hand, \textit{game}.sys); update \textit{scoresDec}; if any score $\geq$ M16.parseInSystem(\textit{sys}.targetScoreText, \textit{sys}) then \textit{status} := ``GAME\_OVER'' else start new round via M16.initRound.
+    \item out := updated GameState with \textit{round'}, appended \textit{actionLog}, saved \textit{lastSnapshot}
+    \item exc := (\textit{game}.status = ``GAME\_OVER'' $\Rightarrow$ \texttt{GameOver} $|$ wrong turn $\Rightarrow$ \texttt{NotYourTurn} $|$ illegal move $\Rightarrow$ \texttt{IllegalMove})
 \end{itemize}
 
-\noindent\textbf{applyTurn}(\textit{action})
+\noindent\textbf{undo}(\textit{game})
 \begin{itemize}
-    \item transition:
-    \begin{enumerate}
-        \item Require \textbf{isInitialized} = \texttt{true}.
-        \item Check turn ownership from \textbf{gameState} (implementation-defined) and reject if \textit{action.playerId} is not the active player.
-        \item If \textit{action} is a play-card action, call \texttt{M16.applyPlay} to update the round state.
-        \item If \textit{action} is a draw-card action, call \texttt{M16.applyDraw} to update the round state.
-        \item If \texttt{M16.isRoundOver(updatedRoundState)} is \texttt{true}, compute round score via \texttt{M17.computeRoundScore(winner, loserHand)} and update cumulative scores in \textbf{gameState}. Re-initialize the next round (policy-defined) using \texttt{M16.initRound}.
-        \item If the overall game end condition is satisfied (policy-defined), mark game over and store winner.
-    \end{enumerate}
-    Update \textbf{gameState} with the new round state, scores, and turn.
-    \item output: Return the updated \texttt{GameState}.
-    \item exception: \texttt{NotYourTurn} if \textit{action.playerId} is not the active player. \texttt{InvalidAction} if the action is malformed or illegal under M16. \texttt{GameOver} if the game has already ended.
+    \item out := \textit{game}.lastSnapshot if present, else \textit{game}
 \end{itemize}
 
-\noindent\textbf{isGameOver}()
+\noindent\textbf{getPublicState}(\textit{game})
 \begin{itemize}
-    \item output: Return \texttt{true} iff \textbf{gameState} is marked as game-over; otherwise \texttt{false}.
-    \item exception: \texttt{NotInitialized} if \textbf{isInitialized} is \texttt{false}.
-\end{itemize}
-
-\noindent\textbf{getWinner}()
-\begin{itemize}
-    \item output: Return the stored winner \texttt{PlayerID}.
-    \item exception: \texttt{NotInitialized} if \textbf{isInitialized} is \texttt{false}. \texttt{GameNotOver} if the game is not over yet.
+    \item out := record of non-secret fields: \textit{gameId}, \textit{baseId}, \textit{status}, \textit{turn}, \textit{topCard}, \textit{forcedSuit}, hand-counts (not cards), \textit{scoresDec}, formatted scores in active base via M16.formatInSystem, target score, face ranks, active challenge (with answer removed), last round result
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -1836,9 +1819,9 @@ None.
 
 \subsubsection{Considerations}
 \begin{itemize}
-    \item \textbf{Secret:} orchestration of round lifecycle, turn sequencing, and how cumulative score/state is stored in \texttt{GameState}.
-    \item \textbf{Service:} maintains the authoritative state machine for Crazy Eights gameplay while delegating legality checks to M16 and scoring computation to M17.
-    \item This module should remain deterministic given the same shuffled deck seed and action sequence to support testing and debugging.
+    \item \textbf{Secret:} orchestration of round lifecycle, turn sequencing, challenge resolution, auto-pass logic, and how cumulative score/state is stored.
+    \item \textbf{Service:} maintains the authoritative state machine for gameplay while delegating legality checks to M16, scoring to M17, and numeral system configuration to M20.
+    \item This module is deterministic given the same shuffled deck seed and action sequence to support testing and debugging.
 \end{itemize}
 
 
@@ -1851,32 +1834,42 @@ Rules
 \subsection{Uses}
 \begin{itemize}
     \item \hyperref[sec:base-conversion-module]{M18 Base Conversion Module}
+    \item \hyperref[sec:numeral-system-module]{M20 Numeral System Module}
 \end{itemize}
 
 \subsection{Syntax}
 
 \subsubsection{Exported Constants}
 \begin{itemize}
-    \item \textbf{DozenalBase}: nat := 12
-    \item \textbf{DozenalTarget}: string := ``10'' \quad (base-12)
-    \item \textbf{DozenalTargetDecimal}: nat := 12 \quad (= M18.dozenalToDecimal(\textbf{DozenalTarget}))
-    \item \textbf{InitialHandSize}: nat := 5
+    \item \textbf{MaxDrawsPerTurn}: $\mathbb{N}$ := 3
+    \item \textbf{DefaultHandSize}: $\mathbb{N}$ := 7
+\end{itemize}
+
+\subsubsection{Exported Types}
+\begin{itemize}
+    \item \texttt{Card} := record(\textit{suit}: Suit, \textit{rank}: string)
+    \item \texttt{RoundState} := record(\textit{deck}: seq(Card), \textit{discard}: seq(Card), \textit{topCard}: Card, \textit{forcedSuit}: Suit $\cup$ \{None\}, \textit{hands}: map(PlayerID, seq(Card)), \textit{players}: [PlayerID, PlayerID], \textit{turn}: PlayerID, \textit{drawCountThisTurn}: $\mathbb{N}$, \textit{freePlayFor}: PlayerID $\cup$ \{None\}, \textit{activeChallenge}: MathChallenge $\cup$ \{None\})
+    \item \texttt{MathChallenge} := record(\textit{playerId}: string, \textit{type}: $\{+, -, \times, \div\}$, \textit{op1}: $\mathbb{Z}$, \textit{op2}: $\mathbb{Z}$, \textit{answer}: $\mathbb{Z}$, \textit{reward}: $\mathbb{Z}$, \textit{shouldPassTurn}: $\mathbb{B}$)
 \end{itemize}
 
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{4.5cm} p{4.5cm} p{3.5cm} p{3.5cm}}
+\begin{tabular}{p{3.5cm} p{5.0cm} p{3.0cm} p{3.5cm}}
 \toprule
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \midrule
-initRound & deck: Deck, players: seq of PlayerID & RoundState & InvalidDeck, InvalidPlayers \\
-isPlayable & state: RoundState, playerId: PlayerID, card: Card & boolean & InvalidRoundState, InvalidPlayer, InvalidCard \\
-getPlayableCards & state: RoundState, playerId: PlayerID & seq of Card & InvalidRoundState, InvalidPlayer \\
-applyPlay & state: RoundState, playerId: PlayerID, card: Card, chosenSuit: Suit? & RoundState & IllegalMove, InvalidRoundState, InvalidPlayer, InvalidCard, InvalidSuitChoice \\
-mustDraw & state: RoundState, playerId: PlayerID & boolean & InvalidRoundState, InvalidPlayer \\
-applyDraw & state: RoundState, playerId: PlayerID & RoundState & EmptyDeck, InvalidRoundState, InvalidPlayer \\
-isRoundOver & state: RoundState & boolean & InvalidRoundState \\
+initRound & sys: NumeralSystem, players: [PlayerID,PlayerID], handSize: $\mathbb{N}$ & RoundState & InvalidPlayers, DeckTooSmall \\
+isPlayable & sys: NumeralSystem, state: RoundState, playerId: PlayerID, card: Card & $\mathbb{B}$ & -- \\
+getPlayableCards & sys: NumeralSystem, state: RoundState, playerId: PlayerID & seq(Card) & -- \\
+applyPlay & sys: NumeralSystem, state: RoundState, playerId: PlayerID, card: Card, chosenSuit: Suit?, chosenOp: Op? & RoundState & IllegalMove \\
+canDraw & state: RoundState & $\mathbb{B}$ & -- \\
+applyDraw & sys: NumeralSystem, state: RoundState, playerId: PlayerID & RoundState & NotYourTurn, DrawLimitReached, EmptyDeck \\
+passTurn & state: RoundState & RoundState & -- \\
+isRoundOver & state: RoundState & $\mathbb{B}$ & -- \\
+roundWinner & state: RoundState & PlayerID $\cup$ \{None\} & -- \\
+parseInSystem & text: string, sys: NumeralSystem & $\mathbb{Z}$ & InvalidNumberFormat \\
+formatInSystem & n: $\mathbb{Z}$, sys: NumeralSystem & string & InvalidNumberFormat \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1891,88 +1884,99 @@ None.
 
 \subsubsection{Assumptions}
 \begin{itemize}
-    \item This module currently supports 1v1 gameplay (two players) for round initialization and legality checks.
-    \item \texttt{RoundState} contains: \texttt{hands} (mapping from \texttt{PlayerID} to a sequence of \texttt{Card}), \texttt{drawPile}, \texttt{discardPile}, \texttt{topCard}, \texttt{currentTurn}, and an optional \texttt{forcedSuit}.
-    \item A \textbf{wildcard} is the rank ``10'' and is always playable regardless of suit/rank/sum constraints.
-    \item A \textbf{face card} does not participate in the dozenal-sum rule; it can only be played via match-suit or match-rank (unless it is a wildcard).
-    \item The dozenal-sum rule target is base-12 ``10'' (i.e., decimal 12).
+    \item This module supports 1v1 gameplay (two players).
+    \item \texttt{RoundState} carries the full game situation including draw count, free-play grant, and active challenge.
+    \item The \textit{sys} parameter provides all numeral-system-specific values (wildcard symbols, target sum, face ranks, etc.).
+    \item A \textbf{wildcard} card (rank = \textit{sys}.wildcardTenSymbol) is always playable and forces suit selection.
+    \item A \textbf{skip} card (rank = \textit{sys}.wildcardSkipSymbol) lets the same player continue.
+    \item Face cards (J, Q, K, and C in dozenal) trigger arithmetic challenges.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
-\noindent\textbf{initRound}(\textit{deck, players})
+\noindent\textbf{initRound}(\textit{sys, players, handSize})
 \begin{itemize}
-    \item transition: Validate that \textit{players} contains exactly two distinct players and \textit{deck} has enough cards. Deal \textbf{InitialHandSize} cards from \textit{deck} to each player's hand. Draw one card from the deck to initialize \textit{discardPile} and set \textit{topCard}. Set \textit{forcedSuit} := None. Set \textit{currentTurn} to the starting player (policy-defined).
-    \item output: Return the initialized \texttt{RoundState}.
-    \item exception: \texttt{InvalidPlayers} if \textit{players} is not a valid 1v1 set. \texttt{InvalidDeck} if the deck lacks sufficient cards or is malformed.
+    \item transition: Create deck from \textit{sys}; shuffle; deal \textit{handSize} cards per player; set \textit{topCard} from deck; \textit{turn} := players[0]; \textit{drawCountThisTurn} := 0; \textit{freePlayFor} := None
+    \item out := initialized RoundState
+    \item exc := (players[0] = players[1] $\Rightarrow$ \texttt{InvalidPlayers} $|$ deck too small $\Rightarrow$ \texttt{DeckTooSmall})
 \end{itemize}
 
-\noindent\textbf{isPlayable}(\textit{state, playerId, card})
+\noindent\textbf{isPlayable}(\textit{sys, state, playerId, card})
 \begin{itemize}
-    \item transition: Validate \textit{state}, \textit{playerId}, and that \textit{card} is in \textit{state.hands[playerId]}. Let \textit{t} := \textit{state.topCard}.
-    \item output: Return \texttt{true} iff the following rule holds:
+    \item out := \texttt{true} iff: (\textit{state}.turn = \textit{playerId}) $\wedge$ $\neg$\textit{state}.activeChallenge $\wedge$ one of:
     \begin{itemize}
-        \item If \textit{card} is a wildcard (rank 10), then \texttt{true}.
-        \item Else if \textit{state.forcedSuit} $\neq$ None, then \texttt{true} iff \textit{card.suit} equals \textit{state.forcedSuit}.
-        \item Else (no forced suit), \texttt{true} iff at least one is satisfied:
-        \begin{itemize}
-            \item match suit: \textit{card.suit} = \textit{t.suit}
-            \item match rank: \textit{card.rank} = \textit{t.rank}
-            \item dozenal-sum: \textit{card} and \textit{t} are not face cards and \textit{card.rank} + \textit{t.rank} = \textbf{DozenalTargetDecimal}
-        \end{itemize}
+        \item \textit{state}.freePlayFor = \textit{playerId} (free play: any card)
+        \item \textit{card}.rank = \textit{sys}.wildcardTenSymbol (wildcard always playable)
+        \item \textit{card}.rank = \textit{sys}.wildcardSkipSymbol (skip always playable)
+        \item \textit{card}.suit = effectiveSuit(\textit{state}) (match suit)
+        \item \textit{card}.rank = \textit{state}.topCard.rank (match rank)
+        \item both numeric $\wedge$ numericValue(\textit{card}) + numericValue(\textit{state}.topCard) = parseInSystem(\textit{sys}.targetSumText, \textit{sys}) (sum rule)
     \end{itemize}
-    \item exception: \texttt{InvalidRoundState} if \textit{state} is malformed. \texttt{InvalidPlayer} if \textit{playerId} is not in the round. \texttt{InvalidCard} if \textit{card} is malformed or not in the player's hand.
 \end{itemize}
 
-\noindent\textbf{getPlayableCards}(\textit{state, playerId})
+\noindent\textbf{getPlayableCards}(\textit{sys, state, playerId})
 \begin{itemize}
-    \item transition: Validate \textit{state} and \textit{playerId}. For each \textit{card} in \textit{state.hands[playerId]}, include it in the result iff \textbf{isPlayable}(\textit{state, playerId, card}) is \texttt{true}.
-    \item output: Return the sequence of playable cards (possibly empty).
-    \item exception: \texttt{InvalidRoundState} if \textit{state} is malformed. \texttt{InvalidPlayer} if \textit{playerId} is not in the round.
+    \item out := $\{c \in \textit{state}.\text{hands}[\textit{playerId}] \mid \text{isPlayable}(\textit{sys}, \textit{state}, \textit{playerId}, c)\}$
 \end{itemize}
 
-\noindent\textbf{applyPlay}(\textit{state, playerId, card, chosenSuit})
+\noindent\textbf{applyPlay}(\textit{sys, state, playerId, card, chosenSuit, chosenOp})
 \begin{itemize}
-    \item transition: Validate \textit{state} and turn order (must be \textit{playerId}'s turn). Require \textbf{isPlayable}(\textit{state, playerId, card}) = \texttt{true}. Remove \textit{card} from \textit{state.hands[playerId]} and push it onto \textit{state.discardPile}; set \textit{state.topCard} := \textit{card}.
-    \begin{itemize}
-        \item If \textit{card} is a wildcard (rank 10), then \textit{chosenSuit} must be provided; set \textit{state.forcedSuit} := \textit{chosenSuit}.
-        \item Else set \textit{state.forcedSuit} := None.
-    \end{itemize}
-    Advance \textit{state.currentTurn} to the other player.
-    \item output: Return the updated \texttt{RoundState}.
-    \item exception: \texttt{IllegalMove} if the play is not legal under the rules (including playing out of turn). \texttt{InvalidSuitChoice} if \textit{card} is wildcard and \textit{chosenSuit} is missing/invalid. \texttt{InvalidRoundState}/\texttt{InvalidPlayer}/\texttt{InvalidCard} as applicable.
+    \item transition: Remove \textit{card} from hand; push old topCard to discard; \textit{topCard} := \textit{card}. If wildcard: \textit{forcedSuit} := \textit{chosenSuit}. If skip: \textit{freePlayFor} := \textit{playerId} (same player continues). If face card (J/Q/K/C depending on \textit{sys}): generate MathChallenge with random or chosen operation, set \textit{activeChallenge}. Otherwise advance turn.
+    \item out := updated RoundState
+    \item exc := ($\neg$isPlayable $\Rightarrow$ \texttt{IllegalMove})
 \end{itemize}
 
-\noindent\textbf{mustDraw}(\textit{state, playerId})
+\noindent\textbf{canDraw}(\textit{state})
 \begin{itemize}
-    \item transition: Validate \textit{state} and \textit{playerId}. Compute \textit{playables} := \textbf{getPlayableCards}(\textit{state, playerId}).
-    \item output: Return \texttt{true} iff \textit{playables} is empty.
-    \item exception: \texttt{InvalidRoundState} if \textit{state} is malformed. \texttt{InvalidPlayer} if \textit{playerId} is not in the round.
+    \item out := \textit{state}.drawCountThisTurn $<$ \textbf{MaxDrawsPerTurn}
 \end{itemize}
 
-\noindent\textbf{applyDraw}(\textit{state, playerId})
+\noindent\textbf{applyDraw}(\textit{sys, state, playerId})
 \begin{itemize}
-    \item transition: Validate \textit{state} and turn order. Require \textbf{mustDraw}(\textit{state, playerId}) = \texttt{true}. Pop the top card from \textit{state.drawPile} and add it to \textit{state.hands[playerId]}. (Whether the drawn card may be played immediately is handled by the caller/game flow policy; this module only applies the draw.)
-    \item output: Return the updated \texttt{RoundState}.
-    \item exception: \texttt{EmptyDeck} if \textit{state.drawPile} is empty. \texttt{InvalidRoundState}/\texttt{InvalidPlayer} as applicable.
+    \item transition: Reshuffle discard into deck if needed; pop card from deck into hand; \textit{drawCountThisTurn} += 1. If \textit{drawCountThisTurn} $\geq$ 3 and still no playable cards: \textit{turn} := opponent, \textit{freePlayFor} := opponent
+    \item out := updated RoundState
+    \item exc := (not player's turn $\Rightarrow$ \texttt{NotYourTurn} $|$ \textit{drawCountThisTurn} $\geq$ 3 $\Rightarrow$ \texttt{DrawLimitReached} $|$ deck and discard empty $\Rightarrow$ \texttt{EmptyDeck})
+\end{itemize}
+
+\noindent\textbf{passTurn}(\textit{state})
+\begin{itemize}
+    \item transition: \textit{turn} := opponent; \textit{drawCountThisTurn} := 0; \textit{freePlayFor} := None; \textit{forcedSuit} := None
+    \item out := updated RoundState
 \end{itemize}
 
 \noindent\textbf{isRoundOver}(\textit{state})
 \begin{itemize}
-    \item transition: Validate \textit{state}. Check whether any player's hand is empty.
-    \item output: Return \texttt{true} iff $\exists p$ such that \textit{state.hands[p]} is empty; otherwise \texttt{false}.
-    \item exception: \texttt{InvalidRoundState} if \textit{state} is malformed.
+    \item out := $(\neg\textit{state}.\text{activeChallenge}) \wedge (\exists\, p \in \textit{state}.\text{players} : |\textit{state}.\text{hands}[p]| = 0)$
+\end{itemize}
+
+\noindent\textbf{roundWinner}(\textit{state})
+\begin{itemize}
+    \item out := \textit{p} where $|\textit{state}.\text{hands}[p]| = 0$, or None if no such \textit{p}
+\end{itemize}
+
+\noindent\textbf{parseInSystem}(\textit{text, sys})
+\begin{itemize}
+    \item out := M18.fromBaseToNumber(\textit{text}, \textit{sys}.spec)
+    \item exc := (invalid format $\Rightarrow$ \texttt{InvalidNumberFormat})
+\end{itemize}
+
+\noindent\textbf{formatInSystem}(\textit{n, sys})
+\begin{itemize}
+    \item out := M18.toBaseFromNumber(\textit{n}, \textit{sys}.spec)
 \end{itemize}
 
 \subsubsection{Local Functions}
-None.
+\begin{itemize}
+    \item \textbf{effectiveSuit}(\textit{state}): Suit := \textit{state}.forcedSuit if present, else \textit{state}.topCard.suit
+    \item \textbf{nextPlayer}(\textit{state}): PlayerID := the player in \textit{state}.players who is not \textit{state}.turn
+\end{itemize}
 
 \subsubsection{Considerations}
 \begin{itemize}
-    \item \textbf{Secret:} exact move-validation criteria, including how matching ranks, suits, dozenal sums, and special cards (wildcard) are handled.
-    \item \textbf{Service:} confirms whether a proposed play is legal and enumerates valid plays for a player based on the current round situation; also provides helpers to initialize a round and apply state transitions for play/draw.
-    \item This module does \textbf{not} compute scoring; scoring is handled by a separate module.
-    \item Dozenal interpretation is delegated to \textbf{M18}; this module uses the decimal target (\textbf{DozenalTargetDecimal}) corresponding to base-12 ``10''.
+    \item \textbf{Secret:} exact move-validation criteria, including how matching ranks, suits, target sums, wildcards, skips, draw limits, free-play grants, and arithmetic challenges are handled for the active numeral system.
+    \item \textbf{Service:} confirms whether a proposed play is legal and enumerates valid plays; provides helpers to initialize rounds and apply state transitions.
+    \item This module does \textbf{not} compute scoring; scoring is handled by M17.
+    \item Base conversion is delegated to M18; numeral system configuration comes from M20.
 \end{itemize}
 
 \newpage
@@ -1983,24 +1987,24 @@ Scoring
 
 \subsection{Uses}
 \begin{itemize}
-    \item \hyperref[sec:base-conversion-module]{M18 Base Conversion Module}
+    \item \hyperref[sec:rules-module]{M16 Rules Module} (for \texttt{isFace}, \texttt{numericValueDec}, \texttt{formatInSystem})
 \end{itemize}
 
 \subsection{Syntax}
 
 \subsubsection{Exported Constants}
-\begin{itemize}
-    \item \textbf{FaceCardScore}: nat := 10
-\end{itemize}
+None. (Face-card point values are provided by the active NumeralSystem.)
 
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{4.5cm} p{4.5cm} p{3.5cm} p{3.5cm}}
+\begin{tabular}{p{3.5cm} p{5cm} p{3.5cm} p{3cm}}
 \toprule
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \midrule
-computeRoundScore & winner: PlayerID, loserHand: seq of Card & string & InvalidHand \\
+handPointsDec & hand: seq(Card), sys: NumeralSystem & $\mathbb{Z}$ & -- \\
+roundGainDec & loserHand: seq(Card), sys: NumeralSystem & $\mathbb{Z}$ & -- \\
+roundGain & loserHand: seq(Card), sys: NumeralSystem & record(gainDec: $\mathbb{Z}$, gainText: string) & -- \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -2017,32 +2021,32 @@ None.
 \begin{itemize}
     \item This module is called only when a round ends (i.e., the winner has emptied their hand).
     \item The round score equals the sum of the remaining cards in the loser's hand.
-    \item Face cards (J/Q/K) are worth \textbf{FaceCardScore}.
-    \item Rank 10 (including wildcard 10) is worth 10.
-    \item Numeric cards are worth their rank value.
-    \item The returned score is represented in dozenal (base-12) using \textbf{M18.decimalToDozenal}.
+    \item Face cards are worth \textit{sys}.facePointsDec (e.g., 10 in decimal, 12 in dozenal).
+    \item Numeric cards are worth their rank's decimal value (obtained via M16.numericValueDec).
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
-\noindent\textbf{computeRoundScore}(\textit{winner, loserHand})
+\noindent\textbf{handPointsDec}(\textit{hand, sys})
 \begin{itemize}
-    \item transition: Validate \textit{loserHand}. Compute a decimal total:
+    \item out := $\displaystyle\sum_{c \in \textit{hand}} \text{cardValue}(c, \textit{sys})$ where
     \[
-        total = \sum_{c \in loserHand} scoreValue(c)
-    \]
-    where:
-    \[
-        scoreValue(c) =
+        \text{cardValue}(c, \textit{sys}) =
         \begin{cases}
-        \textbf{FaceCardScore} & \text{if } c \text{ is a face card} \\
-        10 & \text{if } rank(c)=10 \\
-        rank(c) & \text{otherwise}
+        \textit{sys}.\text{facePointsDec} & \text{if } \text{M16.isFace}(c.\text{rank}, \textit{sys}) \\
+        \text{M16.numericValueDec}(c.\text{rank}, \textit{sys}) & \text{otherwise}
         \end{cases}
     \]
-    Convert the decimal \textit{total} to dozenal by calling \textbf{M18.decimalToDozenal}(\textit{total}).
-    \item output: Return the dozenal score string for the round winner.
-    \item exception: \texttt{InvalidHand} if any card in \textit{loserHand} is malformed or has an unsupported rank.
+\end{itemize}
+
+\noindent\textbf{roundGainDec}(\textit{loserHand, sys})
+\begin{itemize}
+    \item out := handPointsDec(\textit{loserHand}, \textit{sys})
+\end{itemize}
+
+\noindent\textbf{roundGain}(\textit{loserHand, sys})
+\begin{itemize}
+    \item out := (\textit{gainDec}: roundGainDec(\textit{loserHand}, \textit{sys}), \textit{gainText}: M16.formatInSystem(\textit{gainDec}, \textit{sys}))
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -2050,8 +2054,8 @@ None.
 
 \subsubsection{Considerations}
 \begin{itemize}
-    \item \textbf{Secret:} the scoring equation that converts remaining cards into round points.
-    \item \textbf{Service:} calculates the round score at the end of a round and returns it in dozenal form for display.
+    \item \textbf{Secret:} the scoring equation that converts remaining cards into round points, parameterized by the active numeral system's face-card point values.
+    \item \textbf{Service:} calculates the round score and returns both a decimal total and a formatted string in the active base.
 \end{itemize}
 
 
@@ -2149,10 +2153,7 @@ None.
 Game Actions Module
 
 \subsection{Uses}
-\begin{itemize}
-    \item \hyperref[sec:game-engine-module]{M15 Game Engine Module}
-    \item \hyperref[sec:rules-module]{M16 Rules Module}
-\end{itemize}
+None. (This module defines action data types and utility functions only.)
 
 \subsection{Syntax}
 
@@ -2196,7 +2197,7 @@ None.
 \subsubsection{Access Routine Semantics}
 \noindent\textbf{createAction}(\textit{ActionType, Parameters})
 \begin{itemize}
-    \item output: constructs an action object from parameters (e.g., “play card 8 spade”).
+    \item output: constructs an action object from parameters (e.g., ``play card 8 spade'').
 \end{itemize}
 
 \noindent\textbf{validateAction}(\textit{Action, GameState})
@@ -2302,6 +2303,87 @@ None.
 %  have local scope.}
 
 \newpage
+\section{MIS of Numeral System Module (M20)}\label{sec:numeral-system-module}
+
+\subsection{Module}
+Numeral System
+
+\subsection{Uses}
+\begin{itemize}
+    \item \hyperref[sec:base-conversion-module]{M18 Base Conversion Module}
+\end{itemize}
+
+\subsection{Syntax}
+
+\subsubsection{Exported Types}
+\begin{itemize}
+    \item \texttt{BaseId} $\in$ \{``dec'', ``doz''\}
+    \item \texttt{Suit} $\in$ \{``S'', ``H'', ``D'', ``C''\}
+    \item \texttt{NumeralSystem} := record(\\
+    \quad \textit{id}: BaseId,\\
+    \quad \textit{name}: string,\\
+    \quad \textit{spec}: BaseSpec,\\
+    \quad \textit{deckNumericSymbols}: seq(string),\\
+    \quad \textit{faceRanks}: seq(string),\\
+    \quad \textit{valueOf}: map(string, $\mathbb{Z}$),\\
+    \quad \textit{targetSumText}: string,\\
+    \quad \textit{targetScoreText}: string,\\
+    \quad \textit{wildcardTenSymbol}: string,\\
+    \quad \textit{wildcardSkipSymbol}: string,\\
+    \quad \textit{facePointsDec}: $\mathbb{Z}$\\
+    )
+\end{itemize}
+
+\subsubsection{Exported Constants}
+\begin{itemize}
+    \item \textbf{DECIMAL\_SYSTEM}: NumeralSystem --- Decimal (base-10) configuration: numeric symbols 1--10, face ranks \{J, Q, K\}, targetSumText = ``10'', targetScoreText = ``100'', wildcardTenSymbol = ``10'', wildcardSkipSymbol = ``5'', facePointsDec = 10.
+    \item \textbf{DOZENAL\_SYSTEM}: NumeralSystem --- Dozenal (base-12) configuration: numeric symbols 1--$\uparrow$, face ranks \{J, Q, K, C\}, targetSumText = ``10'', targetScoreText = ``100'', wildcardTenSymbol = ``10'', wildcardSkipSymbol = ``6'', facePointsDec = 12.
+\end{itemize}
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{3.5cm} p{4cm} p{4cm} p{3.5cm}}
+\toprule
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\midrule
+getSystem & id: BaseId & NumeralSystem & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+None. (This module is a static registry of numeral system definitions.)
+
+\subsubsection{Environment Variables}
+None.
+
+\subsubsection{Assumptions}
+\begin{itemize}
+    \item The set of supported numeral systems is fixed at compile/deploy time.
+    \item Each NumeralSystem provides a complete, self-consistent configuration (deck symbols, face ranks, wildcards, scoring constants) so that M15, M16, and M17 can operate without hardcoded base-specific logic.
+\end{itemize}
+
+\subsubsection{Access Routine Semantics}
+
+\noindent\textbf{getSystem}(\textit{id})
+\begin{itemize}
+    \item out := the NumeralSystem corresponding to \textit{id} (either \textbf{DECIMAL\_SYSTEM} or \textbf{DOZENAL\_SYSTEM})
+\end{itemize}
+
+\subsubsection{Local Functions}
+None.
+
+\subsubsection{Considerations}
+\begin{itemize}
+    \item \textbf{Secret:} the configuration parameters for each supported numeral system.
+    \item \textbf{Service:} provides a complete numeral system definition so the game engine, rules, and scoring modules can operate in any supported base without changes to those modules.
+    \item To add a new numeral system (e.g., octal, hexadecimal), one only needs to add a new NumeralSystem constant and register it in this module.
+\end{itemize}
+
+\newpage
 
 \bibliographystyle {plainnat}
 \bibliography {../../../refs/References}
@@ -2329,8 +2411,8 @@ The team iterated quickly on TA feedback (e.g., removing implementation-specific
 We maintained traceability between the module decomposition/DAG and the MIS sections, so it is clear how modules relate and where responsibilities live.
   \item What pain points did you experience during this deliverable, and how
     did you resolve them?\\
-During this deliverable, we updated the Module Guide dependency structure (the “Uses” relations and DAG graph) and also merged/split responsibilities across several modules. As a result, many MIS sections no longer matched the architecture and had to be rewritten (not just edited), especially the “Uses” lists, state variables, and access-program contracts. Once the Uses relations were revised, the order in which we wrote MIS modules mattered a lot. We had to start from leaf/low-dependency modules first, then move upward, otherwise we would reference types, exceptions, or semantics that were not yet defined. This created rework when an upstream module’s interface changed after a dependent module was already drafted. \\
-\textbf{Solution} : We stabilized the MG first, then rebuilt the MIS in dependency order (leaf modules → higher-level modules). We also created a shared checklist for each module (responsibility, Uses, assumptions, exceptions, and notation consistency) and did a consistency pass to ensure every reference matches the latest MG.
+During this deliverable, we updated the Module Guide dependency structure (the ``Uses'' relations and DAG graph) and also merged/split responsibilities across several modules. As a result, many MIS sections no longer matched the architecture and had to be rewritten (not just edited), especially the ``Uses'' lists, state variables, and access-program contracts. Once the Uses relations were revised, the order in which we wrote MIS modules mattered a lot. We had to start from leaf/low-dependency modules first, then move upward, otherwise we would reference types, exceptions, or semantics that were not yet defined. This created rework when an upstream module's interface changed after a dependent module was already drafted. \\
+\textbf{Solution} : We stabilized the MG first, then rebuilt the MIS in dependency order (leaf modules $\rightarrow$ higher-level modules). We also created a shared checklist for each module (responsibility, Uses, assumptions, exceptions, and notation consistency) and did a consistency pass to ensure every reference matches the latest MG.
   \item Which of your design decisions stemmed from speaking to your client(s)
   or a proxy (e.g. your peers, stakeholders, potential users)? For those that
   were not, why, and where did they come from?\\
@@ -2338,7 +2420,7 @@ Decisions influenced by client (Dr. Rapoport) feedback: Keeping the game flow si
 Decisions not directly from clients : The choice of a server-authoritative model came from standard distributed-systems practice for fairness and consistency in multiplayer games, and from risk management
   \item While creating the design doc, what parts of your other documents (e.g.
   requirements, hazard analysis, etc), it any, needed to be changed, and why?\\
-We updated the MG-to-MIS mapping to reflect changes in the MG dependency structure (e.g., “Uses” relationships and leaf-module grouping) so the MIS matched the latest architecture.
+We updated the MG-to-MIS mapping to reflect changes in the MG dependency structure (e.g., ``Uses'' relationships and leaf-module grouping) so the MIS matched the latest architecture.
   \item What are the limitations of your solution?  Put another way, given
   unlimited resources, what could you do to make the project better? (LO\_ProbSolutions)\\
 Limitations: The current design focuses on 1v1 and a core gameplay loop; scalability to many simultaneous rooms and advanced matchmaking is limited.
