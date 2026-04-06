@@ -68,7 +68,7 @@ export function createDeck(sys: NumeralSystem): Card[] {
 export function initRound(
   sys: NumeralSystem,
   players: [PlayerID, PlayerID],
-  initialHandSize = 7,
+  initialHandSize = 8,
   rngDeck?: Card[]
 ): RoundState {
   if (players[0] === players[1]) throw new Error("InvalidPlayers");
@@ -166,17 +166,7 @@ export function applyDraw(sys: NumeralSystem, state: RoundState, playerId: Playe
     drawCountThisTurn: s.drawCountThisTurn + 1,
   };
 
-  // ✅ 抽满3次仍无可出牌：自动切到对面 + 对面 freePlay 1 次
-  if (s.drawCountThisTurn >= 3 && getPlayableCards(sys, s, playerId).length === 0 && !s.activeChallenge) {
-    const nxt = nextPlayer(s);
-    s = {
-      ...s,
-      turn: nxt,
-      drawCountThisTurn: 0,
-      freePlayFor: nxt,
-      forcedSuit: undefined, // clear forced suit
-    };
-  }
+  // No auto-pass: player must manually pass or play after drawing 3 cards
   return s;
 }
 

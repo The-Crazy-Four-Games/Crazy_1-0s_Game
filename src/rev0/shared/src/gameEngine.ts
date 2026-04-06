@@ -42,7 +42,7 @@ function newGameId(): string {
 
 export function createGame(opts: CreateGameOptions): GameState {
   const sys = systemFromBaseId(opts.baseId);
-  const round = initRound(sys, opts.players, opts.initialHandSize ?? 7, opts.rngDeck);
+  const round = initRound(sys, opts.players, opts.initialHandSize ?? 8, opts.rngDeck);
 
   return {
     gameId: opts.gameId ?? newGameId(),
@@ -90,13 +90,27 @@ export function applyAction(game: GameState, action: GameAction): GameState {
       if (isCorrect) {
         // Correct answer: add points and clear challenge
         const reward = round.activeChallenge.reward;
+        const newScoresDec = {
+          ...game.scoresDec,
+          [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
+        };
         game = {
           ...game,
-          scoresDec: {
-            ...game.scoresDec,
-            [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
-          }
+          scoresDec: newScoresDec
         };
+
+        // Mid-round victory: if bonus points push score past target, game over immediately
+        const midTargetDec = parseInSystem(game.sys.targetScoreText, game.sys);
+        if (newScoresDec[a.playerId] >= midTargetDec) {
+          round = { ...round, activeChallenge: undefined };
+          return {
+            ...game,
+            round,
+            actionLog: [...game.actionLog, a],
+            lastSnapshot: snapshot,
+            status: "GAME_OVER",
+          };
+        }
 
         const shouldPass = round.activeChallenge.shouldPassTurn;
         round = { ...round, activeChallenge: undefined };
@@ -153,7 +167,7 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     if (over) {
       next = { ...next, scoresDec, status: "GAME_OVER", lastRoundResult: roundResult };
     } else {
-      const newRound = initRound(next.sys, next.round.players, 7);
+      const newRound = initRound(next.sys, next.round.players, 8);
       next = { ...next, scoresDec, round: newRound, lastRoundResult: roundResult };
     }
   }
