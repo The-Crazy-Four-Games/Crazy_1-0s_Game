@@ -1,12 +1,14 @@
-# Crazy 1-0s!
+# Crazy 1-0's! Capstone Project
 
-Developer Names:Ruida Chen, Ammar Sharbat, Alvin Qian, Jiaming Li
+Developer Names: Ruida Chen, Ammar Sharbat, Alvin Qian, Jiaming Li
 
 Date of project start: 9/16/2025
 
-This project (Crazy 1-0s) is a variant of the classic card game Crazy 8s that teaches players how to count in Dozenal (Base-12).
+Play our game here! : http://thecrazy10.click/
 
-Crazy 1-0s also teaches players to do addition, subtraction, multiplication and division in Base-12 and Base-10, and hopefully other number bases in the future.
+Crazy 1-0's! is a variant of the classic card game Crazy Eights that teaches players how to count in Dozenal (Base-12).
+
+Crazy 1-0's! also teaches players to do addition, subtraction, multiplication and division in Base-12 and Base-10, and hopefully other number bases in the future!
 
 Current version only supports 1v1 play.
 
