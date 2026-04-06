@@ -64,7 +64,7 @@ describe("rules", () => {
     expect(next.discard).toHaveLength(0);
   });
 
-  it("starts challenge flow for the 10 wildcard and keeps turn on skip cards", () => {
+  it("wildcard 10 sets forced suit without triggering a challenge, and skip cards keep turn", () => {
     const wildcardState: RoundState = {
       deck: [],
       discard: [],
@@ -80,7 +80,9 @@ describe("rules", () => {
 
     const afterWildcard = applyPlay(DOZENAL_SYSTEM, wildcardState, "P1", c("H", "10"), "D");
     expect(afterWildcard.forcedSuit).toBe("D");
-    expect(afterWildcard.activeChallenge?.type).toBe("+");
+    // Wildcard 10 does NOT trigger arithmetic challenges — only face cards (J/Q/K/C) do
+    expect(afterWildcard.activeChallenge).toBeUndefined();
+    expect(afterWildcard.turn).toBe("P2");
 
     const skipState: RoundState = {
       ...wildcardState,

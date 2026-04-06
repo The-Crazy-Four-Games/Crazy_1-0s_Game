@@ -43,6 +43,7 @@
         2026-03-05 & 1.1 & Updated with results from Rev 0 demo and automated test metrics. \\
         2026-03-08 & 1.2 & Finalized NFR evaluation, documented testing-driven changes, and replaced placeholder CI/coverage text with verified Rev 0 results. \\
         2026-03-09 & 1.3 & Abbreviations, Tracability added. \\
+        2026-04-06 & 1.4 & Final revision aligning report with Rev 0 implementation, updated coverage metrics and arithmetic challenge status. \\
         \bottomrule
     \end{tabularx}
 
@@ -138,14 +139,14 @@
 \begin{itemize}
   \item \textbf{Test Type:} Manual UI
   \item \textbf{Expected Output:} Round Result popup correctly summarizes lost hand points in Decimal or Dozenal (e.g., 10$_{12}$) notations correctly.
-  \item \textbf{Actual Output:} The The actual results match the expected results.
+  \item \textbf{Actual Output:} The actual results match the expected results.
   \item \textbf{Result:} PASS
 \end{itemize}
 
 \paragraph{Valid moves highlighted exactly (ST-SC-03)}
 \begin{itemize}
   \item \textbf{Test Type:} Manual UI
-  \item \textbf{Expected Output:} Exactly the cards that are legal to play are visually highlighted/raised, while others are dimmed/disabled. This is not applied to sum-to-10 rule.
+  \item \textbf{Expected Output:} Exactly the cards that are legal to play are visually highlighted/raised, while others are dimmed/disabled. The three highlight categories (suit match, rank match, sum-to-target) are individually togglable via the options gear panel.
   \item \textbf{Actual Output:} The actual results match the expected results. Wild cards are hightlighted with special icons.
   \item \textbf{Result:} PASS
 \end{itemize}
@@ -282,9 +283,11 @@
     dozenal (base-12) number system.
 
     Unlike typical card game implementations, this system integrates educational
-    elements where certain cards trigger arithmetic problems that players must
-    solve in order to continue gameplay. This approach enhances both engagement
-    and learning outcomes.
+    elements where face cards (J, Q, K, and C in dozenal mode) trigger arithmetic
+    challenges that both players race to answer by typing their solution. The
+    arithmetic operations cover addition, subtraction, multiplication, and
+    division, with operand ranges scaled to the active numeral system. This
+    approach enhances both engagement and learning outcomes.
 
     \section{Unit Testing}
 
@@ -396,11 +399,11 @@
         \item Score displays in Dozenal mode were normalized to avoid confusing or poorly rendered special glyphs in the UI.
         \item Draw-pile depletion behavior was re-checked in the shared rules engine: when the deck is exhausted, the accumulated discard pile is reshuffled back into the draw pile while the current top discard card remains on the table.
         \item The Decimal version of the game was confirmed to already exist in the Rev 0 implementation, and it is ready for demonstration in the next professor meeting.
-        \item Demo feedback also showed that the lobby create/join experience was too complex, so the lobby flow was marked for simplification.
-        \item Arithmetic interactions need a broader revision: answers should be typed instead of chosen from multiple-choice options; both players should see the same arithmetic prompt and race to answer; and the arithmetic ranges should be expanded to 100 for Dozenal play, with Decimal mode using 100 for addition/subtraction and 144 for multiplication/division.
-        \item Client feedback further clarified that any face card should trigger an arithmetic challenge. In Decimal mode, \texttt{K} should let the player choose the operation; in Dozenal mode, \texttt{C} should provide that choice.
-        \item Manual passing was deemed unnecessary for the intended experience; instead, move availability should be computed automatically from the player's hand before requiring further interaction.
-        \item A single-round winner popup showing who won the round and how many points were earned was identified as a needed end-of-round improvement beyond the existing full-game end screen.
+        \item Demo feedback also showed that the lobby create/join experience was too complex, so the lobby flow was simplified with a room-list UI featuring auto-refresh, direct join buttons, and clear room status indicators.
+        \item Arithmetic interactions were revised: answers are now typed instead of chosen from multiple-choice options; both players see the same arithmetic prompt and race to answer first; arithmetic ranges are scaled by operation type (addition/subtraction up to 100, multiplication up to 12, division uses clean factor pairs from 1--12).
+        \item Client feedback further clarified that any face card should trigger an arithmetic challenge. In Decimal mode, \texttt{K} lets the player choose the operation; in Dozenal mode, \texttt{C} provides that choice. \texttt{J} and \texttt{Q} trigger a random operation in both modes.
+        \item Manual passing was deemed unnecessary for the intended experience; instead, move availability is computed automatically from the player's hand and the system auto-passes when no moves and no draws remain.
+        \item A single-round winner popup showing who won the round and how many points were earned was implemented as an end-of-round modal, separate from the full-game-over screen.
     \end{itemize}
 
     Feedback from early demonstrations also led to improvements in the user
@@ -501,10 +504,10 @@
     Results from the current shared-package suite are:
 
     \begin{itemize}
-        \item Overall statement coverage: 84.47\%
-        \item Overall branch coverage: 69.65\%
-        \item Overall function coverage: 98.07\%
-        \item Overall line coverage: 91.17\%
+        \item Overall statement coverage: 78.67\%
+        \item Overall branch coverage: 67.09\%
+        \item Overall function coverage: 96.22\%
+        \item Overall line coverage: 83.16\%
     \end{itemize}
 
     File-level statement coverage for the shared package is summarized below:
@@ -516,8 +519,8 @@
         \midrule
         \texttt{baseConversion.ts} & 89.21\% \\
         \texttt{gameActions.ts} & 100.00\% \\
-        \texttt{gameEngine.ts} & 83.01\% \\
-        \texttt{rules.ts} & 78.26\% \\
+        \texttt{gameEngine.ts} & 76.05\% \\
+        \texttt{rules.ts} & 68.27\% \\
         \texttt{scoring.ts} & 100.00\% \\
         \texttt{systems.ts} & 100.00\% \\
         \bottomrule
@@ -525,8 +528,11 @@
     \end{small}
 
     These results show that the critical shared logic is now exercised by
-    repeatable automated tests, while also making it clear that branch coverage
-    can still be improved in future work.
+    repeatable automated tests. The decrease in \texttt{rules.ts} and
+    \texttt{gameEngine.ts} coverage relative to earlier snapshots reflects the
+    addition of the arithmetic challenge subsystem, whose random-operation and
+    division-safe paths are exercised via integration but not yet covered by
+    targeted unit tests. Branch coverage can still be improved in future work.
 
     \newpage{}
     \section*{Appendix --- Reflection}

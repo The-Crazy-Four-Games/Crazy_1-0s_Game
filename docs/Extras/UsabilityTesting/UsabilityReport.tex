@@ -653,67 +653,173 @@ This was observed in:
 
 \section{Analysis}\label{sec:analysis}
 
-\textit{(To be completed by Alvin based on the P1--P5 data above.)}
+This section analyzes the quantitative and qualitative data collected from five participants (P1--P5) with respect to the five testing objectives defined in Section~\ref{sec:objectives}.
 
 \subsection{Key Findings}
 
-% Summarize the top 3--5 usability issues discovered, ranked by severity.
+The following usability issues are ranked by severity, from most to least impactful:
 
-% - Critical: prevents task completion
-% - Major: causes significant delay or confusion
-% - Minor: cosmetic or slight inconvenience
+\begin{enumerate}
+  \item \textbf{[Major]} \textit{Dozenal mode lacks sufficient onboarding.} Participants without prior non-decimal experience (P3, P5) and even those with slight familiarity (P2) were unable to independently complete T15 (dozenal sum-rule play). Three of five participants required facilitator assistance; average errors on T15 were 2.60, the highest of any task. The inverted-digit symbols for 10 and 11 were not self-explanatory, and no guided introduction is provided before entering dozenal mode.
 
-% Example format:
-% \begin{enumerate}
-%   \item \textbf{[Critical/Major/Minor]} Issue title --- description,
-%         observed in Task T\#, frequency (N/M participants affected).
-% \end{enumerate}
+  \item \textbf{[Major]} \textit{Illegal-move feedback is effectively invisible.} Error messages for rejected card plays are logged only in a collapsible log panel that participants rarely expand unprompted. P4 and P5 explicitly reported that nothing appeared to happen when a card was rejected. Custom Q3 (illegal-move feedback helpfulness) scored the lowest of all Likert items at 2.20/5.00, and 4/5 participants cited this as a pain point during the debrief.
+
+  \item \textbf{[Major]} \textit{Score interpretation in non-decimal bases is unclear.} Two participants (P3, P5) required facilitator assistance to interpret their score in T12, despite correctly reading the numerical value aloud. Both lacked a conceptual understanding of what ``base'' means, and the UI does not provide contextual explanation (e.g., a tooltip or subscript indicating the base).
+
+  \item \textbf{[Minor]} \textit{Rulebook (book icon) is not discoverable.} Three participants (P1, P3, P5) did not notice the in-game rulebook until late in the session or until the facilitator mentioned it. The book icon blends into the game interface. Despite containing thorough content (noted positively by P4), the rulebook is ineffective if users do not find it.
+
+  \item \textbf{[Minor]} \textit{Turn indicator is not immediately obvious.} P3 required facilitator assistance to locate the turn indicator in T5. The glowing name label was eventually noticed, but the initial 25-second delay and one error suggest the visual cue could be more prominent for first-time users.
+\end{enumerate}
 
 \subsection{Learnability Assessment}
 
-% Analyze whether first-time users could start playing within 5 min (Objective 1).
+\textbf{Objective:} Can first-time users understand the rules and start playing within 5 minutes?
+
+In \textbf{decimal mode}, learnability was strong. All five participants completed the warm-up and initial game tasks (T1--T6) without assistance, with average times well within the allotted maximums. The total average time from account creation (T1) through the first card play (T6) was approximately 115 seconds (${\approx}$\,2 minutes), which is well below the 5-minute target. The card-highlighting system (playable cards are visually raised/glowing) was cited as particularly helpful by P1 and P4.
+
+In \textbf{dozenal mode}, learnability was poor for participants without prior non-decimal exposure. T15 (dozenal sum-rule play) had only a 40\% unassisted completion rate, and three participants required facilitator intervention. The average time for T15 was 114 seconds, approaching the 3-minute maximum. This indicates that the transition from decimal to dozenal mode requires additional scaffolding that the current interface does not provide.
+
+\textbf{Conclusion:} The system meets the learnability objective for decimal gameplay but falls short for dozenal mode, particularly for users with no prior non-decimal experience.
 
 \subsection{Efficiency Assessment}
 
-% Analyze turn-completion times for experienced users (Objective 2).
+\textbf{Objective:} Can experienced users complete a typical turn within 10 seconds?
+
+Analyzing core turn-action tasks for experienced users (approximated by P1, the most experienced participant):
+\begin{itemize}
+  \item T6 (play a legal card): P1 completed in 5 seconds with 0 errors.
+  \item T8 (draw a card): P1 completed in 4 seconds with 0 errors.
+  \item T9 (play wildcard + suit choice): P1 completed in 12 seconds with 0 errors.
+\end{itemize}
+
+Across all participants, average times for basic turn actions were: T6 = 8.4\,s, T8 = 5.6\,s. Both fall within the 10-second target. T9 (wildcard with suit selection) averaged 17.4\,s, which exceeds the target but is reasonable given the additional interaction step (suit picker). T10 (face card + arithmetic challenge) averaged 41.6\,s, which is expected because arithmetic challenges are intentionally slower interactions designed for educational engagement.
+
+\textbf{Conclusion:} Basic turn efficiency meets the 10-second objective. Extended interactions (wildcard suits, arithmetic challenges) are inherently slower but by design.
 
 \subsection{Error Analysis}
 
-% Analyze error rates per task and the effectiveness of system feedback (Objective 3).
+\textbf{Objective:} How often do users attempt illegal moves, and does the system provide adequate feedback?
+
+\begin{table}[H]
+\centering
+\caption{Tasks with Highest Average Error Counts}
+\begin{tabular}{c c l}
+\toprule
+\textbf{Task} & \textbf{Avg Errors} & \textbf{Primary Error Type} \\
+\midrule
+T15 & 2.60 & Could not identify valid sum-rule pairs in dozenal \\
+T10 & 1.60 & Incorrect arithmetic answers \\
+T2  & 0.40 & Password mistyped \\
+T7  & 0.40 & Confusion about why card was not played \\
+T12 & 0.40 & Could not explain score meaning \\
+T11 & 0.40 & Attempted play during opponent's turn \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The two highest-error tasks (T15 and T10) involve the educational components of the game, specifically dozenal arithmetic and face-card challenges. These errors are partially expected and even pedagogically desirable, as they represent the learning curve the game is designed to create. However, the T15 error rate is excessive: three participants could not complete the task without help, indicating a failure of the interface to scaffold the learning experience.
+
+Regarding system feedback for illegal moves: the system \textit{does} prevent illegal plays (no invalid state transitions occur), but the feedback mechanism is inadequate. Error messages are logged in a collapsible panel that most participants never opened independently. Custom Q3 scored 2.20/5.00, confirming that users perceive the feedback as unhelpful. This is the most actionable finding of the study and is addressed in Section~\ref{sec:recommendations}.
+
+\textbf{Conclusion:} The system correctly prevents illegal moves, but feedback is insufficient. The error rate for dozenal tasks is unacceptably high for unassisted play.
 
 \subsection{Satisfaction Assessment}
 
-% Analyze SUS and custom Likert scores (Objective 4).
+\textbf{Objective:} Do users find the experience enjoyable and intuitive? (Target: SUS $\geq$ 68.)
+
+The mean SUS score across P1--P5 was \textbf{66.5}, which falls slightly below the industry-average threshold of 68. However, this mean is heavily influenced by two outliers:
+\begin{itemize}
+  \item P3 (Biology, no card game experience, no non-decimal familiarity): SUS = 47.5
+  \item P5 (Kinesiology, rare card player, no non-decimal familiarity): SUS = 52.5
+\end{itemize}
+
+Excluding these two, the mean for P1, P2, and P4 is \textbf{77.5}, which is well above 68 and falls in the ``good'' range of the SUS adjective scale. This pattern suggests that the system is satisfactory for users with moderate prior experience but needs additional onboarding support for complete novices.
+
+Custom Likert results reinforce this interpretation:
+\begin{itemize}
+  \item Highest-rated items: Board layout clarity (3.80), card-play intuitiveness (3.80), arithmetic challenge effectiveness (3.80), all above the midpoint of 3.00.
+  \item Lowest-rated items: Illegal-move feedback (2.20), sum-rule understandability (2.80), dozenal enjoyability (2.80), post-dozenal confidence (2.80), all below or near the midpoint.
+\end{itemize}
+
+Qualitative debrief data was consistently positive regarding aesthetics and polish. P5 noted, ``It doesn't feel like a student project, very professional.'' The arithmetic race mechanic was highlighted as engaging by P1 and P4. Pain points centered on the lack of visible error feedback and insufficient dozenal onboarding.
+
+\textbf{Conclusion:} The SUS target of 68 was narrowly missed overall but comfortably met for participants with moderate prior experience. Improving novice onboarding and error feedback is expected to raise the overall SUS above the threshold.
 
 \subsection{Educational Value Assessment}
 
-% Analyze whether dozenal arithmetic confidence improved (Objective 5).
-% Compare pre-test familiarity with post-test confidence (custom Q7).
+\textbf{Objective:} Do users report improved understanding of dozenal arithmetic after playing?
+
+To evaluate educational value, we compare pre-test non-decimal familiarity with post-test dozenal confidence (custom Q7):
+
+\begin{table}[H]
+\centering
+\caption{Pre-test Familiarity vs.\ Post-test Dozenal Confidence}
+\begin{tabular}{c l c l}
+\toprule
+\textbf{P\#} & \textbf{Pre-test Non-decimal} & \textbf{Q7 Post-test} & \textbf{Change} \\
+\midrule
+P1 & Moderately familiar & 4 (Confident) & Maintained / slight gain \\
+P2 & Slightly familiar & 3 (Neutral) & Slight gain \\
+P3 & Not at all & 2 (Slightly confident) & Gain from baseline \\
+P4 & Slightly familiar & 3 (Neutral) & Slight gain \\
+P5 & Not at all & 2 (Slightly confident) & Gain from baseline \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All participants who entered with no non-decimal experience (P3, P5) reported at least ``slightly confident'' after the session, indicating some educational benefit despite the difficulty of the dozenal tasks. However, the mean Q7 score of 2.80 suggests that the current implementation achieves only modest educational impact. This is consistent with the high error rates on T15: if users cannot independently complete dozenal tasks, the learning-by-doing premise is undermined.
+
+The arithmetic challenge popup (custom Q6, mean = 3.80) was rated more positively, suggesting that the face-card challenges are effective at reinforcing arithmetic concepts even when the broader dozenal mode is confusing.
+
+\textbf{Conclusion:} The game provides modest educational value for dozenal arithmetic. The arithmetic challenge mechanic is effective, but the overall dozenal mode experience needs better scaffolding to fully realize its educational potential.
 
 
 \section{Recommendations}\label{sec:recommendations}
 
-\textit{(To be completed by Alvin based on the analysis.)}
+Based on the analysis in Section~\ref{sec:analysis}, the following recommendations are prioritized by severity and expected impact on usability.
 
-
-% \begin{table}[H]
-% \centering
-% \caption{Prioritized Usability Recommendations}
-% \begin{tabularx}{\textwidth}{c l X c}
-% \toprule
-% \textbf{\#} & \textbf{Severity} & \textbf{Recommendation} & \textbf{Related Task(s)} \\
-% \midrule
-% R1 & Critical & ... & T\# \\
-% R2 & Major & ... & T\# \\
-% ...
-% \bottomrule
-% \end{tabularx}
-% \end{table}
+\begin{table}[H]
+\centering
+\caption{Prioritized Usability Recommendations}
+\begin{tabularx}{\textwidth}{c l X c}
+\toprule
+\textbf{\#} & \textbf{Severity} & \textbf{Recommendation} & \textbf{Related Task(s)} \\
+\midrule
+R1 & Major & \textbf{Add visible illegal-move feedback.} Replace or supplement the log-only error message with a card shake/bounce animation, a brief toast notification (e.g., ``Card cannot be played: does not match suit or sum rule''), or a red highlight flash on the rejected card. This was the most frequently cited pain point (4/5 participants) and received the lowest Likert score (Q3 = 2.20). & T7 \\
+\midrule
+R2 & Major & \textbf{Add a dozenal onboarding tutorial.} Before a player's first dozenal game, display an interactive tutorial or guided walkthrough that explains: (a) the inverted-digit symbols for 10 and 11, (b) the meaning of ``10'' as twelve in base-12, and (c) the sum rule with concrete examples. Consider a practice mode with hints enabled. & T15 \\
+\midrule
+R3 & Major & \textbf{Make the rulebook icon more prominent.} Increase the size or visual weight of the book icon, add a label (e.g., ``Rules''), and consider auto-opening the rulebook panel for first-time players. Three participants did not discover the rulebook until the facilitator intervened. & T5, T15 \\
+\midrule
+R4 & Major & \textbf{Add contextual base notation to scores.} Display a subscript or label next to score values indicating the numeral base (e.g., ``18\textsubscript{12}'' or ``18 (dozenal)''). Two participants could read the score but not interpret its base, requiring facilitator explanation. & T12 \\
+\midrule
+R5 & Minor & \textbf{Enhance the turn indicator.} Make the current-turn indicator more visually distinct, e.g., larger glow effect, a pulsing border, or an explicit ``Your Turn'' banner. One participant could not locate it without assistance. & T5 \\
+\midrule
+R6 & Minor & \textbf{Add a first-time player onboarding flow.} For users who have never played before (detectable via account creation date or play count), display a brief, skippable walkthrough introducing the core interface elements: hand area, discard pile, draw pile, score display, and the rulebook icon. & T5, T6 \\
+\midrule
+R7 & Minor & \textbf{Provide real-time sum-rule hints in dozenal mode.} When in dozenal mode, display a small reference showing which card ranks sum to ``10\textsubscript{12}'' (e.g., 3+9, 4+8, 5+7, 6+6). This can be a collapsible sidebar or an overlay accessible via a ``?'' icon on the game board. & T15 \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 \section{Conclusion}\label{sec:conclusion}
 
-\textit{(To be completed by Alvin.)}
+This usability study evaluated \progname{} with five participants across 16 tasks covering account management, lobby interaction, core gameplay (decimal and dozenal modes), scoring comprehension, and auxiliary features. The study yielded the following high-level findings:
+
+\begin{enumerate}
+  \item \textbf{Decimal mode is learnable and efficient.} All participants completed the core decimal gameplay tasks without assistance, with turn-action times averaging well below the 10-second target. The card-highlighting system and clean UI layout were consistently praised.
+
+  \item \textbf{Dozenal mode requires additional scaffolding.} The dozenal sum-rule task (T15) had the lowest unassisted completion rate (40\%) and the highest average error count (2.60) of any task. Participants were confused by the inverted-digit symbols and the concept of ``10'' representing twelve. An interactive onboarding tutorial and in-game reference aids are needed before dozenal mode can be considered accessible to novice users.
+
+  \item \textbf{Illegal-move feedback must be made visible.} The current log-only error feedback was the most frequently cited usability issue, receiving the lowest satisfaction score (Q3 = 2.20/5.00) and mentioned as a pain point by 4/5 participants. Adding a toast notification, card shake animation, or visual highlight is a high-priority improvement.
+
+  \item \textbf{Overall satisfaction is promising but below target.} The mean SUS score of 66.5 narrowly missed the 68 threshold, primarily due to two participants with no prior card-game or non-decimal experience. For participants with moderate background (P1, P2, P4), the mean SUS was 77.5, indicating strong perceived usability. Addressing the onboarding and feedback issues identified in this report is expected to raise the overall SUS above the target.
+
+  \item \textbf{Educational value is present but modest.} Participants who entered with no non-decimal familiarity reported slight gains in dozenal confidence after the session, and the arithmetic challenge mechanic was well-received (Q6 = 3.80). However, the current dozenal mode is too difficult for unassisted first-time use, limiting its effectiveness as a teaching tool.
+\end{enumerate}
+
+\noindent In summary, \progname{} demonstrates a solid foundation for an educational card game with polished aesthetics and engaging core mechanics. The seven recommendations in Section~\ref{sec:recommendations}, particularly improving illegal-move feedback (R1), adding dozenal onboarding (R2), and increasing rulebook discoverability (R3), represent targeted, high-impact improvements that would bring the system fully in line with its usability and educational objectives.
 
 
 \newpage
