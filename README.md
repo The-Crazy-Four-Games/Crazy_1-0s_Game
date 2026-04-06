@@ -1,4 +1,4 @@
-# Project Name
+# Crazy 1-0s!
 
 Developer Names:Ruida Chen, Ammar Sharbat, Alvin Qian, Jiaming Li
 
