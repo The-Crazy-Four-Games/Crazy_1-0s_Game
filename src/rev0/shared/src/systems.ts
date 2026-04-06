@@ -2,7 +2,7 @@
 import type { BaseSpec } from "./baseConversion.js";
 import { DOZENAL_SPEC } from "./baseConversion.js";
 
-export type BaseId = "dec" | "doz"; // can add more later
+export type BaseId = "dec" | "doz" | "oct"; // can add more later
 
 export type Suit = "S" | "H" | "D" | "C";
 
@@ -83,9 +83,38 @@ export const DOZENAL_SYSTEM: NumeralSystem = (() => {
   };
 })();
 
+// octal system (base-8, experimental)
+export const OCTAL_SYSTEM: NumeralSystem = (() => {
+  const deckNumericSymbols = ["1", "2", "3", "4", "5", "6", "7"] as const;
+  const valueOf: Record<string, number> = {};
+  for (let i = 1; i <= 7; i++) valueOf[String(i)] = i;
+  valueOf["10"] = 8; // wildcard ten
+  valueOf["4"] = 4;  // skip
+
+  return {
+    id: "oct",
+    name: "Octal",
+    spec: {
+      base: 8,
+      digits: ["0", "1", "2", "3", "4", "5", "6", "7"] as const,
+      allowPlusSign: true,
+      stripLeadingZeros: true,
+    },
+    deckNumericSymbols,
+    faceRanks: ["J", "Q"] as const,
+    valueOf,
+    targetSumText: "10",     // base8 "10" => 8 dec (cards sum to 8)
+    targetScoreText: "100",  // base8 "100" => 64 dec (win at 64 points)
+    wildcardTenSymbol: "10",
+    wildcardSkipSymbol: "4",  // 4+4=10 in octal
+    facePointsDec: 8,         // bonus points = 8 dec = "10" in octal
+  };
+})();
+
 export const SYSTEMS: Record<BaseId, NumeralSystem> = {
   dec: DECIMAL_SYSTEM,
   doz: DOZENAL_SYSTEM,
+  oct: OCTAL_SYSTEM,
 };
 
 export function getSystem(id: BaseId): NumeralSystem {

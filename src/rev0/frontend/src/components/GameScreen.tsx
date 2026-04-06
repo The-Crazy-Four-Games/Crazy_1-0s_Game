@@ -4,7 +4,7 @@ import CardEffects from './CardEffects';
 import ArithmeticPopup from './ArithmeticPopup';
 import { SUIT_SYMBOLS, SUIT_COLORS, sanitizeDozenalDisplay, isSelectOpCard as checkSelectOpCard } from '../types/game';
 import type { Suit, MathChallenge } from '../types/game';
-import { isFace, numericValueDec, parseInSystem, DECIMAL_SYSTEM, DOZENAL_SYSTEM } from '@rev0/shared';
+import { isFace, numericValueDec, parseInSystem, formatInSystem, DECIMAL_SYSTEM, DOZENAL_SYSTEM, OCTAL_SYSTEM } from '@rev0/shared';
 import type { NumeralSystem } from '@rev0/shared';
 import './GameScreen.css';
 
@@ -21,7 +21,7 @@ type RoundResult = {
 
 type PublicState = {
   gameId: string;
-  baseId: 'doz' | 'dec';
+  baseId: 'doz' | 'dec' | 'oct';
   status: 'ONGOING' | 'GAME_OVER';
   turn: string;
   topCard: CardType;
@@ -47,6 +47,7 @@ interface GameScreenProps {
   // Game actions
   onDraw: () => void;
   onPlay: (card: CardType, chosenSuit?: Suit, chosenOperation?: '+' | '-' | '*' | '/') => void;
+  onPass: () => void;
   onAnswerChallenge: (answer: number) => void;
   challengeResult?: { won: boolean; correct: boolean; tooLate: boolean } | null;
 
@@ -67,6 +68,29 @@ interface GameScreenProps {
 
   // Opponent disconnect notification
   opponentLeftMsg?: string;
+
+  // Toast notification
+  toast?: { message: string; type: 'error' | 'info' } | null;
+  onClearToast?: () => void;
+
+  // Challenge resolution (new dual-player system)
+  challengeResolution?: {
+    winnerId: string | null;
+    correctAnswer: number;
+    timedOut: boolean;
+    bothWrong?: boolean;
+    challengeData?: { type: string; op1: number; op2: number; reward: number };
+  } | null;
+  challengeHistory?: {
+    type: string;
+    op1: number;
+    op2: number;
+    correctAnswer: number;
+    won: boolean;
+    timedOut: boolean;
+    timestamp: number;
+  }[];
+  challengeStartTime?: number | null;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({
@@ -77,6 +101,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   log,
   onDraw,
   onPlay,
+  onPass,
   onAnswerChallenge,
   challengeResult,
   onBackToLobby,
@@ -87,6 +112,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   onSendChat,
   onCheatWin,
   opponentLeftMsg,
+  toast,
+  onClearToast,
+  challengeResolution,
+  challengeHistory = [],
+  challengeStartTime,
 }) => {
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [showSuitPicker, setShowSuitPicker] = useState(false);
@@ -98,6 +128,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const [chatSide, setChatSide] = useState<'left' | 'right'>('right');
   const [showHints, setShowHints] = useState(false);
   const [hintsTab, setHintsTab] = useState<'rules' | 'addition' | 'multiplication'>('rules');
+  const [sortMode, setSortMode] = useState<'none' | 'rank' | 'suit'>('none');
+  const [handShake, setHandShake] = useState(false);
+  const [sortAnimating, setSortAnimating] = useState(false);
+  const [showChallengeHistory, setShowChallengeHistory] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -294,16 +328,78 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Helper to check if card is wildcard (rank "10")
   const isWildcard = (rank: string) => rank === '10';
 
-  // Helper to check if card is skip card (rank "6" for dozenal, "5" for decimal)
-  const skipRank = ps.baseId === 'doz' ? '6' : '5';
+  // Get the numeral system for sum-to-10 checks (defined first, before skipRank)
+  const sys: NumeralSystem = ps.baseId === 'doz' ? DOZENAL_SYSTEM : ps.baseId === 'oct' ? OCTAL_SYSTEM : DECIMAL_SYSTEM;
+
+  // Helper to check if card is skip card (rank "6" for dozenal, "4" for octal, "5" for decimal)
+  const skipRank = sys.wildcardSkipSymbol;
   const isSkipCard = (rank: string) => rank === skipRank;
 
-  // Helper to check if card triggers operation selection (K in decimal, C in dozenal)
-  const isSelectOp = (rank: string) => checkSelectOpCard(rank, ps.baseId);
+  // Helper to check if card triggers operation selection (K in decimal, C in dozenal, none in octal)
+  const isSelectOp = (rank: string) => ps.baseId !== 'oct' && checkSelectOpCard(rank, ps.baseId as 'doz' | 'dec');
 
-  // Get the numeral system for sum-to-10 checks
-  const sys: NumeralSystem = ps.baseId === 'doz' ? DOZENAL_SYSTEM : DECIMAL_SYSTEM;
+  // Bug Fix 4: Reset round-end modal when a new round result arrives
+  useEffect(() => {
+    if (ps.lastRoundResult) {
+      setShowRoundEndModal(true);
+    }
+  }, [ps.lastRoundResult]);
 
+  // Error toast: trigger hand shake on illegal move errors
+  useEffect(() => {
+    if (toast && toast.type === 'error' && (toast.message.includes('IllegalMove') || toast.message.includes('NotYourTurn') || toast.message.includes('DrawLimitReached'))) {
+      setHandShake(true);
+      const timer = setTimeout(() => setHandShake(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // Sorted hand (Feature 1)
+  const sortedHand = useMemo(() => {
+    if (sortMode === 'none') return myHand;
+    const copy = [...myHand];
+    const suitOrder: Record<string, number> = { S: 0, H: 1, D: 2, C: 3 };
+    const getRankValue = (rank: string): number => {
+      try {
+        if (isFace(rank, sys)) {
+          const faceOrder: Record<string, number> = { J: 100, Q: 101, K: 102, C: 103 };
+          return faceOrder[rank] ?? 199;
+        }
+        return numericValueDec(rank, sys);
+      } catch {
+        return 999;
+      }
+    };
+    if (sortMode === 'rank') {
+      copy.sort((a, b) => getRankValue(a.rank) - getRankValue(b.rank));
+    } else {
+      copy.sort((a, b) => {
+        const sd = (suitOrder[a.suit] ?? 9) - (suitOrder[b.suit] ?? 9);
+        if (sd !== 0) return sd;
+        return getRankValue(a.rank) - getRankValue(b.rank);
+      });
+    }
+    return copy;
+  }, [myHand, sortMode, sys]);
+
+  // Dozenal-aware count formatter
+  const fmtCount = (n: number) => ps.baseId !== 'dec' ? formatInSystem(n, sys) : String(n);
+
+  // Sort with animation
+  const handleSortChange = (mode: 'rank' | 'suit') => {
+    const newMode = sortMode === mode ? 'none' : mode;
+    setSortAnimating(true);
+    setTimeout(() => {
+      setSortMode(newMode);
+      setTimeout(() => setSortAnimating(false), 350);
+    }, 300);
+  };
+
+  // Suit picker color override: lighter colors for dark suits on dark background
+  const suitPickerColor = (suit: Suit): string => {
+    if (suit === 'S' || suit === 'C') return '#e0e0e0';
+    return SUIT_COLORS[suit];
+  };
 
 
 
@@ -395,15 +491,41 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     <>
       <CardEffects effectType={cardEffect} effectKey={effectKey} />
       <div className="game-screen">
+        {/* Animated Background */}
+        <div className="game-bg-suits" aria-hidden="true">
+          {['♠','♥','♦','♣','♠','♥','♦','♣','♠','♥','♦','♣'].map((suit, i) => (
+            <span
+              key={i}
+              className="game-bg-suit"
+              style={{
+                left: `${(i * 8.5) % 100}%`,
+                top: `${(i * 13 + 10) % 90}%`,
+                '--dur': `${15 + (i % 5) * 4}s`,
+                '--delay': `${-(i * 3.1)}s`,
+              } as React.CSSProperties}
+            >
+              {suit}
+            </span>
+          ))}
+        </div>
         <header className="game-header">
           <button className="back-button" onClick={onBackToLobby}>
             ← Back
           </button>
           <h1>Crazy 1-0's</h1>
           <div className="game-base-info">
-            Base: {ps.baseId === 'doz' ? 'Dozenal' : 'Decimal'}
+            Base: {ps.baseId === 'doz' ? 'Dozenal' : ps.baseId === 'oct' ? 'Octal 🧪' : 'Decimal'}
           </div>
         </header>
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className={`game-toast game-toast-${toast.type}`} onClick={onClearToast}>
+            <span className="game-toast-icon">{toast.type === 'error' ? '⚠️' : 'ℹ️'}</span>
+            <span className="game-toast-msg">{toast.message}</span>
+            <button className="game-toast-close" onClick={onClearToast}>✕</button>
+          </div>
+        )}
 
         {/* Score Summary */}
         <div className="score-summary">
@@ -574,7 +696,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         {/* Opponent Area */}
         <div className="opponent-area">
           <div className="player-label">
-            Opponent ({opponentId.slice(0, 8)}...) - {opponentHandCount} cards
+            Opponent ({opponentId.slice(0, 8)}...) - {fmtCount(opponentHandCount)} cards
           </div>
           <div className="opponent-hand">
             {opponentCards.map((card, idx) => (
@@ -625,8 +747,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         {/* Player Hand */}
         <div className="player-area">
-          <div className="player-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>Your Hand ({myHand.length} cards)</span>
+          {/* Sort Controls */}
+          <div className="sort-controls">
+            <button
+              className={`sort-control-btn ${sortMode === 'rank' ? 'active' : ''}`}
+              onClick={() => handleSortChange('rank')}
+              title="Sort by rank"
+            >
+              <span className="sort-icon">♠♥</span> Sort by Rank
+            </button>
+            <button
+              className={`sort-control-btn ${sortMode === 'suit' ? 'active' : ''}`}
+              onClick={() => handleSortChange('suit')}
+              title="Sort by suit"
+            >
+              <span className="sort-icon">♣♦</span> Sort by Suit
+            </button>
+          </div>
+
+          <div className="player-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span>Your Hand ({fmtCount(myHand.length)} cards)</span>
             <button
               className="options-gear-btn"
               onClick={() => setShowOptions(v => !v)}
@@ -674,8 +814,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             </div>
           )}
 
-          <div className="player-hand">
-            {myHand.map((card, idx) => (
+          <div className={`player-hand ${handShake ? 'hand-shake' : ''} ${sortAnimating ? 'hand-shuffling' : ''}`}>
+            {sortedHand.map((card, idx) => (
               <div
                 key={`${card.rank}${card.suit}-${idx}`}
                 className="hand-card-wrapper"
@@ -703,14 +843,21 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         {/* Action Buttons */}
         <div className="action-bar">
           <button className="action-btn" disabled={!myTurn} onClick={onDraw}>
-            DRAW
+            🃏 DRAW
+          </button>
+          <button
+            className="action-btn pass-btn"
+            disabled={!myTurn}
+            onClick={onPass}
+          >
+            ⏭ PASS
           </button>
           <button
             className="action-btn play-btn"
             disabled={!myTurn || !selectedCard}
             onClick={handlePlayButton}
           >
-            PLAY {selectedCard ? `${sanitizeDozenalDisplay(selectedCard.rank)}${selectedCard.suit}` : ''}
+            🎯 PLAY {selectedCard ? `${sanitizeDozenalDisplay(selectedCard.rank)}${selectedCard.suit}` : ''}
           </button>
           {onCheatWin && (
             <button
@@ -745,7 +892,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                   <button
                     key={suit}
                     className="suit-btn"
-                    style={{ color: SUIT_COLORS[suit] }}
+                    style={{ color: suitPickerColor(suit) }}
                     onClick={() => handleSuitSelect(suit)}
                   >
                     {SUIT_SYMBOLS[suit]}
@@ -784,7 +931,55 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             onAnswer={onAnswerChallenge}
             baseId={ps.baseId}
             challengeResult={challengeResult}
+            challengeResolution={challengeResolution}
+            myId={userId}
+            challengeStartTime={challengeStartTime ?? undefined}
           />
+        )}
+
+        {/* Challenge History Button */}
+        {challengeHistory.length > 0 && (
+          <button
+            className="challenge-history-btn"
+            onClick={() => setShowChallengeHistory(v => !v)}
+            title="View Challenge History"
+          >
+            📊 Challenges ({challengeHistory.length})
+          </button>
+        )}
+
+        {/* Challenge History Panel */}
+        {showChallengeHistory && challengeHistory.length > 0 && (
+          <div className="challenge-history-overlay" onClick={() => setShowChallengeHistory(false)}>
+            <div className="challenge-history-panel" onClick={e => e.stopPropagation()}>
+              <div className="challenge-history-header">
+                <h3>📊 Challenge History</h3>
+                <button className="hints-close-btn" onClick={() => setShowChallengeHistory(false)}>✖</button>
+              </div>
+              <div className="challenge-history-list">
+                {challengeHistory.map((ch, i) => {
+                  const opSymbol = ch.type === '*' ? '×' : ch.type === '/' ? '÷' : ch.type;
+                  const fmtN = (n: number) => {
+                    if (ps.baseId === 'dec') return String(n);
+                    return formatInSystem(n, sys);
+                  };
+                  return (
+                    <div key={i} className={`challenge-history-item ${ch.won ? 'won' : ch.timedOut ? 'timed-out' : 'lost'}`}>
+                      <span className="ch-equation">
+                        {fmtN(ch.op1)} {opSymbol} {fmtN(ch.op2)} = {fmtN(ch.correctAnswer)}
+                      </span>
+                      <span className="ch-result">
+                        {ch.won ? '✅ Won' : ch.timedOut ? '⏰ Timeout' : '❌ Lost'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="challenge-history-summary">
+                Won: {challengeHistory.filter(c => c.won).length} / {challengeHistory.length}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Opponent disconnect notification */}
@@ -808,30 +1003,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           </div>
         )}
 
-        {/* Log Section — collapsible */}
-        <div className="log-section">
-          <button
-            className="log-toggle"
-            onClick={() => setShowLog(v => !v)}
-            style={{
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
-              cursor: 'pointer', fontSize: '0.85rem', padding: '4px 0',
-            }}
-          >
-            📋 Log {showLog ? '▼' : '▶'}
-          </button>
-          {showLog && (
-            <div className="log-container">
-              {log.map((x, i) => (
-                <div key={i}>{x}</div>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* Instructions */}
         <div className="game-instructions">
-          <strong>Card Legend:</strong> 🌟 = Wildcard (10, changes suit) | ⏭️ = Skip ({skipRank}, grants free play) | Face Cards (J, Q{ps.baseId === 'doz' ? ', K' : ''}) = Random Arithmetic | {ps.baseId === 'dec' ? 'K' : 'C'} = Choose Arithmetic Op
+          <strong>Card Legend:</strong> 🌟 = Wildcard ({sys.wildcardTenSymbol}, changes suit) | ⏭️ = Skip ({skipRank}, grants free play) | Face Cards (J, Q{ps.baseId === 'doz' ? ', K' : ''}) = Random Arithmetic{ps.baseId !== 'oct' ? ` | ${ps.baseId === 'dec' ? 'K' : 'C'} = Choose Arithmetic Op` : ''}
         </div>
       </div>
 
@@ -898,14 +1072,38 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         )
       }
 
-      {/* Hints Floating Button */}
+      {/* Tutorial Floating Button */}
       <button
-        className={`hints-open-btn ${chatSide === 'right' ? 'left' : 'right'}`}
+        className={`tutorial-open-btn ${chatSide === 'right' ? 'left' : 'right'}`}
         onClick={() => setShowHints(true)}
-        title="Game Hints & Reference"
+        title="Game Tutorial & Reference Tables"
       >
-        📖
+        <span className="tutorial-btn-icon">📚</span>
+        <span className="tutorial-btn-label">Tutorial</span>
       </button>
+
+      {/* Activity Log — Small Floating Corner Button */}
+      <button
+        className="log-float-btn"
+        onClick={() => setShowLog(v => !v)}
+        title="Activity Log"
+      >
+        📋
+      </button>
+      {showLog && (
+        <div className="log-float-panel">
+          <div className="log-float-header">
+            <span>📋 Activity Log</span>
+            <button className="hints-close-btn" onClick={() => setShowLog(false)}>✖</button>
+          </div>
+          <div className="log-float-content">
+            {log.length === 0
+              ? <div className="log-empty">No activity yet.</div>
+              : log.map((x, i) => <div key={i} className="log-entry">{x}</div>)
+            }
+          </div>
+        </div>
+      )}
 
       {/* Hints Popup Modal */}
       {showHints && (
@@ -941,16 +1139,74 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                   <img src="/hints/gameplay_rules.png" alt="Game Rules" />
                 </div>
               )}
-              {hintsTab === 'addition' && (
-                <div className="hints-image-wrapper">
-                  <img src="/hints/dozenal_addition_table.png" alt="Dozenal Addition Table" />
-                </div>
-              )}
-              {hintsTab === 'multiplication' && (
-                <div className="hints-image-wrapper">
-                  <img src="/hints/dozenal_multiplication_table.png" alt="Dozenal Multiplication Table" />
-                </div>
-              )}
+              {hintsTab === 'addition' && (() => {
+                const d = ['0','1','2','3','4','5','6','7','8','9','↊','↋'];
+                const fmt = (n: number): string => {
+                  if (n < 10) return String(n);
+                  if (n === 10) return '↊';
+                  if (n === 11) return '↋';
+                  const hi = Math.floor(n / 12);
+                  const lo = n % 12;
+                  return fmt(hi) + (lo < 10 ? String(lo) : lo === 10 ? '↊' : '↋');
+                };
+                return (
+                  <div className="hints-table-wrapper">
+                    <table className="dozenal-table">
+                      <thead>
+                        <tr><th>+</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr>
+                      </thead>
+                      <tbody>
+                        {d.map((r, ri) => {
+                          const rv = ri;
+                          return (
+                            <tr key={ri}>
+                              <th>{r}</th>
+                              {d.map((_, ci) => <td key={ci}>{fmt(rv + ci)}</td>)}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
+              {hintsTab === 'multiplication' && (() => {
+                const d = ['1','2','3','4','5','6','7','8','9','↊','↋','10'];
+                const vals = [1,2,3,4,5,6,7,8,9,10,11,12];
+                const fmt = (n: number): string => {
+                  if (n === 0) return '0';
+                  let s = '';
+                  let v = n;
+                  while (v > 0) {
+                    const rem = v % 12;
+                    s = (rem < 10 ? String(rem) : rem === 10 ? '↊' : '↋') + s;
+                    v = Math.floor(v / 12);
+                  }
+                  return s;
+                };
+                const isPerfectSquare = (ri: number, ci: number) => ri === ci;
+                return (
+                  <div className="hints-table-wrapper">
+                    <table className="dozenal-table">
+                      <thead>
+                        <tr><th>×</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr>
+                      </thead>
+                      <tbody>
+                        {vals.map((rv, ri) => (
+                          <tr key={ri}>
+                            <th>{d[ri]}</th>
+                            {vals.map((cv, ci) => (
+                              <td key={ci} className={isPerfectSquare(ri, ci) ? 'perfect-square' : ''}>
+                                {fmt(rv * cv)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

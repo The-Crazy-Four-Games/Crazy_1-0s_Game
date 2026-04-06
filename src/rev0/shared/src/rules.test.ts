@@ -14,11 +14,11 @@ import { DECIMAL_SYSTEM, DOZENAL_SYSTEM } from "./systems.ts";
 const c = (suit: Card["suit"], rank: string): Card => ({ suit, rank });
 
 describe("rules", () => {
-  it("deals seven cards by default", () => {
+  it("deals eight cards by default", () => {
     const round = initRound(DECIMAL_SYSTEM, ["P1", "P2"]);
 
-    expect(round.hands.P1).toHaveLength(7);
-    expect(round.hands.P2).toHaveLength(7);
+    expect(round.hands.P1).toHaveLength(8);
+    expect(round.hands.P2).toHaveLength(8);
     expect(round.topCard).toBeTruthy();
     expect(round.turn).toBe("P1");
   });
