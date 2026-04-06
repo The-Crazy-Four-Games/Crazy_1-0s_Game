@@ -45,6 +45,7 @@ Oct 27 & Alvin & VnV Plan Reflection \\
 Oct 27 & Ammar & Acronyms and General Information \\
 Nov 24 & Ruida & Fixed peer review issues and keep consistency\\
 Mar 8 & Ruida & Change FR evaluation method into Manual UI\\
+Apr 6 & Alvin & Final revision aligning VnV Plan with Rev 0 implementation\\
 \bottomrule
 \end{tabularx}
 
@@ -215,9 +216,9 @@ This extra will help quantify user experience metrics and identify friction poin
 %-----------------------------
 \subsection{Relevant Documentation}
 \begin{itemize}
-    \item \textbf{SRS} – \href{https://github.com/The-Crazy-Four-Games/Crazy-Eights-Game/blob/main/docs/SRS-Volere/SRS.pdf}{Software Requirements Specification (SRS)}  
-    \item \textbf{MG} – \href{https://github.com/The-Crazy-Four-Games/Crazy-Eights-Game/blob/main/docs/Design/SoftArchitecture/MG.pdf}{Module Guide (MG)}  
-    \item \textbf{MIS} – \href{https://github.com/The-Crazy-Four-Games/Crazy-Eights-Game/blob/main/docs/Design/SoftDetailedDes/MIS.pdf}{Module Interface Specification (MIS)}  
+    \item \textbf{SRS} – \href{https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/blob/main/docs/SRS-Volere/SRS.pdf}{Software Requirements Specification (SRS)}  
+    \item \textbf{MG} – \href{https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/blob/main/docs/Design/SoftArchitecture/MG.pdf}{Module Guide (MG)}  
+    \item \textbf{MIS} – \href{https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/blob/main/docs/Design/SoftDetailedDes/MIS.pdf}{Module Interface Specification (MIS)}  
 \end{itemize}
 
 Each of these documents contributes essential context for this plan:
@@ -317,7 +318,7 @@ SRS-C-02 & Completeness & Has all placeholder content been replaced with substan
 SRS-C-03 & Testability & Does every functional requirement have a unique identifier? \\ \hline
 SRS-C-04 & Testability & Does every requirement now have a specific, measurable, and unambiguous Fit Criterion? \\ \hline
 SRS-C-05 & Consistency & Are the game rules consistent? (e.g., Is FR-3 consistent with PUC-5?)  \\ \hline
-SRS-C-06 & Consistency & Is the technology stack (React, Node.js, Postgres) consistent across Sec 3.1, 13.2, and 26.1? \\ \hline
+SRS-C-06 & Consistency & Is the technology stack (React, Node.js, SQLite) consistent across Sec 3.1, 13.2, and 26.1? \\ \hline
 SRS-C-07 & Correctness & Do all requirements trace back to a stated Project Goal or Stakeholder? \\ \hline
 SRS-C-08 & Traceability & Is the scope unambiguous? \\ \hline
 SRS-C-09 & Feasibility & Can all requirements be realistically implemented within the project constraints? \\ \hline
@@ -350,7 +351,7 @@ DS-C-01 & Traceability & Does every component in the architecture map to one or 
 DS-C-02 & Completeness & Does the design for the "Game Manager" (Sec 9.1) component explicitly implement all rules)? \\ \hline
 DS-C-03 & NFR-Performance & Does the architecture support the 50 concurrent user requirement? \\ \hline
 DS-C-04 & NFR-Security & Does the design explicitly address all security requirements, including "server-authoritative game state" ?  \\ \hline
-DS-C-05 & NFR-Maintain. & Does the design adhere to the mandated stack (React, Node.js)?[1] Is it modular and extensible ?  \\ \hline
+DS-C-05 & NFR-Maintain. & Does the design adhere to the mandated stack (React, Vite, Node.js, SQLite)?  Is it modular and extensible?  \\ \hline
 DS-C-06 & NFR-Usability & Does the UI/UX design explicitly address Accessibility and Learning?  \\ \hline
 DS-C-07 & Interface & Are all API endpoints clearly defined?  \\ \hline
 DS-C-08 & Data & Does the database schema (ERD) correctly model the Business Data Model (Sec 7.1) and Data Dictionary (Sec 7.2)? \\ \hline
@@ -421,11 +422,11 @@ To ensure that software verification activities are repeatable, efficient, and i
 
 \noindent\textbf{Tools and Automation:}
 \begin{itemize}
-    \item \textbf{Jest} --- used for unit and integration testing of both frontend and backend components.
-    \item \textbf{Playwright} --- performs automated end-to-end testing of the user interface.
+    \item \textbf{Vitest} --- used for unit and integration testing of both frontend and backend components.
+    \item \textbf{Playwright} --- planned for automated end-to-end testing of the user interface (manual UI testing was used for Rev~0).
     \item \textbf{ESLint \& Prettier} --- automatically enforce coding style and detect syntax or logical issues.
-    \item \textbf{GitHub Actions CI/CD} --- runs all tests automatically on each push or pull request; generates coverage and linting reports.
-    \item \textbf{Codecov} --- collects and visualizes code coverage results from CI.
+    \item \textbf{GitHub Actions CI} --- runs all tests automatically on each push or pull request; generates coverage reports.
+    \item \textbf{Vitest V8 Coverage} --- collects code coverage results from CI and uploads them as GitHub Actions artifacts.
 \end{itemize}
 
 \noindent\textbf{Automation Outcome:}  
@@ -531,15 +532,15 @@ This area verifies new game initialization, turn sequencing, rule validation for
 \item{ST-GM-04\\}
 \textbf{Control:} Manual UI
 
-\textbf{Initial State:} Discard top = K$\clubsuit$. User A hand contains 8$\heartsuit$. Turn = User A.
+\textbf{Initial State:} Discard top = K$\clubsuit$. User A hand contains 10$\heartsuit$ (wild card). Turn = User A.
 
-\textbf{Input:} User A plays 8$\heartsuit$ and selects Spades as the new suit.
+\textbf{Input:} User A plays 10$\heartsuit$ and selects Spades as the new suit.
 
-\textbf{Output:} Move is accepted. Discard shows 8 with chosen suit indicator = Spades. Only Spades or otherwise legal responses are allowed for the next player.
+\textbf{Output:} Move is accepted. Discard shows 10 with chosen suit indicator = Spades. Only Spades or otherwise legal responses are allowed for the next player.
 
-\textbf{Test Case Derivation:} FR-4 specifies 8s are wild and allow the player to declare a suit.
+\textbf{Test Case Derivation:} FR-4 specifies 10s are the wildcard and allow the player to declare a suit.
 
-\textbf{How test will be performed:} When it is User A's turn, select a wildcard (a 10). A UI modal should appear asking to select a new suit (e.g., Spades). Select the suit and confirm the UI updates to show specifically that the forced suit is Spades, and that User B is bound by it.
+\textbf{How test will be performed:} When it is User A's turn, select a wildcard (rank 10). A UI modal should appear asking to select a new suit (e.g., Spades). Select the suit and confirm the UI updates to show specifically that the forced suit is Spades, and that User B is bound by it.
 \end{enumerate}
 
 \paragraph{Illegal move is rejected with guidance (ST-GM-05)}
@@ -605,7 +606,7 @@ This area validates round scoring in decimal and Dozenal, correct conversion and
 
 \textbf{Output:} Highlighted cards are exactly \{4$\clubsuit$, Q$\spadesuit$, 8$\diamondsuit$\}. 7$\heartsuit$ and 6$\clubsuit$ are not highlighted.
 
-\textbf{Test Case Derivation:} Same value (4), same suit (Spades), and wild eight are valid. Others are invalid because 7 + 4 = 11 decimal which is not 10$_{12}$ and 6 + 4 = 10 decimal which is not 10$_{12}$.
+\textbf{Test Case Derivation:} Same value (4), same suit (Spades), and sum-to-target cards are valid (4 + 8 = 12 = 10$_{12}$). Others are invalid because 7 + 4 = 11 decimal which is not 10$_{12}$ and 6 is the skip card.
 
 \textbf{How test will be performed:} During User A's turn, visually inspect the on-screen hand. Verify that exactly the cards that match suit, value, sum to 12, or are wildcards are visually highlighted or raised, while all others are dimmed or disabled.
 \end{enumerate}
@@ -824,7 +825,7 @@ This traceability matrix links each functional and non-functional requirement fr
         FR-1 & Start a new game session with two players. & ST-GM-01 \\ \hline
         FR-2 & Manage player turns and enforce alternating actions. & ST-GM-02, ST-GM-04 \\ \hline
         FR-3 & Validate move legality (same suit, same value, or sum equals 12 in base-12). & ST-GM-02, ST-GM-03, ST-GM-05 \\ \hline
-        FR-4 & Handle special cards (wild eight suit declaration). & ST-GM-04 \\ \hline
+        FR-4 & Handle special cards (wild 10 suit declaration). & ST-GM-04 \\ \hline
         FR-5 & Detect end-of-game condition and declare winner. & ST-GM-06 \\ \hline
         FR-6 & Compute total score in both decimal and dozenal formats. & ST-SC-01 \\ \hline
         FR-7 & Display score in dual-base format with toggling support. & ST-SC-04 \\ \hline

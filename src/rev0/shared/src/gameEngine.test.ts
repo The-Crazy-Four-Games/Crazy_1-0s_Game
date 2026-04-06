@@ -69,8 +69,9 @@ describe("gameEngine", () => {
       sys: DOZENAL_SYSTEM,
       round: makeRound({
         turn: "P1",
+        deck: [c("H", "1"), c("D", "2"), c("C", "3")],
         activeChallenge: {
-          playerId: "P1",
+          playerId: "both",
           type: "/",
           op1: 24,
           op2: 2,
