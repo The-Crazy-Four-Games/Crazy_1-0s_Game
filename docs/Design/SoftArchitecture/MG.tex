@@ -65,6 +65,7 @@ Jan 11 & Alvin & rev0 - remove m20-22,update m5, hierarchy, add dag graph\\
 Jan 11 & Ammar & added UI sketches and protocol section\\
 Jan 21 & Alvin & fix dag graph display issue\\
 Jan 21 & Ruida & fix protocol section more high level, fix image display issue\\
+Apr 5 & Ruida & Rev1: label UCs, reclassify modules, add M20 (Numeral System), fix DAG, expand timeline, update for NumeralSystem/MathChallenge/new actions\\
 
 \bottomrule
 \end{tabularx}
@@ -79,11 +80,10 @@ This section records information for easy reference.
 
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{l l} 
-  \toprule     
+  \toprule		
   \textbf{symbol} & \textbf{description}\\
   \midrule 
   AC & Anticipated Change\\
-  ACID & Atomicity, Consistency, Isolation, Durability\\
   API & Application Programming Interface\\
   CSS & Cascading Style Sheets\\
   DAG & Directed Acyclic Graph \\
@@ -101,9 +101,9 @@ This section records information for easy reference.
   SC & Scientific Computing \\
   SR & Safety Requirement\\
   SRS & Software Requirements Specification\\
-  SQL & Structured Query Language\\
   UC & Unlikely Change \\
   UI & User Interface\\
+  WS & WebSocket\\
   \bottomrule
 \end{tabular}\\
 
@@ -171,7 +171,7 @@ other shows the relation between anticipated changes and the modules. Section
 \ref{SecUse} describes the use relation between modules.
 
 
-\section{Anticipated and Unlikely Changes (completed)} \label{SecChange}
+\section{Anticipated and Unlikely Changes} \label{SecChange}
 
 This section lists the project changes that we expect (``Likely Changes'') and those we consider unlikely within the capstone timeframe (``Unlikely Changes'').  Where applicable each anticipated change (AC) has been given an identifier to support traceability and to guide module secrets.
 
@@ -185,7 +185,7 @@ This section lists the project changes that we expect (``Likely Changes'') and t
   \item[\refstepcounter{acnum}\label{acBases} \actheacnum\ --- Numeric Base Support (Dozenal and beyond):] 
     Support for additional numeral systems (Octal, Hex, etc.), and how scores and hints convert and present values.  
     \\
-    \textbf{Rationale:} We intend the product to be extensible to multiple bases; the conversion logic and scoring changes must be encapsulated in \mref{mBaseConversion}, \mref{mScoring}, and \mref{mScoreboardView}.
+    \textbf{Rationale:} We intend the product to be extensible to multiple bases; the conversion logic and scoring changes must be encapsulated in \mref{mBaseConversion}, \mref{mNumeralSystem}, \mref{mScoring}, and \mref{mScoreboardView}.
 
   \item[\refstepcounter{acnum}\label{acScoring} \actheacnum\ --- Scoring Formula / Presentation:] 
     Changes to how round or match scoring is calculated, aggregated or displayed (e.g., bonus rules, alternate tallying).  
@@ -197,8 +197,8 @@ This section lists the project changes that we expect (``Likely Changes'') and t
     \\
     \textbf{Rationale:} UI polish and accessibility tweaks are frequent after usability sessions; the \mref{mAppShell}, \mref{mGameBoardView}, and \mref{mMoveController} should hide these secrets.
 
-  \item[\refstepcounter{acnum}\label{acSchema} \actheacnum\ --- Database Schema and Persistence Details:] 
-    Changes to the persistent schema (profiles, history, telemetry format) and indexes.  
+  \item[\refstepcounter{acnum}\label{acSchema} \actheacnum\ --- Persistence Details:] 
+    Changes to the persistent data model (profiles, history, telemetry format) and storage strategy.  
     \\
     \textbf{Rationale:} Data collection needs evolve; the \mref{mRepository} module hides these details.
 
@@ -213,15 +213,22 @@ This section lists the project changes that we expect (``Likely Changes'') and t
     \textbf{Rationale:} Security/configuration choices can change; these are hidden by \mref{mAuth} and the \mref{mAPI} interface.
 \end{description}
 
-\subsection{Unlikely Changes (explicitly documented)}
+\subsection{Unlikely Changes}
 These items are not expected to change during the capstone, so they are \emph{not} treated as module secrets and are documented rather than encapsulated in a separate module secret:
 
-\begin{itemize}
-  \item \textbf{Target Runtime Platforms:} Modern desktop browsers remain the deployment target for the deliverable.
-  \item \textbf{Primary Tech Stack:} Web frontend framework, Server-side JavaScript runtime, Relational database for persistence.
-  \item \textbf{Core Gameplay Pattern:} The turn-based matching mechanics (match by suit / match by value / sum-to-12 in Dozenal) are a stable product decision.
-  \item \textbf{Non-functional goals baseline:} Performance targets (sub-300 ms updates), basic security expectations (TLS usage for network), and the expectation of GitHub-based CI.
-\end{itemize}
+\begin{description}
+  \item[\refstepcounter{ucnum}\label{ucPlatform} \uctheucnum\ --- Target Runtime Platforms:]
+    Modern desktop browsers remain the deployment target for the deliverable.
+
+  \item[\refstepcounter{ucnum}\label{ucTechStack} \uctheucnum\ --- Primary Tech Stack:]
+    Web frontend framework, Server-side JavaScript runtime, relational database for persistence.
+
+  \item[\refstepcounter{ucnum}\label{ucGameplay} \uctheucnum\ --- Core Gameplay Pattern:]
+    The turn-based matching mechanics (match by suit / match by value / sum-to-target in the active numeral system) are a stable product decision.
+
+  \item[\refstepcounter{ucnum}\label{ucNFR} \uctheucnum\ --- Non-functional Goals Baseline:]
+    Performance targets (sub-300~ms updates), basic security expectations (TLS usage for network), and the expectation of GitHub-based CI.
+\end{description}
 
 \newpage
 
@@ -242,12 +249,12 @@ actually be implemented.
 
 \item [\refstepcounter{mnum} \mthemnum \label{mRealtimeGateway}:] Real-time Gateway Module
     \begin{itemize}
-        \item Manages stateful WebSocket connections for live gameplay and state syncing.
+        \item Manages stateful WebSocket connections for live gameplay, state syncing, in-game chat, and restart negotiation.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mMatchmaking}:] Matchmaking Module
     \begin{itemize}
-        \item Handles game lobby creation, joining, and starting a match.
+        \item Handles game lobby creation, joining, leaving, and starting a match with a chosen numeral system.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mAuth}:] Authentication Module
@@ -257,7 +264,7 @@ actually be implemented.
 
 \item [\refstepcounter{mnum} \mthemnum \label{mRepository}:] Repository Module
     \begin{itemize}
-        \item Abstracts all database queries (SQL) and schema details for creating, reading, updating, and deleting data.
+        \item Abstracts all persistent storage operations for creating, reading, updating, and deleting data, shielding callers from the underlying storage technology.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mAudit}:] Audit Module
@@ -283,22 +290,22 @@ actually be implemented.
 
 \item [\refstepcounter{mnum} \mthemnum \label{mLobbyView}:] Lobby View Module
     \begin{itemize}
-        \item UI component for displaying, creating, and joining game lobbies.
+        \item UI component for displaying, creating, and joining game lobbies; lets the host select the numeral system for the game.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mGameBoardView}:] Game Board View Module
     \begin{itemize}
-        \item UI component that renders the main game interface (hands, deck, discard pile).
+        \item UI component that renders the main game interface (hands, deck, discard pile, challenge popups, chat).
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mMoveController}:] Move Controller Module
     \begin{itemize}
-        \item Manages user input (e.g., card clicks) and highlights valid moves.
+        \item Manages user input (e.g., card clicks) and highlights valid moves; handles challenge answer submission.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mScoreboardView}:] Scoreboard View Module
     \begin{itemize}
-        \item UI component for displaying end-of-round scores in decimal and Dozenal.
+        \item UI component for displaying round/match scores in the active numeral system.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mProfileView}:] Profile View Module
@@ -309,27 +316,32 @@ actually be implemented.
 % --- Core/Behaviour Modules ---
 \item [\refstepcounter{mnum} \mthemnum \label{mGameEngine}:] Game Engine Module
     \begin{itemize}
-        \item Manages the core game state (deck, hands) and turn progression.
+        \item Manages the core game state (deck, hands, scores, challenges) and turn progression; orchestrates round lifecycle.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mRules}:] Rules Module
     \begin{itemize}
-        \item Stateless logic to validate moves (e.g., match suit, rank, or Dozenal sum).
+        \item Stateless logic to validate moves (e.g., match suit, rank, or target sum), enforce draw limits, handle wildcards and skip cards, and generate arithmetic challenges.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mScoring}:] Scoring Module
     \begin{itemize}
-        \item Calculates scores at the end of a round.
+        \item Calculates scores at the end of a round based on the loser's remaining hand and the active numeral system.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mBaseConversion}:] Base Conversion Module
     \begin{itemize}
-        \item Utility to convert numbers between decimal and Dozenal.
+        \item Utility to convert numbers between arbitrary numeral bases using a configurable base specification.
     \end{itemize}
 
 \item [\refstepcounter{mnum} \mthemnum \label{mGameActions}:] Game Actions Module
     \begin{itemize}
-        \item Defines types and structure for player actions (play card, draw, declare suit, submit score tally).
+        \item Defines types and structure for player actions (play card, draw, pass, answer challenge, declare suit).
+    \end{itemize}
+
+\item [\refstepcounter{mnum} \mthemnum \label{mNumeralSystem}:] Numeral System Module
+    \begin{itemize}
+        \item Defines the configuration for each supported numeral system (deck composition, face ranks, wildcard symbols, target sums, scoring parameters).
     \end{itemize}
 \end{description}
 
@@ -343,28 +355,32 @@ actually be implemented.
 \multirow{1}{0.3\textwidth}{Hardware-Hiding Module} & ~ & (None) \\
 \midrule
 
-\multirow{5}{0.3\textwidth}{Behaviour-Hiding Module} & (Core Domain Logic) & \mref{mGameEngine} \\
+\multirow{11}{0.3\textwidth}{Behaviour-Hiding Module}
+& \multirow{6}{0.3\textwidth}{Core Domain Logic} & \mref{mGameEngine} \\
 & & \mref{mRules} \\
 & & \mref{mScoring} \\
 & & \mref{mBaseConversion} \\
 & & \mref{mGameActions} \\
-\midrule
-
-\multirow{15}{0.3\textwidth}{Software Decision Module} & \multirow{6}{0.3\textwidth}{Backend (Server)} & \mref{mAPI} \\
-& & \mref{mRealtimeGateway} \\
-& & \mref{mMatchmaking} \\
-& & \mref{mAuth} \\
-& & \mref{mRepository} \\
-& & \mref{mAudit} \\
+& & \mref{mNumeralSystem} \\
 \cmidrule{2-3}
-& \multirow{9}{0.3\textwidth}{Frontend (Client)} & \mref{mRealtimeClient} \\
-& & \mref{mAppShell} \\
-& & \mref{mAuthClient} \\
+& \multirow{5}{0.3\textwidth}{Gameplay Interaction} & \mref{mMatchmaking} \\
 & & \mref{mLobbyView} \\
 & & \mref{mGameBoardView} \\
 & & \mref{mMoveController} \\
 & & \mref{mScoreboardView} \\
 & & \mref{mProfileView} \\
+\midrule
+
+\multirow{6}{0.3\textwidth}{Software Decision Module}
+& \multirow{4}{0.3\textwidth}{Backend (Server)} & \mref{mAPI} \\
+& & \mref{mRealtimeGateway} \\
+& & \mref{mAuth} \\
+& & \mref{mRepository} \\
+& & \mref{mAudit} \\
+\cmidrule{2-3}
+& \multirow{3}{0.3\textwidth}{Frontend (Client)} & \mref{mRealtimeClient} \\
+& & \mref{mAppShell} \\
+& & \mref{mAuthClient} \\
 \bottomrule
 
 \end{tabular}
@@ -373,11 +389,6 @@ actually be implemented.
 \end{table}
 
 \section{Connection Between Requirements and Design} \label{SecConnection}
-
-The design of the system is intended to satisfy the requirements developed in
-the SRS. In this stage, the system is decomposed into modules. The connection
-between requirements and modules is listed in Table~\ref{TblRT}.\\
-
 
 The design of the system is intended to satisfy the requirements developed in
 the SRS. In this stage, the system is decomposed into modules. The connection
@@ -405,8 +416,8 @@ There are no hardware hiding modules in this design. The system runs on standard
 \subsubsection{Game Engine Module (\mref{mGameEngine})}
 \begin{quote}
 \begin{description}
-  \item[Secrets:] Internal representations of the cards, deck, discard pile, players, and the turn-management state machine.
-  \item[Services:] Creates new matches, enforces turn order, applies validated moves, and determines when a round or match is finished.
+  \item[Secrets:] Internal representations of the cards, deck, discard pile, players, and the turn-management state machine; orchestration of round lifecycle including challenge resolution and auto-pass logic.
+  \item[Services:] Creates new matches parameterized by a numeral system, enforces turn order, applies validated moves (including challenge answers), and determines when a round or match is finished.
   \item[Implemented By:] The Crazy Four (Typed JavaScript)
   \item[Type of Module:] Abstract Data Type
 \end{description}
@@ -415,8 +426,8 @@ There are no hardware hiding modules in this design. The system runs on standard
 \subsubsection{Rules Module (\mref{mRules})}
 \begin{quote}
 \begin{description}
-  \item[Secrets:] Exact move-validation criteria, including how matching ranks, suits, dozenal sums, and special cards are handled.
-  \item[Services:] Confirms whether a proposed move is legal and enumerates valid moves for a player based on the current game situation.
+  \item[Secrets:] Exact move-validation criteria, including how matching ranks, suits, target sums, wildcards, skip cards, draw limits, free-play grants, and arithmetic challenges are handled.
+  \item[Services:] Confirms whether a proposed move is legal and enumerates valid moves for a player based on the current game situation and the active numeral system.
   \item[Implemented By:] The Crazy Four (Typed JavaScript)
   \item[Type of Module:] Abstract Object
 \end{description}
@@ -425,8 +436,8 @@ There are no hardware hiding modules in this design. The system runs on standard
 \subsubsection{Scoring Module (\mref{mScoring})}
 \begin{quote}
 \begin{description}
-  \item[Secrets:] The scoring equation that converts remaining cards into round points and aggregates them over a match.
-  \item[Services:] Produces the score summary for each player whenever a round ends.
+  \item[Secrets:] The scoring equation that converts remaining cards into round points, parameterized by the active numeral system's face-card point values.
+  \item[Services:] Produces the score for the round winner based on the loser's remaining hand, returning both a decimal total and a formatted string in the active base.
   \item[Implemented By:] The Crazy Four (Typed JavaScript)
   \item[Type of Module:] Abstract Object
 \end{description}
@@ -435,8 +446,8 @@ There are no hardware hiding modules in this design. The system runs on standard
 \subsubsection{Base Conversion Module (\mref{mBaseConversion})}
 \begin{quote}
 \begin{description}
-  \item[Secrets:] The mapping of digits and symbols used to move between decimal and dozenal numbers.
-  \item[Services:] Translates numeric values to and from dozenal form for scoring logic and UI presentation.
+  \item[Secrets:] The generic algorithm for converting numbers between arbitrary bases, including digit-symbol mapping, alias handling, normalization, and sign handling.
+  \item[Services:] Translates numeric values to and from any configured numeral base for scoring logic and UI presentation.
   \item[Implemented By:] The Crazy Four (Typed JavaScript)
   \item[Type of Module:] Abstract Data Type
 \end{description}
@@ -445,20 +456,90 @@ There are no hardware hiding modules in this design. The system runs on standard
 \subsubsection{Game Actions Module (\mref{mGameActions})}
 \begin{quote}
 \begin{description}
-  \item[Secrets:] The canonical data structures and serialization format that represent every move a player can make.
+  \item[Secrets:] The canonical data structures and serialization format that represent every move a player can make (play, draw, pass, answer challenge).
   \item[Services:] Defines and validates the action payloads that flow between client and server, keeping both sides in sync on network contracts.
   \item[Implemented By:] The Crazy Four (Shared Library)
   \item[Type of Module:] Abstract Object
 \end{description}
 \end{quote}
 
-\subsection{Software Decision Module - Backend}
+\subsubsection{Numeral System Module (\mref{mNumeralSystem})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] The configuration parameters for each supported numeral system: deck composition (numeric symbols, face ranks), wildcard symbols, target-sum text, target-score text, and face-card point values.
+  \item[Services:] Provides a complete numeral system definition to the game engine, rules, and scoring modules so that the game can operate in decimal, dozenal, or future bases without changes to those modules.
+  \item[Implemented By:] The Crazy Four (Shared Library)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Matchmaking Module (\mref{mMatchmaking})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] The lobby data structures, lifecycle policies, and session handoff logic for assembling game tables.
+  \item[Services:] Creates, lists, and manages lobbies so players can host games with a chosen numeral system, join open lobbies, or leave lobbies.
+  \item[Implemented By:] The Crazy Four (Server-side Runtime)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Lobby View Module (\mref{mLobbyView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Layout, styling, and interaction patterns for discovering or hosting lobbies, including numeral system selection.
+  \item[Services:] Shows available rooms, lets players create or join sessions, and triggers matchmaking calls via \mref{mAPI} and \mref{mRealtimeClient}.
+  \item[Implemented By:] The Crazy Four (Client-side Framework)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Game Board View Module (\mref{mGameBoardView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Visual composition of the board, card animations, challenge popup rendering, chat display, and responsive behavior across devices.
+  \item[Services:] Draws the playable surface, displays player hands and discard piles, shows active challenges, highlights valid actions per the rule engine, and provides in-game chat.
+  \item[Implemented By:] The Crazy Four (Client-side Framework)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Move Controller Module (\mref{mMoveController})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Gesture-handling patterns and UX rules for how players select cards, declare suits, select operations for challenges, or submit challenge answers.
+  \item[Services:] Interprets user intent on the board, performs light validation, and forwards structured actions through the \mref{mRealtimeClient}.
+  \item[Implemented By:] The Crazy Four (Client-side Framework)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Scoreboard View Module (\mref{mScoreboardView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Presentation choices for score displays in the active numeral system and animations for round summaries.
+  \item[Services:] Shows standings after each round, presenting scores in the active base format in a clear, accessible format.
+  \item[Implemented By:] The Crazy Four (Client-side Framework)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsubsection{Profile View Module (\mref{mProfileView})}
+\begin{quote}
+\begin{description}
+  \item[Secrets:] Layout decisions for profile cards, statistics summaries, and sensitive account actions.
+  \item[Services:] Displays player history, stats, and account-management controls, including export or deletion requests tied to FR-15..17.
+  \item[Implemented By:] The Crazy Four (Client-side Framework)
+  \item[Type of Module:] Abstract Object
+\end{description}
+\end{quote}
+
+\subsection{Software Decision Module --- Backend}
 
 \subsubsection{API Module (\mref{mAPI})}
 \begin{quote}
 \begin{description}
   \item[Secrets:] REST endpoint structure, payload schemas, and HTTP conventions for stateless backend capabilities.
-  \item[Services:] Exposes stateless HTTP routes for authentication, profile management, and bootstrapping new games as defined in the SRS. Note: Real-time gameplay is handled by \mref{mRealtimeGateway}.
+  \item[Services:] Exposes stateless HTTP routes for authentication, profile management, lobby operations, and bootstrapping new games as defined in the SRS. Note: Real-time gameplay is handled by \mref{mRealtimeGateway}.
   \item[Implemented By:] The Crazy Four (Server-side Runtime)
   \item[Type of Module:] Abstract Object
 \end{description}
@@ -467,19 +548,9 @@ There are no hardware hiding modules in this design. The system runs on standard
 \subsubsection{Real-time Gateway Module (\mref{mRealtimeGateway})}
 \begin{quote}
 \begin{description}
-  \item[Secrets:] Real-time messaging strategy, room management, and conflict-resolution logic for server-authoritative play.
-  \item[Services:] Hosts WebSocket connections, validates incoming moves, and pushes synchronized game state updates to every participant.
+  \item[Secrets:] Real-time messaging strategy, room management, conflict-resolution logic for server-authoritative play, restart negotiation protocol, and in-game chat relay.
+  \item[Services:] Hosts WebSocket connections, validates incoming moves, pushes synchronized game state updates to every participant, relays chat messages, and manages restart/leave flows.
   \item[Implemented By:] The Crazy Four (Server-side Runtime + WebSocket Lib)
-  \item[Type of Module:] Abstract Object
-\end{description}
-\end{quote}
-
-\subsubsection{Matchmaking Module (\mref{mMatchmaking})}
-\begin{quote}
-\begin{description}
-  \item[Secrets:] The pairing heuristics, lobby data structures, and invitation policies for assembling tables.
-  \item[Services:] Creates, lists, and manages lobbies so players can host private games or enter matchmaking queues.
-  \item[Implemented By:] The Crazy Four (Server-side Runtime)
   \item[Type of Module:] Abstract Object
 \end{description}
 \end{quote}
@@ -497,8 +568,8 @@ There are no hardware hiding modules in this design. The system runs on standard
 \subsubsection{Repository Module (\mref{mRepository})}
 \begin{quote}
 \begin{description}
-  \item[Secrets:] The database implementation (PostgreSQL) and the schema design, optimized queries, and database access strategies.
-  \item[Services:] Offers a clean persistence interface for storing players, credentials, match history, and statistics while shielding callers from database specifics.
+  \item[Secrets:] The underlying storage technology and the data model design, optimized queries, and data access strategies.
+  \item[Services:] Offers a clean persistence interface for storing players, credentials, match history, and statistics while shielding callers from storage specifics.
   \item[Implemented By:] The Crazy Four (Server-side Runtime)
   \item[Type of Module:] Abstract Object
 \end{description}
@@ -514,7 +585,7 @@ There are no hardware hiding modules in this design. The system runs on standard
 \end{description}
 \end{quote}
 
-\subsection{Software Decision Module - Frontend}
+\subsection{Software Decision Module --- Frontend}
 
 \subsubsection{Real-time Client Module (\mref{mRealtimeClient})}
 \begin{quote}
@@ -546,56 +617,6 @@ There are no hardware hiding modules in this design. The system runs on standard
 \end{description}
 \end{quote}
 
-\subsubsection{Lobby View Module (\mref{mLobbyView})}
-\begin{quote}
-\begin{description}
-  \item[Secrets:] Layout, styling, and interaction patterns for discovering or hosting lobbies.
-  \item[Services:] Shows available rooms, lets players create or join sessions, and triggers matchmaking calls via \mref{mAPI} and \mref{mRealtimeClient}.
-  \item[Implemented By:] The Crazy Four (Client-side Framework)
-  \item[Type of Module:] Abstract Object
-\end{description}
-\end{quote}
-
-\subsubsection{Game Board View Module (\mref{mGameBoardView})}
-\begin{quote}
-\begin{description}
-  \item[Secrets:] Visual composition of the board, card animations, and responsive behavior across devices.
-  \item[Services:] Draws the playable surface, displays player hands and discard piles, and highlights valid actions per the rule engine.
-  \item[Implemented By:] The Crazy Four (Client-side Framework)
-  \item[Type of Module:] Abstract Object
-\end{description}
-\end{quote}
-
-\subsubsection{Move Controller Module (\mref{mMoveController})}
-\begin{quote}
-\begin{description}
-  \item[Secrets:] Gesture-handling patterns and UX rules for how players select cards or declare suits.
-  \item[Services:] Interprets user intent on the board, performs light validation, and forwards structured actions through the \mref{mRealtimeClient}.
-  \item[Implemented By:] The Crazy Four (Client-side Framework)
-  \item[Type of Module:] Abstract Object
-\end{description}
-\end{quote}
-
-\subsubsection{Scoreboard View Module (\mref{mScoreboardView})}
-\begin{quote}
-\begin{description}
-  \item[Secrets:] Presentation choices for multi-base score displays and animations for round summaries.
-  \item[Services:] Shows standings after each round, presenting both decimal and dozenal scores in a clear, accessible format.
-  \item[Implemented By:] The Crazy Four (Client-side Framework)
-  \item[Type of Module:] Abstract Object
-\end{description}
-\end{quote}
-
-\subsubsection{Profile View Module (\mref{mProfileView})}
-\begin{quote}
-\begin{description}
-  \item[Secrets:] Layout decisions for profile cards, statistics summaries, and sensitive account actions.
-  \item[Services:] Displays player history, stats, and account-management controls, including export or deletion requests tied to FR-15..17.
-  \item[Implemented By:] The Crazy Four (Client-side Framework)
-  \item[Type of Module:] Abstract Object
-\end{description}
-\end{quote}
-
 \section{Traceability Matrix} \label{SecTM}
 
 This section shows two traceability matrices: between the modules and the requirements and between the modules and the anticipated changes.
@@ -610,13 +631,13 @@ This section shows two traceability matrices: between the modules and the requir
 \toprule
 \textbf{Requirement (FR/NFR/SR)} & \textbf{Primary Modules}\\
 \midrule
-FR-1 Start new game & \mref{mAPI}, \mref{mMatchmaking}, \mref{mGameEngine}, \mref{mRepository}\\
+FR-1 Start new game & \mref{mAPI}, \mref{mMatchmaking}, \mref{mGameEngine}, \mref{mRepository}, \mref{mNumeralSystem}\\
 FR-2 Turn management & \mref{mGameEngine}, \mref{mRules}, \mref{mGameActions}, \mref{mRealtimeGateway}, \mref{mRealtimeClient}, \mref{mMoveController}, \mref{mGameBoardView}\\
 FR-3 Rule validation & \mref{mRules}, \mref{mGameEngine}, \mref{mGameActions}, \mref{mMoveController}, \mref{mGameBoardView}\\
 FR-4 Special cards & \mref{mRules}, \mref{mGameEngine}, \mref{mGameActions}, \mref{mMoveController}, \mref{mGameBoardView}\\
 FR-5 End of game & \mref{mGameEngine}, \mref{mScoring}, \mref{mScoreboardView}, \mref{mRepository}\\
-FR-6 Calculate score & \mref{mScoring}, \mref{mBaseConversion}, \mref{mGameActions}, \mref{mScoreboardView}\\
-FR-7 Display score & \mref{mScoreboardView}, \mref{mBaseConversion}\\
+FR-6 Calculate score & \mref{mScoring}, \mref{mBaseConversion}, \mref{mNumeralSystem}, \mref{mGameActions}, \mref{mScoreboardView}\\
+FR-7 Display score & \mref{mScoreboardView}, \mref{mBaseConversion}, \mref{mNumeralSystem}\\
 FR-9 Highlight valid moves & \mref{mMoveController}, \mref{mGameBoardView}, \mref{mRules}\\
 FR-10 Account creation & \mref{mAPI}, \mref{mAuth}, \mref{mRepository}, \mref{mAuthClient}\\
 FR-11 Login or Logout & \mref{mAPI}, \mref{mAuth}, \mref{mRepository}, \mref{mAuthClient}\\
@@ -630,12 +651,12 @@ FR-17 Data deletion & \mref{mRepository}, \mref{mAPI}, \mref{mProfileView}\\
 NFR (Performance) & \mref{mRealtimeGateway}, \mref{mGameEngine}, \mref{mRealtimeClient}, \mref{mGameBoardView}\\
 NFR (Usability) & \mref{mGameBoardView}, \mref{mAppShell}\\
 NFR (Robustness) & \mref{mRealtimeClient}, \mref{mRealtimeGateway}, \mref{mRepository}\\
-NFR (Maintainability) & \mref{mRules}, \mref{mScoring}, \mref{mAPI}, \mref{mAudit}\\
+NFR (Maintainability) & \mref{mRules}, \mref{mScoring}, \mref{mAPI}, \mref{mAudit}, \mref{mNumeralSystem}\\
 \midrule
-SR-1 (Dozenal validation) & \mref{mRules}, \mref{mBaseConversion}, \mref{mGameEngine}\\
+SR-1 (Dozenal validation) & \mref{mRules}, \mref{mBaseConversion}, \mref{mGameEngine}, \mref{mNumeralSystem}\\
 SR-2 (UI feedback) & \mref{mGameBoardView}, \mref{mAppShell}\\
 SR-3 (Data persistence) & \mref{mRepository}, \mref{mAPI}\\
-SR-4 (Accurate scoring) & \mref{mScoring}, \mref{mBaseConversion}\\
+SR-4 (Accurate scoring) & \mref{mScoring}, \mref{mBaseConversion}, \mref{mNumeralSystem}\\
 SR-5 (Session recovery) & \mref{mRealtimeClient}, \mref{mRealtimeGateway}, \mref{mAuth}\\
 SR-7 (Encrypted transmit) & \mref{mAPI}, \mref{mRealtimeGateway}\\
 SR-8 (Secure storage) & \mref{mRepository}, \mref{mAuth} \\
@@ -654,10 +675,10 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
 \textbf{Anticipate Change} & \textbf{Modules} \\
 \midrule
 \acref{acRules} Rule Engine Changes & \mref{mRules}, \mref{mGameEngine} \\
-\acref{acBases} Numeric Base Support & \mref{mBaseConversion}, \mref{mScoring}, \mref{mRules}, \mref{mScoreboardView} \\
+\acref{acBases} Numeric Base Support & \mref{mBaseConversion}, \mref{mNumeralSystem}, \mref{mScoring}, \mref{mRules}, \mref{mScoreboardView} \\
 \acref{acScoring} Scoring Formula / Presentation & \mref{mScoring}, \mref{mScoreboardView} \\
 \acref{acUI} UI / Interaction Patterns & \mref{mAppShell}, \mref{mGameBoardView}, \mref{mMoveController}, \mref{mScoreboardView} \\
-\acref{acSchema} DB Schema & \mref{mRepository}, \mref{mAPI}, \mref{mProfileView} \\
+\acref{acSchema} Persistence Details & \mref{mRepository}, \mref{mAPI}, \mref{mProfileView} \\
 \acref{acRealtime} Real-time Messaging & \mref{mRealtimeGateway}, \mref{mRealtimeClient}, \mref{mGameEngine} \\
 \acref{acAuth} Authentication Policies & \mref{mAuth}, \mref{mAuthClient}, \mref{mAPI} \\
 \bottomrule
@@ -669,108 +690,102 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
 
 \section{Use Hierarchy Between Modules (Uses Relation)} \label{SecUse}
 
-% The uses hierarchy is represented as a DAG. This figure is best rendered with
-% the tikz package. If your main preamble does not include tikz, add:
-%   \usepackage{tikz}
-% The layout below intentionally favors readability; node names use the mref macros.
-
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.85, transform shape,  % Scale down to fit on page
-    xshift=-3.5cm,  % Shift graph to the left
-    node distance=2cm and 2cm, % Increased vertical and horizontal spacing
+    scale=0.80, transform shape,
+    node distance=1.8cm and 1.6cm,
     auto, >=latex, thick,
     module/.style={
         rectangle, draw=black, rounded corners, fill=white,
-        align=center, minimum height=0.9cm, minimum width=2.2cm,
+        align=center, minimum height=0.8cm, minimum width=2.0cm,
         font=\small
     },
-    % Group styles for visual distinction
-    env/.style={module, fill=gray!10},   % Environment/Databases
-    logic/.style={module, fill=blue!5},  % Core Logic
-    ui/.style={module, fill=green!5}     % Frontend/UI
+    env/.style={module, fill=gray!10},
+    logic/.style={module, fill=blue!5},
+    ui/.style={module, fill=green!5}
 ]
 
-    % --- LEVEL 1: Persistence & External (Top) ---
-    % Placing Repository centrally at top left-ish
+    % --- ROW 1: Persistence & Infra ---
     \node[env] (Repo) {\shortstack{\mref{mRepository}\\Repository}};
-    \node[env] (Auth) [right=2.5cm of Repo] {\shortstack{\mref{mAuth}\\Auth}};
-    \node[module] (Audit) [right=1.5cm of Auth] {\shortstack{\mref{mAudit}\\Audit}};
+    \node[env] (Auth) [right=2.0cm of Repo] {\shortstack{\mref{mAuth}\\Auth}};
+    \node[module] (Audit) [right=2.0cm of Auth] {\shortstack{\mref{mAudit}\\Audit}};
 
-    % --- LEVEL 2: Server Entry Points ---
-    % API uses Repo and Auth, so place it below them
-    \node[module] (API) [below=1.8cm of Auth] {\shortstack{\mref{mAPI}\\API}};
-    \node[module] (Matchmaking) [right=2cm of API] {\shortstack{\mref{mMatchmaking}\\Matchmaking}};
-    \node[logic] (GameActions) [right=1.5cm of Matchmaking] {\shortstack{\mref{mGameActions}\\Game Actions}};
-    
-    % Realtime GW is central
-    \node[module] (RealtimeGW) [below=1.8cm of API] {\shortstack{\mref{mRealtimeGateway}\\Real-time GW}};
+    % --- ROW 2: Server Entry Points ---
+    \node[module] (API) [below=2.0cm of Repo] {\shortstack{\mref{mAPI}\\API}};
+    \node[module] (Matchmaking) [right=2.0cm of API] {\shortstack{\mref{mMatchmaking}\\Matchmaking}};
 
-    % --- LEVEL 3: Core Game Logic (Server) ---
-    \node[logic] (GameEngine) [below=2cm of RealtimeGW] {\shortstack{\mref{mGameEngine}\\Game Engine}};
-    \node[logic] (Rules) [left=2cm of GameEngine] {\shortstack{\mref{mRules}\\Rules}};
-    \node[logic] (Scoring) [right=2cm of GameEngine] {\shortstack{\mref{mScoring}\\Scoring}};
-    
-    % Base Conversion is a utility used by Rules/Scoring, place below them
-    \node[logic] (BaseConv) [below=1.8cm of GameEngine] {\shortstack{\mref{mBaseConversion}\\Base Conversion}};
+    % --- ROW 3: Realtime GW ---
+    \node[module] (RealtimeGW) [below=2.0cm of API] {\shortstack{\mref{mRealtimeGateway}\\Real-time GW}};
 
-    % --- LEVEL 4: Frontend Network Layer ---
+    % --- ROW 4: Game Logic ---
+    \node[logic] (GameEngine) [below=2.0cm of RealtimeGW] {\shortstack{\mref{mGameEngine}\\Game Engine}};
+    \node[logic] (GameActions) [right=2.0cm of GameEngine] {\shortstack{\mref{mGameActions}\\Game Actions}};
+
+    % --- ROW 5: Rules / Scoring ---
+    \node[logic] (Rules) [below left=2.0cm and 1.0cm of GameEngine] {\shortstack{\mref{mRules}\\Rules}};
+    \node[logic] (Scoring) [below right=2.0cm and 1.0cm of GameEngine] {\shortstack{\mref{mScoring}\\Scoring}};
+
+    % --- ROW 6: Base / Numeral System ---
+    \node[logic] (BaseConv) [below=2.0cm of Rules] {\shortstack{\mref{mBaseConversion}\\Base Conversion}};
+    \node[logic] (NumeralSys) [below=2.0cm of Scoring] {\shortstack{\mref{mNumeralSystem}\\Numeral System}};
+
+    % --- ROW 7: Frontend Network ---
     \node[ui] (RealtimeClient) [below=2.5cm of BaseConv] {\shortstack{\mref{mRealtimeClient}\\Realtime Client}};
 
-    % --- LEVEL 5: Frontend UI Views ---
-    \node[ui] (AppShell) [left=2cm of RealtimeClient] {\shortstack{\mref{mAppShell}\\App Shell}};
-    \node[ui] (AuthClient) [left=0.8cm of AppShell] {\shortstack{\mref{mAuthClient}\\Auth Client}};
-    \node[ui] (LobbyView) [left=0.8cm of AuthClient] {\shortstack{\mref{mLobbyView}\\Lobby View}};
-    
-    \node[ui] (GameBoard) [right=2cm of RealtimeClient] {\shortstack{\mref{mGameBoardView}\\Game Board}};
-    \node[ui] (ProfileView) [right=2cm of GameBoard] {\shortstack{\mref{mProfileView}\\Profile View}};
+    % --- ROW 8: Frontend UI ---
+    \node[ui] (AuthClient) [left=1.5cm of RealtimeClient] {\shortstack{\mref{mAuthClient}\\Auth Client}};
+    \node[ui] (AppShell) [left=1.0cm of AuthClient] {\shortstack{\mref{mAppShell}\\App Shell}};
+    \node[ui] (LobbyView) [left=1.0cm of AppShell] {\shortstack{\mref{mLobbyView}\\Lobby View}};
 
-    % --- LEVEL 6: Frontend Interactions ---
-    \node[ui] (MoveCtrl) [below=1.8cm of RealtimeClient] {\shortstack{\mref{mMoveController}\\Move Controller}};
+    \node[ui] (GameBoard) [right=1.5cm of RealtimeClient] {\shortstack{\mref{mGameBoardView}\\Game Board}};
+    \node[ui] (ProfileView) [right=1.5cm of GameBoard] {\shortstack{\mref{mProfileView}\\Profile View}};
+
+    % --- ROW 9: Controller / Scoreboard ---
+    \node[ui] (MoveCtrl) [below=2.0cm of RealtimeClient] {\shortstack{\mref{mMoveController}\\Move Controller}};
     \node[ui] (Scoreboard) [right=1.5cm of MoveCtrl] {\shortstack{\mref{mScoreboardView}\\Scoreboard}};
 
+    % === EDGES ===
 
-    % --- EDGES (Arrows) ---
-
-    % Server Backend Edges
+    % Server edges
     \draw[->] (API) -- (Repo);
     \draw[->] (API) -- (Auth);
-    \draw[->] (API) -- (Audit);
-    
-    \draw[->] (RealtimeGW) edge[bend left=15] (Repo);
-    \draw[->] (RealtimeGW) edge[bend right=30] (Audit);
-    \draw[->] (RealtimeGW) -- (GameEngine);
-    
-    \draw[->] (Matchmaking) edge[bend right=15] (Repo);
-    \draw[->] (Matchmaking) -- (RealtimeGW);
+    \draw[->] (API) edge[bend left=10] (Audit);
 
-    % Game Logic Edges
+    \draw[->] (RealtimeGW) edge[bend left=20] (Repo);
+    \draw[->] (RealtimeGW) edge[bend left=10] (Audit);
+    \draw[->] (RealtimeGW) -- (GameEngine);
+
+    \draw[->] (Matchmaking) edge[bend right=10] (GameEngine);
+    \draw[->] (Matchmaking) edge[bend left=10] (Audit);
+
+    % Game Logic edges
     \draw[->] (GameEngine) -- (Rules);
     \draw[->] (GameEngine) -- (Scoring);
+    \draw[->] (GameEngine) -- (GameActions);
+    \draw[->] (GameEngine) edge[bend right=15] (NumeralSys);
     \draw[->] (Rules) -- (BaseConv);
-    \draw[->] (Scoring) -- (BaseConv);
-    \draw[->] (GameActions) edge[bend right=20] (GameEngine);
+    \draw[->] (Rules) edge[bend left=10] (NumeralSys);
+    \draw[->] (Scoring) -- (Rules);
+    \draw[->] (NumeralSys) -- (BaseConv);
 
-    % Frontend -> Backend Cross-over
-    % We use loose dashed lines or standard lines for network calls
-    \draw[->] (AuthClient) |- (API);
+    % Frontend -> Backend
+    \draw[->] (AuthClient) edge[bend right=30] (API);
     \draw[->] (RealtimeClient) -- (RealtimeGW);
 
-    % Frontend Internal Edges
+    % Frontend Internal
     \draw[->] (AppShell) -- (AuthClient);
-    \draw[->] (LobbyView) -- (AuthClient);
-    \draw[->] (LobbyView) edge[bend right=20] (API); % Lobby uses API to list rooms
-    
-    \draw[->] (GameBoard) -- (RealtimeClient);
-    \draw[->] (GameBoard) -- (Scoreboard);
-    
-    \draw[->] (MoveCtrl) -- (RealtimeClient);
-    % MoveCtrl locally validates with rules (optional arrow if client-side validation exists)
-    \draw[->] (MoveCtrl) edge[bend left=60] (Rules); 
+    \draw[->] (LobbyView) -- (RealtimeClient);
+    \draw[->] (LobbyView) edge[bend right=15] (API);
 
-    \draw[->] (Scoreboard) edge[bend left=30] (BaseConv);
-    \draw[->] (ProfileView) |- (API);
+    \draw[->] (GameBoard) -- (MoveCtrl);
+    \draw[->] (GameBoard) -- (Scoreboard);
+
+    \draw[->] (MoveCtrl) -- (RealtimeClient);
+    \draw[->] (MoveCtrl) edge[bend left=30] (Rules);
+
+    \draw[->] (Scoreboard) edge[bend left=10] (BaseConv);
+    \draw[->] (ProfileView) edge[bend left=30] (API);
 
 \end{tikzpicture}
 \caption{Use hierarchy (DAG) showing primary ``uses'' relations between modules.}
@@ -778,11 +793,9 @@ SR-10 (Input validation) & \mref{mAPI}, \mref{mRealtimeGateway}, \mref{mMoveCont
 \end{figure}
 
 \bigskip
-\noindent\textbf{Design rationale:} The DAG above shows the server-authoritative pattern: Realtime gateway owns live interactions and forwards validated moves to the Game Engine; the Game Engine uses the Rules and Scoring modules, and persistence is abstracted via the Repository. Frontend views rely on the Realtime client for live updates and the API for non-realtime operations (profile, auth, lobby listing).
+\noindent\textbf{Design rationale:} The DAG above shows the server-authoritative pattern: Realtime gateway owns live interactions and forwards validated moves to the Game Engine; the Game Engine uses the Rules and Scoring modules, and persistence is abstracted via the Repository. The Numeral System module configures the Rules, Scoring, and Base Conversion modules so that the game can operate in any supported base. Frontend views rely on the Realtime client for live updates and the API for non-realtime operations (profile, auth, lobby listing).
 
 \newpage
-%\includegraphics[width=0.7\textwidth]{UsesHierarchy.png}
-
 
 
 \newpage
@@ -806,7 +819,7 @@ The system uses two communication channels between the client (frontend) and the
   Using a request--response protocol keeps these operations simple to debug, easy to cache (when applicable), and independent from long-lived real-time connections.
 
   \item \textbf{Real-time channel (bidirectional, event-driven).}
-  This channel is used for time-sensitive game interactions that require low-latency updates, such as joining/leaving an active match, submitting player actions during gameplay, and receiving game state updates.
+  This channel is used for time-sensitive game interactions that require low-latency updates, such as joining/leaving an active match, submitting player actions during gameplay, receiving game state updates, in-game chat, and restart/rematch negotiation.
   A persistent bidirectional channel avoids polling and supports immediate state synchronization among participants.
 \end{itemize}
 
@@ -838,21 +851,46 @@ No special hardware--software communication protocol is required for this projec
 \newpage
 \section{Timeline}\label{SecTimeline}
 
-The development timeline is structured as follows:
-\begin{itemize}
-  \item \textbf{January 2026:} Documentation baseline and project setup completed
-  \item \textbf{February 2026:} Core gameplay and real-time communication implemented
-  \item \textbf{March 2026:} UI polish, integration testing, and final documentation completed
-\end{itemize}
+The development timeline is organized by module, with a target completion date and the responsible team member for each.
 
-\noindent Team responsibilities:
-\begin{itemize}
-  \item \textbf{Ammar Sharbat:} Frontend gameplay UI modules (M10--M13)
-  \item \textbf{Ruida Chen:} Backend real-time and API modules (M1--M3), server integration and session/room management (M2/M5), playable-card highlighting integration (M11/M12/M16)
-  \item \textbf{Alvin Qian:} Core domain logic modules (M15--M19), rule validation and scoring/base conversion (M16--M18)
-  \item \textbf{Jiaming Li:} Authentication, repository, and auditing modules (M4--M6, M14), integration support and testing
-  \item \textbf{All:} Integration testing, bug fixing, documentation updates (MG/MIS), and final demo preparation
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Detailed Module Implementation Timeline}
+\label{TblTimeline}
+\begin{tabularx}{\textwidth}{p{1.5cm} p{5.5cm} p{3cm} X}
+\toprule
+\textbf{Module} & \textbf{Description} & \textbf{Target Date} & \textbf{Responsible} \\
+\midrule
+\mref{mBaseConversion} & Base Conversion & Jan 20, 2026 & Alvin \\
+\mref{mNumeralSystem} & Numeral System definitions & Jan 22, 2026 & Alvin \\
+\mref{mRules} & Rules (move validation, challenges) & Jan 28, 2026 & Alvin \\
+\mref{mScoring} & Scoring & Jan 28, 2026 & Alvin \\
+\mref{mGameActions} & Game Actions types & Jan 25, 2026 & Alvin \\
+\mref{mGameEngine} & Game Engine (state machine) & Feb 5, 2026 & Alvin \\
+\midrule
+\mref{mAuth} & Authentication service & Jan 30, 2026 & Jim \\
+\mref{mRepository} & Repository (persistence) & Feb 5, 2026 & Jim \\
+\mref{mAudit} & Audit logging & Feb 5, 2026 & Jim \\
+\mref{mProfileView} & Profile View UI & Feb 15, 2026 & Jim \\
+\midrule
+\mref{mAPI} & API routes (REST) & Feb 5, 2026 & Ruida \\
+\mref{mRealtimeGateway} & Real-time Gateway (WS) & Feb 12, 2026 & Ruida \\
+\mref{mMatchmaking} & Matchmaking service & Feb 10, 2026 & Ruida \\
+\mref{mMoveController} & Move Controller (client) & Feb 18, 2026 & Ruida \\
+\midrule
+\mref{mRealtimeClient} & Real-time Client (WS) & Feb 10, 2026 & Ammar \\
+\mref{mAppShell} & Application Shell & Feb 8, 2026 & Ammar \\
+\mref{mAuthClient} & Authentication Client UI & Feb 8, 2026 & Ammar \\
+\mref{mLobbyView} & Lobby View UI & Feb 15, 2026 & Ammar \\
+\mref{mGameBoardView} & Game Board View & Feb 22, 2026 & Ammar \\
+\mref{mScoreboardView} & Scoreboard View & Feb 22, 2026 & Ammar \\
+\midrule
+\multicolumn{2}{l}{Integration testing \& bug fixing} & Mar 1--15, 2026 & All \\
+\multicolumn{2}{l}{Documentation updates (MG/MIS)} & Mar 15--25, 2026 & All \\
+\multicolumn{2}{l}{Final demo preparation} & Mar 25--31, 2026 & All \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 
 \newpage

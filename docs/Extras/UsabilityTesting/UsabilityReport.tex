@@ -1,0 +1,824 @@
+\documentclass[12pt, titlepage]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage[section]{placeins}
+
+\input{../../Comments}
+\input{../../Common}
+
+\begin{document}
+
+\title{Usability Testing Report for \progname{}}
+\author{\authname}
+\date{\today}
+
+\maketitle
+
+\pagenumbering{roman}
+
+\tableofcontents
+
+\newpage
+
+\pagenumbering{arabic}
+
+% ========================================================
+% PART 1 — Completed by Ruida
+% ========================================================
+
+\section{Introduction}\label{sec:intro}
+
+\subsection{Purpose}
+
+This report documents the systematic usability testing conducted for \progname{},
+a web-based multiplayer card game that teaches numeral systems (decimal and dozenal)
+through a variant of Crazy Eights. The purpose of the testing is to evaluate
+whether the user interface enables users to effectively and efficiently
+complete core gameplay and account-management tasks, and to identify
+usability issues before final release.
+
+\subsection{Scope}
+
+The usability evaluation covers the following areas of the application:
+\begin{itemize}
+  \item \textbf{Account management:} Registration, login, guest access, profile viewing.
+  \item \textbf{Lobby interaction:} Creating a game lobby, selecting a numeral system (decimal/dozenal), joining an existing lobby, starting a match.
+  \item \textbf{Core gameplay:} Understanding the game board layout, playing cards (including the sum rule), drawing cards, using wildcard (``10'') and skip cards, responding to arithmetic challenges triggered by face cards.
+  \item \textbf{Scoring comprehension:} Reading scores displayed in the active numeral system, understanding round results.
+  \item \textbf{Auxiliary features:} In-game chat, restart negotiation, leaving a game.
+\end{itemize}
+
+\subsection{Definitions and Abbreviations}
+
+\begin{table}[H]
+\centering
+\caption{Definitions and Abbreviations}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+SUS & System Usability Scale --- a standardized 10-item Likert-scale questionnaire for subjective usability assessment. \\
+Task completion rate & Percentage of participants who successfully complete a given task without assistance. \\
+Time on task & Elapsed time from when the participant begins a task to when they indicate completion. \\
+Dozenal & Base-12 numeral system using digits 0--9, an inverted ``2'' for ten, and an inverted ``3'' for eleven. \\
+Sum rule & A card is playable if its rank plus the top card's rank equals ``10'' in the active base (e.g., 12 in dozenal, 10 in decimal). \\
+Wildcard & A card with rank ``10'' (in the active base) that is always playable and forces a suit choice. \\
+Skip card & A card with rank ``5'' (decimal) or ``6'' (dozenal) that lets the same player continue their turn. \\
+Face card & J, Q, K (and C in dozenal); triggers an arithmetic challenge popup. Both players race to answer first and correctly (no timer). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Testing Objectives}\label{sec:objectives}
+
+The usability testing aims to answer the following research questions:
+
+\begin{enumerate}
+  \item \textbf{Learnability:} Can first-time users understand the rules of Crazy 1-0s and start playing without external instructions within 5 minutes?
+  \item \textbf{Efficiency:} Can experienced users complete a typical turn (play or draw) within 10 seconds?
+  \item \textbf{Error rate:} How often do users attempt illegal moves (e.g., playing an unplayable card), and does the system provide adequate feedback?
+  \item \textbf{Satisfaction:} Do users find the overall experience enjoyable and the interface intuitive? (Target: SUS score $\geq$ 68, the industry average.)
+  \item \textbf{Educational value:} Do users report improved understanding of dozenal arithmetic after playing at least 3 rounds in dozenal mode?
+\end{enumerate}
+
+
+\section{Methodology}\label{sec:methodology}
+
+\subsection{Study Design}
+
+A within-subjects, task-based usability study was conducted. Each participant
+performed the same set of tasks in a fixed order, followed by a post-test
+questionnaire. Sessions were conducted in-person with the facilitator
+present for observation and think-aloud prompts.
+
+\subsection{Participants}
+
+\begin{table}[H]
+\centering
+\caption{Participant Recruitment Criteria}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Criterion} & \textbf{Details} \\
+\midrule
+Sample size (target) & 5--8 participants (per Nielsen's recommendation for formative testing) \\
+Age range & 18--30 (university students) \\
+Prerequisites & Familiarity with standard playing cards; no prior exposure to Crazy 1-0s \\
+Exclusions & Members of the development team \\
+Recruitment & McMaster University campus, voluntary participation \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Equipment and Environment}
+
+\begin{itemize}
+  \item A laptop running the latest build of Crazy 1-0s in a Chrome browser.
+  \item A second device (laptop or phone) to act as the opponent for multiplayer tasks.
+  \item The opponent device is operated by the facilitator.
+  \item Screen recording software (OBS Studio) to capture user interactions.
+  \item Stopwatch for time-on-task measurement.
+  \item Printed task sheets and consent forms.
+\end{itemize}
+
+\subsection{Procedure}
+
+Each session follows this protocol:
+
+\begin{enumerate}
+  \item \textbf{Welcome \& consent} (2 min): Explain the study purpose. Obtain signed informed consent. Clarify that the \emph{system} is being tested, not the participant.
+  \item \textbf{Pre-test questionnaire} (3 min): Collect demographics, prior card-game experience, and familiarity with non-decimal number systems.
+  \item \textbf{Warm-up} (2 min): Let the participant freely explore the landing page without specific instruction.
+  \item \textbf{Task execution} (20--30 min): Participant works through the task list (Section~\ref{sec:tasks}). The facilitator times each task, notes errors and verbalizations, and provides assistance only when the participant is completely stuck (recorded as ``assisted completion'').
+  \item \textbf{Post-test questionnaire} (5 min): SUS survey plus custom questions (Section~\ref{sec:survey}).
+  \item \textbf{Debrief} (5 min): Open-ended discussion. Ask for 3 positives and 3 pain points.
+\end{enumerate}
+
+
+\section{Task Descriptions}\label{sec:tasks}
+
+Each task maps to one or more functional requirements from the SRS.
+
+\begin{longtable}{p{0.5cm} p{4.5cm} p{4cm} p{2.5cm} p{2.5cm}}
+\caption{Usability Test Tasks} \label{tab:tasks} \\
+\toprule
+\textbf{\#} & \textbf{Task Description} & \textbf{Success Criterion} & \textbf{Req.\ Trace} & \textbf{Max Time} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{\#} & \textbf{Task Description} & \textbf{Success Criterion} & \textbf{Req.\ Trace} & \textbf{Max Time} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+T1 & Create a new account with a username and password of your choice. & Account created and user is logged in. & FR-10 & 2 min \\
+\midrule
+T2 & Log out and log back in with the credentials you just created. & Successfully re-authenticated. & FR-11 & 1 min \\
+\midrule
+T3 & Create a new game lobby using the \textbf{decimal} (base-10) system. & Lobby appears in the room list with status ``OPEN''. & FR-1 & 1 min \\
+\midrule
+T4 & (Facilitator joins as opponent.) Start the match. & Game board loads for both players. & FR-1 & 30 sec \\
+\midrule
+T5 & Identify the top card on the discard pile, your hand, and whose turn it is. & Participant correctly reads all three elements aloud. & SR-2, NFR-Usability & 30 sec \\
+\midrule
+T6 & Play a legal card from your hand (if possible). & Card is accepted by the server; board updates. & FR-2, FR-3 & 15 sec \\
+\midrule
+T7 & Attempt to play an \emph{illegal} card (one that cannot be played). & System prevents the play and logs an error message in the collapsible log panel. & FR-3, SR-10 & 15 sec \\
+\midrule
+T8 & Draw a card when you have no playable cards. & Card is drawn; hand size increases by 1. & FR-2 & 15 sec \\
+\midrule
+T9 & Play a wildcard (rank ``10'') and choose a suit. & Wildcard played; suit selector appears and suit is chosen; turn ends. & FR-4 & 30 sec \\
+\midrule
+T10 & Play a face card and solve the arithmetic challenge popup. & Challenge popup appears; participant enters answer; correct answer is accepted. & FR-4 & 1 min \\
+\midrule
+T11 & Complete one full round (one player empties their hand). & Round-end summary appears showing points gained. & FR-5, FR-6 & 5 min \\
+\midrule
+T12 & Read your current score and explain what it means in the active base. & Participant correctly interprets the score display. & FR-6, FR-7 & 30 sec \\
+\midrule
+T13 & Send a chat message to your opponent during the game. & Message appears in the chat panel for both players. & (Aux) & 30 sec \\
+\midrule
+T14 & Leave the current game and return to the lobby. & Player is returned to the lobby screen. & (Aux) & 30 sec \\
+\midrule
+T15 & Create a new lobby using the \textbf{dozenal} (base-12) system, start a game, and play a card using the sum rule ($\text{card rank} + \text{top rank} = $ ``10'' in dozenal). & Sum-rule play is accepted. & FR-3, SR-1 & 3 min \\
+\midrule
+T16 & Navigate to your profile page and view your match history. & Profile page displays username and recent match records. & FR-15 \\
+
+\end{longtable}
+
+
+\section{Surveys and Questionnaires}\label{sec:survey}
+
+\subsection{Pre-Test Questionnaire}
+
+\begin{enumerate}
+  \item What is your age?
+  \item What is your field of study / occupation?
+  \item How often do you play card games (e.g., Uno, Crazy Eights, poker)?
+  \begin{itemize}[label=$\square$]
+    \item Never \quad $\square$ Rarely (few times a year) \quad $\square$ Sometimes (monthly) \quad $\square$ Often (weekly or more)
+  \end{itemize}
+  \item Have you played the traditional card game ``Crazy Eights'' before?
+  \begin{itemize}[label=$\square$]
+    \item Yes \quad $\square$ No
+  \end{itemize}
+  \item How familiar are you with numeral systems other than decimal (base-10)? (e.g., binary, hexadecimal, dozenal)
+  \begin{itemize}[label=$\square$]
+    \item Not at all \quad $\square$ Slightly familiar \quad $\square$ Moderately familiar \quad $\square$ Very familiar
+  \end{itemize}
+  \item Have you ever used dozenal (base-12) numbers before?
+  \begin{itemize}[label=$\square$]
+    \item Yes \quad $\square$ No
+  \end{itemize}
+\end{enumerate}
+
+\subsection{Post-Test: System Usability Scale (SUS)}
+
+Participants rate each statement on a 5-point Likert scale (1 = Strongly Disagree, 5 = Strongly Agree).
+
+\begin{enumerate}
+  \item I think that I would like to use this system frequently.
+  \item I found the system unnecessarily complex.
+  \item I thought the system was easy to use.
+  \item I think that I would need the support of a technical person to be able to use this system.
+  \item I found the various functions in this system were well integrated.
+  \item I thought there was too much inconsistency in this system.
+  \item I would imagine that most people would learn to use this system very quickly.
+  \item I found the system very cumbersome to use.
+  \item I felt very confident using the system.
+  \item I needed to learn a lot of things before I could get going with this system.
+\end{enumerate}
+
+\noindent \textbf{SUS scoring:} For odd-numbered items, subtract 1 from the score. For even-numbered items, subtract the score from 5. Sum all adjusted scores and multiply by 2.5. The result ranges from 0 to 100. A score $\geq$ 68 is considered above average.
+
+\subsection{Post-Test: Custom Questions}
+
+\begin{enumerate}
+  \item How clear was the game board layout (card positions, draw pile, discard pile, scores)?
+  \begin{itemize}[label=$\square$]
+    \item Very unclear \quad $\square$ Unclear \quad $\square$ Neutral \quad $\square$ Clear \quad $\square$ Very clear
+  \end{itemize}
+  \item How intuitive was the card-play interaction (click to play, highlighting of playable cards)?
+  \begin{itemize}[label=$\square$]
+    \item Very unintuitive \quad $\square$ Unintuitive \quad $\square$ Neutral \quad $\square$ Intuitive \quad $\square$ Very intuitive
+  \end{itemize}
+  \item How helpful was the visual feedback when an illegal move was attempted? (Note: error messages appear in the collapsible log panel.)
+  \begin{itemize}[label=$\square$]
+    \item Not helpful at all \quad $\square$ Slightly helpful \quad $\square$ Neutral \quad $\square$ Helpful \quad $\square$ Very helpful
+  \end{itemize}
+  \item How easy was it to understand the sum rule (card + top card = ``10'' in the active base)?
+  \begin{itemize}[label=$\square$]
+    \item Very difficult \quad $\square$ Difficult \quad $\square$ Neutral \quad $\square$ Easy \quad $\square$ Very easy
+  \end{itemize}
+  \item How enjoyable was the dozenal (base-12) mode compared to the decimal (base-10) mode?
+  \begin{itemize}[label=$\square$]
+    \item Much less enjoyable \quad $\square$ Less enjoyable \quad $\square$ About the same \quad $\square$ More enjoyable \quad $\square$ Much more enjoyable
+  \end{itemize}
+  \item How effective was the arithmetic challenge popup in reinforcing numeral system concepts?
+  \begin{itemize}[label=$\square$]
+    \item Not effective \quad $\square$ Slightly effective \quad $\square$ Neutral \quad $\square$ Effective \quad $\square$ Very effective
+  \end{itemize}
+  \item After playing several rounds in dozenal mode, how confident do you feel doing basic arithmetic in base-12?
+  \begin{itemize}[label=$\square$]
+    \item Not at all confident \quad $\square$ Slightly confident \quad $\square$ Neutral \quad $\square$ Confident \quad $\square$ Very confident
+  \end{itemize}
+  \item What was the most confusing part of the experience? (Free text)
+  \item What was the most enjoyable part of the experience? (Free text)
+  \item Any other comments or suggestions? (Free text)
+\end{enumerate}
+
+
+\section{Data Collection Plan}\label{sec:data-collection}
+
+\subsection{Quantitative Metrics}
+
+The following metrics will be collected for each task and participant:
+
+\begin{table}[H]
+\centering
+\caption{Quantitative Metrics}
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\textbf{Metric} & \textbf{Type} & \textbf{How Measured} \\
+\midrule
+Task completion rate & \% & Number of tasks completed without assistance / total tasks $\times$ 100 \\
+Assisted completion rate & \% & Tasks completed with facilitator hint / total tasks $\times$ 100 \\
+Task failure rate & \% & Tasks not completed / total tasks $\times$ 100 \\
+Time on task & seconds & Stopwatch timing from task start to completion \\
+Error count & count & Number of incorrect actions per task (e.g., illegal card play attempts, wrong navigation) \\
+SUS score & 0--100 & Computed from SUS questionnaire \\
+Custom Likert scores & 1--5 & Per-question average from custom questionnaire \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Qualitative Data}
+
+\begin{itemize}
+  \item \textbf{Think-aloud transcripts:} Notable verbalizations during task execution.
+  \item \textbf{Facilitator observations:} Hesitations, confusion, facial expressions, repeated actions.
+  \item \textbf{Debrief notes:} 3 positives and 3 pain points per participant.
+  \item \textbf{Free-text responses:} Open-ended survey answers.
+\end{itemize}
+
+
+% ========================================================
+% PART 2 — Results: P1--P3 by Ruida; P4+ and all Analysis by Alvin
+% ========================================================
+
+\section{Results}\label{sec:results}
+
+This section reports data from five participants (P1--P5).
+
+\subsection{Participant Demographics}
+
+\begin{table}[H]
+\centering
+\caption{Participant Demographics (P1--P5)}
+\begin{tabular}{c c l c c}
+\toprule
+\textbf{P\#} & \textbf{Age} & \textbf{Field} & \textbf{Card Game Exp.} & \textbf{Non-decimal Familiarity} \\
+\midrule
+P1 & 21 & Computer Science & Often & Moderately familiar \\
+P2 & 23 & Mechanical Engineering & Sometimes & Slightly familiar \\
+P3 & 20 & Biology & Rarely & Not at all \\
+P4 & 22 & Statistics & Sometimes & Slightly familiar \\
+P5 & 19 & Kinesiology & Rarely & Not at all \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Additional pre-test details:
+\begin{itemize}
+  \item P1 has played Crazy Eights before and has used hexadecimal numbers in programming courses.
+  \item P2 has not played Crazy Eights but plays Uno monthly. Has seen binary in a physics lab.
+  \item P3 has minimal card game experience (only poker twice) and no exposure to non-decimal systems.
+  \item P4 plays board/card games socially. Has encountered binary/hex briefly in a statistics computing course.
+  \item P5 has played Uno a few times. No exposure to non-decimal systems.
+\end{itemize}
+
+\subsection{Task Completion Results}
+
+\subsubsection{Raw Per-Participant Data}
+
+\begin{table}[H]
+\centering
+\caption{P1 Task Results --- CS student, frequent card player}
+\label{tab:p1-raw}
+\begin{tabular}{c c c c l}
+\toprule
+\textbf{Task} & \textbf{Status} & \textbf{Time (s)} & \textbf{Errors} & \textbf{Notes} \\
+\midrule
+T1  & Pass   & 38  & 0 & Completed smoothly. \\
+T2  & Pass   & 22  & 0 & Found logout button quickly. \\
+T3  & Pass   & 18  & 0 & Selected decimal without hesitation. \\
+T4  & Pass   & 8   & 0 & Clicked ``Start'' immediately. \\
+T5  & Pass   & 10  & 0 & Read all elements correctly. \\
+T6  & Pass   & 5   & 0 & Clicked first highlighted card. \\
+T7  & Pass   & 6   & 0 & Noticed error in collapsible log; said ``it won't let me.'' \\
+T8  & Pass   & 4   & 0 & Clicked draw pile. \\
+T9  & Pass   & 12  & 0 & Suit picker appeared; chose hearts. \\
+T10 & Pass   & 28  & 1 & Entered wrong answer first, self-corrected. \\
+T11 & Pass   & 145 & 0 & Round finished naturally. \\
+T12 & Pass   & 8   & 0 & ``I have 15 points in decimal.'' \\
+T13 & Pass   & 7   & 0 & Typed message, sent with Enter. \\
+T14 & Pass   & 6   & 0 & Clicked ``Leave'' button. \\
+T15 & Pass   & 65  & 1 & Initially confused by dozenal deck symbols; used sum rule on second try. \\
+T16 & Pass   & 14  & 0 & Navigated to profile page via top nav. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{P2 Task Results --- ME student, moderate card player}
+\label{tab:p2-raw}
+\begin{tabular}{c c c c l}
+\toprule
+\textbf{Task} & \textbf{Status} & \textbf{Time (s)} & \textbf{Errors} & \textbf{Notes} \\
+\midrule
+T1  & Pass   & 55  & 1 & Tried short password first; error message shown. \\
+T2  & Pass   & 30  & 0 & Smooth. \\
+T3  & Pass   & 25  & 0 & Briefly looked at dozenal option, chose decimal. \\
+T4  & Pass   & 10  & 0 & --- \\
+T5  & Pass   & 15  & 0 & Correctly identified all elements. \\
+T6  & Pass   & 8   & 0 & Played matching suit card. \\
+T7  & Pass   & 9   & 0 & ``Oh, it says invalid in the log. So I can't play it?'' \\
+T8  & Pass   & 6   & 0 & --- \\
+T9  & Pass   & 18  & 0 & Hesitated on suit selector, then chose. \\
+T10 & Pass   & 45  & 2 & Struggled with mental math. Entered 2 wrong answers. \\
+T11 & Pass   & 195 & 0 & Longer round; needed more draws. \\
+T12 & Pass   & 12  & 0 & Read score correctly. \\
+T13 & Pass   & 10  & 0 & --- \\
+T14 & Pass   & 8   & 0 & --- \\
+T15 & Assisted & 120 & 3 & Could not identify sum-rule pairs in dozenal. \\
+     &          &     &   & Facilitator explained inverted-2 = 10, inverted-3 = 11. \\
+T16 & Pass   & 20  & 0 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{P3 Task Results --- Biology student, rare card player}
+\label{tab:p3-raw}
+\begin{tabular}{c c c c l}
+\toprule
+\textbf{Task} & \textbf{Status} & \textbf{Time (s)} & \textbf{Errors} & \textbf{Notes} \\
+\midrule
+T1  & Pass     & 48  & 0 & Completed after reading form labels. \\
+T2  & Pass     & 35  & 1 & Mistyped password once. \\
+T3  & Pass     & 30  & 0 & Asked ``what's dozenal?'' then selected decimal. \\
+T4  & Pass     & 12  & 0 & --- \\
+T5  & Assisted & 25  & 1 & Could not locate turn indicator initially. \\
+     &          &     &   & Facilitator pointed to the glowing name label. \\
+T6  & Pass     & 12  & 1 & First click was on opponent's card area (no effect). \\
+T7  & Pass     & 8   & 0 & Eventually found error message in the log panel. \\
+T8  & Pass     & 7   & 0 & --- \\
+T9  & Pass     & 22  & 0 & ``Oh, I can pick any suit? Cool.'' \\
+T10 & Pass     & 52  & 2 & Needed two attempts at arithmetic popup. \\
+T11 & Pass     & 210 & 1 & Attempted to play during opponent's turn once. \\
+T12 & Assisted & 20  & 1 & Read the number but could not explain base meaning. \\
+     &          &     &   & Facilitator briefly explained. \\
+T13 & Pass     & 12  & 0 & --- \\
+T14 & Pass     & 10  & 0 & --- \\
+T15 & Assisted & 160 & 4 & Very confused by dozenal cards. Needed facilitator to \\
+     &          &     &   & explain sum-rule pairs. Eventually played one card. \\
+T16 & Pass     & 18  & 0 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{P4 Task Results --- Statistics student, social card player}
+\label{tab:p4-raw}
+\begin{tabular}{c c c c l}
+\toprule
+\textbf{Task} & \textbf{Status} & \textbf{Time (s)} & \textbf{Errors} & \textbf{Notes} \\
+\midrule
+T1  & Pass   & 42  & 0 & Completed smoothly. \\
+T2  & Pass   & 25  & 0 & --- \\
+T3  & Pass   & 20  & 0 & Read both options, chose decimal. \\
+T4  & Pass   & 9   & 0 & --- \\
+T5  & Pass   & 12  & 0 & Identified all elements correctly. \\
+T6  & Pass   & 7   & 0 & Played a matching rank card. \\
+T7  & Pass   & 10  & 1 & Tried to play, nothing happened. Expanded log and saw error. \\
+T8  & Pass   & 5   & 0 & --- \\
+T9  & Pass   & 15  & 0 & Chose spades from suit picker. \\
+T10 & Pass   & 35  & 1 & First answer wrong, corrected on second try. \\
+T11 & Pass   & 170 & 0 & Round completed naturally. \\
+T12 & Pass   & 10  & 0 & ``My score is 22 in decimal.'' \\
+T13 & Pass   & 8   & 0 & --- \\
+T14 & Pass   & 7   & 0 & --- \\
+T15 & Pass   & 85  & 2 & Struggled with dozenal symbols initially but figured \\
+     &        &     &   & out the sum rule after consulting the rulebook. \\
+T16 & Pass   & 16  & 0 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{P5 Task Results --- Kinesiology student, infrequent card player}
+\label{tab:p5-raw}
+\begin{tabular}{c c c c l}
+\toprule
+\textbf{Task} & \textbf{Status} & \textbf{Time (s)} & \textbf{Errors} & \textbf{Notes} \\
+\midrule
+T1  & Pass     & 50  & 0 & Read all fields carefully before submitting. \\
+T2  & Pass     & 32  & 1 & Mistyped password once. \\
+T3  & Pass     & 28  & 0 & Selected decimal; did not know what dozenal meant. \\
+T4  & Pass     & 11  & 0 & --- \\
+T5  & Pass     & 18  & 0 & Correctly identified elements after a brief pause. \\
+T6  & Pass     & 10  & 0 & Played a card of matching suit. \\
+T7  & Assisted & 15  & 1 & Tried to play card; nothing happened visually. Asked \\
+     &          &     &   & ``why didn't it work?'' Facilitator showed the log panel. \\
+T8  & Pass     & 6   & 0 & --- \\
+T9  & Pass     & 20  & 0 & ``Oh, I get to choose a suit!'' \\
+T10 & Pass     & 48  & 2 & Two wrong arithmetic answers before getting it right. \\
+T11 & Pass     & 200 & 1 & Tried playing during opponent's turn once. \\
+T12 & Assisted & 18  & 1 & Read score aloud but unsure what ``base'' means. \\
+     &          &     &   & Facilitator explained briefly. \\
+T13 & Pass     & 9   & 0 & --- \\
+T14 & Pass     & 8   & 0 & --- \\
+T15 & Assisted & 140 & 3 & Very confused by dozenal symbols. Facilitator helped \\
+     &          &     &   & identify inverted-2 and inverted-3 as 10 and 11. \\
+T16 & Pass     & 15  & 0 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Aggregated Results (P1--P5)}
+
+\begin{table}[H]
+\centering
+\caption{Aggregated Task Metrics (P1--P5, $n=5$)}
+\label{tab:agg-tasks}
+\begin{tabular}{c c c c c}
+\toprule
+\textbf{Task} & \textbf{Unassisted} & \textbf{Assisted} & \textbf{Avg Time (s)} & \textbf{Avg Errors} \\
+\midrule
+T1  & 5/5 (100\%) & 0/5 & 46.6  & 0.20 \\
+T2  & 5/5 (100\%) & 0/5 & 28.8  & 0.40 \\
+T3  & 5/5 (100\%) & 0/5 & 24.2  & 0.00 \\
+T4  & 5/5 (100\%) & 0/5 & 10.0  & 0.00 \\
+T5  & 4/5 (80\%)  & 1/5 & 16.0  & 0.20 \\
+T6  & 5/5 (100\%) & 0/5 & 8.4   & 0.20 \\
+T7  & 4/5 (80\%)  & 1/5 & 9.6   & 0.40 \\
+T8  & 5/5 (100\%) & 0/5 & 5.6   & 0.00 \\
+T9  & 5/5 (100\%) & 0/5 & 17.4  & 0.00 \\
+T10 & 5/5 (100\%) & 0/5 & 41.6  & 1.60 \\
+T11 & 5/5 (100\%) & 0/5 & 184.0 & 0.40 \\
+T12 & 3/5 (60\%)  & 2/5 & 13.6  & 0.40 \\
+T13 & 5/5 (100\%) & 0/5 & 9.2   & 0.00 \\
+T14 & 5/5 (100\%) & 0/5 & 7.8   & 0.00 \\
+T15 & 2/5 (40\%)  & 3/5 & 114.0 & 2.60 \\
+T16 & 5/5 (100\%) & 0/5 & 16.6  & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent \textbf{Summary (P1--P5):} Overall unassisted completion rate = 91.3\% (73/80 task-attempts). Four tasks received facilitator assistance: T5 (turn indicator, 1 participant), T7 (illegal-move feedback hidden in log, 1 participant), T12 (score interpretation, 2 participants), and T15 (dozenal sum rule, 3 participants). T15 remains the most problematic task with only 40\% unassisted completion and the highest average error count (2.60).
+
+\subsection{SUS Scores}
+
+Individual SUS item scores and computed totals for P1--P5:
+
+\begin{table}[H]
+\centering
+\caption{SUS Raw Scores (P1--P5)}
+\label{tab:sus-raw}
+\begin{tabular}{c c c c c c c c c c c c}
+\toprule
+ & \textbf{Q1} & \textbf{Q2} & \textbf{Q3} & \textbf{Q4} & \textbf{Q5} & \textbf{Q6} & \textbf{Q7} & \textbf{Q8} & \textbf{Q9} & \textbf{Q10} & \textbf{Score} \\
+\midrule
+P1 & 4 & 1 & 5 & 1 & 4 & 1 & 5 & 1 & 5 & 1 & \textbf{90.0} \\
+P2 & 3 & 2 & 4 & 2 & 4 & 2 & 4 & 2 & 4 & 3 & \textbf{70.0} \\
+P3 & 3 & 3 & 3 & 3 & 3 & 3 & 3 & 3 & 3 & 4 & \textbf{47.5} \\
+P4 & 3 & 2 & 4 & 2 & 4 & 2 & 4 & 2 & 4 & 2 & \textbf{72.5} \\
+P5 & 3 & 3 & 3 & 2 & 3 & 3 & 3 & 3 & 3 & 3 & \textbf{52.5} \\
+\midrule
+\multicolumn{11}{r}{\textbf{Mean (P1--P5)}} & \textbf{66.5} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent \textbf{SUS scoring verification (P4):}
+Odd items adjusted: $(3{-}1)+(4{-}1)+(4{-}1)+(4{-}1)+(4{-}1) = 2+3+3+3+3 = 14$.
+Even items: $(5{-}2)+(5{-}2)+(5{-}2)+(5{-}2)+(5{-}2) = 3+3+3+3+3 = 15$.
+Total adjusted $= 14 + 15 = 29$. SUS $= 29 \times 2.5 = 72.5$. $\checkmark$
+
+\noindent The overall mean of 66.5 falls slightly \emph{below} the industry-average threshold of 68, primarily due to P3 (47.5) and P5 (52.5). Both participants had minimal card-game experience and no prior exposure to non-decimal systems. P1 (CS, frequent player) scored highest at 90.0.
+
+\subsection{Custom Questionnaire Results}
+
+\begin{table}[H]
+\centering
+\caption{Custom Likert Responses (P1--P5; 1 = lowest, 5 = highest)}
+\label{tab:custom-likert}
+\begin{tabular}{l c c c c c c}
+\toprule
+\textbf{Question} & \textbf{P1} & \textbf{P2} & \textbf{P3} & \textbf{P4} & \textbf{P5} & \textbf{Mean} \\
+\midrule
+Q1: Board layout clarity     & 5 & 4 & 3 & 4 & 3 & 3.80 \\
+Q2: Card-play intuitiveness  & 5 & 4 & 3 & 4 & 3 & 3.80 \\
+Q3: Illegal-move feedback     & 3 & 2 & 2 & 3 & 1 & 2.20 \\
+Q4: Sum-rule understandability & 4 & 3 & 2 & 3 & 2 & 2.80 \\
+Q5: Dozenal enjoyability       & 4 & 3 & 2 & 3 & 2 & 2.80 \\
+Q6: Arithmetic challenge effectiveness & 5 & 4 & 3 & 4 & 3 & 3.80 \\
+Q7: Post-dozenal confidence    & 4 & 3 & 2 & 3 & 2 & 2.80 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Notable Free-Text Responses}
+
+\noindent\textbf{Q8: Most confusing part}
+\begin{itemize}
+  \item P1: ``The dozenal card symbols (inverted 2 and inverted 3) were not immediately obvious. I found the rulebook via the book icon, but only after the facilitator mentioned it.''
+  \item P2: ``I didn't understand how the sum rule works in dozenal. The number `10' meaning twelve is counterintuitive.''
+  \item P3: ``I didn't know what base-12 means at all. I didn't notice the book icon on the left side until late in the session.''
+  \item P4: ``When I played an illegal card, nothing seemed to happen. I had to expand the log to figure out why. A popup or card animation would have been much clearer.''
+  \item P5: ``Everything about dozenal mode was confusing. I also couldn't tell when my move was rejected---there was no obvious feedback on screen.''
+\end{itemize}
+
+\noindent\textbf{Q9: Most enjoyable part}
+\begin{itemize}
+  \item P1: ``The arithmetic race when playing face cards---competing to answer first is exciting.''
+  \item P2: ``The card animations are smooth. The UI looks polished.''
+  \item P3: ``The chat feature. I liked being able to message my opponent.''
+  \item P4: ``The competitive aspect of the arithmetic challenge. Racing my opponent to answer first made face cards exciting.''
+  \item P5: ``The overall look and feel. It doesn't feel like a student project---very professional.''
+\end{itemize}
+
+\noindent\textbf{Q10: Other comments}
+\begin{itemize}
+  \item P1: ``The book icon with the rulebook is helpful, but it could be more prominent. I didn't notice it at first.''
+  \item P2: ``The rulebook in the book icon has good info, but I wish there was an interactive tutorial for dozenal before jumping into a real game.''
+  \item P3: ``I didn't discover the book icon with the rulebook until the facilitator told me. Making it pop up for first-time users would help a lot.''
+  \item P4: ``When a move fails, there should be a toast notification or a shake animation---not just a line in a collapsible log that I might never open.''
+  \item P5: ``I think a short onboarding walkthrough for first-time players would help a lot. Also, please add a visible error message when a card can't be played.''
+\end{itemize}
+
+\subsubsection{Debrief Highlights (3 positives / 3 pain points per participant)}
+
+\begin{table}[H]
+\centering
+\caption{Debrief Summary}
+\begin{tabularx}{\textwidth}{c X X}
+\toprule
+\textbf{P\#} & \textbf{Positives} & \textbf{Pain Points} \\
+\midrule
+P1 & 1) Card highlighting is very useful.\newline 2) Arithmetic race is exciting.\newline 3) Clean, modern UI. & 1) Dozenal symbols (inverted digits) need more explanation.\newline 2) Book icon with rulebook is not prominent enough.\newline 3) Cannot undo a suit choice on wildcard. \\
+\midrule
+P2 & 1) Smooth animations.\newline 2) Lobby creation is simple.\newline 3) Score display is readable. & 1) Sum rule in dozenal is confusing.\newline 2) Illegal-move feedback only in collapsible log---easy to miss.\newline 3) Rulebook exists but could use interactive tutorial.\\
+\midrule
+P3 & 1) Chat feature is fun.\newline 2) The game is colorful.\newline 3) Account creation is easy. & 1) Book icon with rulebook not discoverable.\newline 2) Turn indicator is not obvious.\newline 3) Illegal-move errors hidden in collapsible log. \\
+\midrule
+P4 & 1) Arithmetic race is engaging.\newline 2) Rulebook content is thorough.\newline 3) Operation tables are helpful. & 1) No visual feedback on illegal moves.\newline 2) Dozenal symbols confusing at first.\newline 3) Book icon not noticeable enough. \\
+\midrule
+P5 & 1) Professional look and feel.\newline 2) Chat is fun.\newline 3) Lobby is intuitive. & 1) No onboarding for new players.\newline 2) Illegal-move rejection is invisible.\newline 3) Dozenal mode needs more guidance. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Observation: Illegal-Move Feedback}\label{sec:error-feedback}
+
+A recurring theme across participants was the difficulty of discovering illegal-move error messages. Currently, when a player attempts to play an invalid card, the system silently rejects the action and logs the error in a collapsible log panel. No visual feedback (e.g., card shake animation, toast notification, or popup) is shown on the game board itself.
+
+This was observed in:
+\begin{itemize}
+  \item \textbf{T7}: P4 and P5 both struggled to understand why their card was not played; P5 required facilitator assistance to find the log.
+  \item \textbf{Debrief}: 4 out of 5 participants mentioned the lack of visible error feedback as a pain point.
+  \item \textbf{Q3 Likert score}: Illegal-move feedback scored the lowest of all custom questions at 2.20/5.00.
+\end{itemize}
+
+\noindent\textbf{Recommendation:} Improve illegal-move feedback by replacing or supplementing the log-only message with one or more of the following:
+\begin{enumerate}
+  \item A \textbf{shake or bounce animation} on the card that the player attempted to play.
+  \item A brief \textbf{toast notification} (e.g., ``Invalid move: card does not match suit or sum rule'') displayed at the top or bottom of the game board for 2--3 seconds.
+  \item A \textbf{red highlight flash} on the attempted card before it snaps back to the hand.
+\end{enumerate}
+
+
+\section{Analysis}\label{sec:analysis}
+
+\textit{(To be completed by Alvin based on the P1--P5 data above.)}
+
+\subsection{Key Findings}
+
+% Summarize the top 3--5 usability issues discovered, ranked by severity.
+
+% - Critical: prevents task completion
+% - Major: causes significant delay or confusion
+% - Minor: cosmetic or slight inconvenience
+
+% Example format:
+% \begin{enumerate}
+%   \item \textbf{[Critical/Major/Minor]} Issue title --- description,
+%         observed in Task T\#, frequency (N/M participants affected).
+% \end{enumerate}
+
+\subsection{Learnability Assessment}
+
+% Analyze whether first-time users could start playing within 5 min (Objective 1).
+
+\subsection{Efficiency Assessment}
+
+% Analyze turn-completion times for experienced users (Objective 2).
+
+\subsection{Error Analysis}
+
+% Analyze error rates per task and the effectiveness of system feedback (Objective 3).
+
+\subsection{Satisfaction Assessment}
+
+% Analyze SUS and custom Likert scores (Objective 4).
+
+\subsection{Educational Value Assessment}
+
+% Analyze whether dozenal arithmetic confidence improved (Objective 5).
+% Compare pre-test familiarity with post-test confidence (custom Q7).
+
+
+\section{Recommendations}\label{sec:recommendations}
+
+\textit{(To be completed by Alvin based on the analysis.)}
+
+
+% \begin{table}[H]
+% \centering
+% \caption{Prioritized Usability Recommendations}
+% \begin{tabularx}{\textwidth}{c l X c}
+% \toprule
+% \textbf{\#} & \textbf{Severity} & \textbf{Recommendation} & \textbf{Related Task(s)} \\
+% \midrule
+% R1 & Critical & ... & T\# \\
+% R2 & Major & ... & T\# \\
+% ...
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+
+
+\section{Conclusion}\label{sec:conclusion}
+
+\textit{(To be completed by Alvin.)}
+
+
+\newpage
+\section{Appendices}\label{sec:appendices}
+
+\subsection{Appendix A: Informed Consent Form}
+
+\begin{center}
+\textbf{INFORMED CONSENT FORM} \\[6pt]
+\textbf{Usability Testing of \progname{}} \\[4pt]
+McMaster University --- Software Engineering 4G06
+\end{center}
+
+\noindent\textbf{Principal Investigators:} Ruida Chen, Alvin Qian \\
+\textbf{Faculty Supervisor:} Dr.\ Spencer Smith \\
+\textbf{Date:} \today
+
+\bigskip
+
+\noindent\textbf{1.\ Purpose of the Study}
+
+You are invited to participate in a usability study of \progname{}, a web-based multiplayer card game that teaches numeral systems through a Crazy Eights variant. The purpose of this study is to evaluate the user interface and identify areas for improvement before the final release. Your participation is entirely voluntary.
+
+\bigskip
+
+\noindent\textbf{2.\ What You Will Be Asked To Do}
+
+If you agree to participate, you will be asked to:
+\begin{itemize}
+  \item Complete a brief pre-test questionnaire about your background (approximately 3 minutes).
+  \item Perform a series of 16 tasks using the \progname{} application while thinking aloud (approximately 20--30 minutes).
+  \item Complete a post-test questionnaire about your experience (approximately 5 minutes).
+  \item Participate in a brief debrief discussion (approximately 5 minutes).
+\end{itemize}
+The total estimated time commitment is 40--50 minutes.
+
+\bigskip
+
+\noindent\textbf{3.\ Risks and Discomforts}
+
+There are no known risks associated with this study. You may experience mild frustration if you encounter tasks that are difficult to complete. You may skip any task or stop participation at any time without penalty.
+
+\bigskip
+
+\noindent\textbf{4.\ What Is Being Tested}
+
+We are testing the \emph{system}, not you. There are no right or wrong answers. Your honest feedback about your experience is what matters most.
+
+\bigskip
+
+\noindent\textbf{5.\ Data Collection and Confidentiality}
+
+During the session, we will collect:
+\begin{itemize}
+  \item Screen recordings of your interactions with the application.
+  \item Task completion times, error counts, and facilitator observation notes.
+  \item Your responses to pre-test and post-test questionnaires.
+  \item Your verbal comments during the think-aloud protocol.
+\end{itemize}
+
+All data will be anonymized using participant codes (e.g., P1, P2). Your real name will not appear in any report, publication, or presentation. Screen recordings will be stored on encrypted local drives and deleted after completing the study. Only the research team will have access to the raw data.
+
+\bigskip
+
+\noindent\textbf{6.\ Voluntary Participation and Withdrawal}
+
+Your participation is completely voluntary. You may withdraw from the study at any time, for any reason, without penalty. If you choose to withdraw, any data collected from your session will be destroyed and will not be included in the analysis.
+
+\bigskip
+
+\noindent\textbf{7.\ Compensation}
+
+There is no monetary compensation for participation. 
+
+\bigskip
+
+\noindent\textbf{8.\ Questions}
+
+If you have any questions about this study, please contact:
+\begin{itemize}
+  \item Ruida Chen --- \texttt{chenr110@mcmaster.ca}
+  \item Alvin Qian --- \texttt{qiana2@mcmaster.ca}
+\end{itemize}
+
+\bigskip
+
+\noindent\textbf{9.\ Consent}
+
+By signing below, I confirm that:
+\begin{itemize}
+  \item I have read and understood the information provided above.
+  \item I have had the opportunity to ask questions, and any questions have been answered to my satisfaction.
+  \item I understand that my participation is voluntary and that I may withdraw at any time.
+  \item I consent to the collection and use of my data as described above.
+  \item I agree to participate in this usability study.
+\end{itemize}
+
+\bigskip
+
+\noindent
+\begin{tabularx}{\textwidth}{X X}
+\rule{0.45\textwidth}{0.4pt} & \rule{0.45\textwidth}{0.4pt} \\
+Participant Name (Printed) & Date \\[24pt]
+\rule{0.45\textwidth}{0.4pt} & \rule{0.45\textwidth}{0.4pt} \\
+Participant Signature & Facilitator Signature \\
+\end{tabularx}
+
+\end{document}
