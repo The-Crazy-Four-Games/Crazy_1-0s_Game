@@ -1,4 +1,4 @@
-# Crazy 1-0's — Source (`src/rev0`)
+# Crazy 1-0's — Source code(final codes in `src/rev0`)
 
 A full-stack, real-time two-player card game built with React, Express, Socket.io, and a shared game-logic library. Supports **Decimal (Base-10)**, **Dozenal (Base-12)**, and **Octal (Base-8, experimental)** numeral systems.
 
@@ -27,8 +27,7 @@ rev0/
 - **Docker & Docker Compose** (optional but easiest for full-stack deployment)
 
 ---
-## Quick Start (Website)
-Our game is currently deployed on [The Crazy 1-0's](thecrazy10.click)
+## Our game is currently deployed on [The Crazy 1-0's](thecrazy10.click)
 ---
 
 ## Quick Start (Local Development)
