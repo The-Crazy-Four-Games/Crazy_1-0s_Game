@@ -10,6 +10,8 @@
 \usepackage{enumitem}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
 
 \hypersetup{
     colorlinks=true,
@@ -18,14 +20,17 @@
     citecolor=black
 }
 
-\title{\textbf{Design Thinking Report for Crazy 1-0s / Crazy Tens}}
-\author{
-    Team \#25, The Crazy Four\\
-    Ruida Chen \and Ammar Sharbat \and Alvin Qian \and Jiaming Li
-}
-\date{\today}
-
 \begin{document}
+
+    \title{Design Thinking Report for \\ Crazy 1-0s Game}
+    \author{
+        Team \#25, The Crazy Four \\[1ex]
+        Ruida Chen \\
+        Ammar Sharbat \\
+        Alvin Qian \\
+        Jiaming Li \\
+    }
+    \date{\today}
 
     \maketitle
     \thispagestyle{empty}
@@ -174,61 +179,139 @@
 
     This refined definition provided a more concrete basis for comparing prototype directions and interpreting later feedback.
 
-    \section{Prototype Directions}
+    \section{Prototype Development}
 
-    To investigate possible design directions, two early prototype concepts were considered. These were not intended to represent finalized implementations. Instead, they were used to explore different ways of balancing educational explicitness and gameplay accessibility.
+    This section summarizes the prototyping stage of the Design Thinking process. Based on the materials developed by the team, three prototypes are identified in the progression of the project. The first prototype consisted of early paper sketches and handwritten rule drafts. The second prototype presented a clearer wireframe of the main gameplay screen. The third prototype further refined the same gameplay layout by adding more interface completeness and peripheral controls. Together, these three prototypes illustrate how the design evolved from broad concept exploration to a more coherent and defensible interface direction.
 
-    \subsection{Prototype 1: Familiarity-First Approach}
+    \subsection{Prototype 1: Preliminary Sketches and Rule Exploration}
 
-    The first prototype concept emphasized familiarity. In this direction, the game remains structurally close to a conventional turn-based card game, and dozenal-related content is introduced in a lighter manner through score displays, labels, or optional hints. The educational elements remain present, but they do not dominate the early user experience.
+    The first prototype was a low-fidelity paper prototype used to externalize the earliest design ideas for the game. At this stage, the team was still determining how the educational and gameplay components should coexist within one system. As a result, the prototype included multiple exploratory sketches rather than one finalized layout.
 
-    The purpose of this prototype was to test whether users would feel more comfortable entering the system if the game initially resembled something they already understood. The expected benefit of this approach was a lower cognitive burden and a stronger sense of confidence during the first interaction.
+    Prototype 1 included rough drawings of the opening interaction, number-base selection, game mode selection, and the general game board layout. One sketch explored the idea that the player should explicitly choose between decimal and dozenal before starting the game. Another sketch proposed an early menu for selecting between two-player and multiplayer modes. Additional sketches showed the rough placement of the draw pile, discard pile, player hand, and rule display area. The prototype also included handwritten notes describing two-player rules, wild card behaviour, arithmetic operation mechanics, options, timing concepts, and point calculation ideas.
 
-    Its main limitation is that the educational content may become too subtle, making it easier for users to overlook what they are meant to learn.
+    This prototype was intentionally incomplete. The interface was monochrome and unpolished, the rule set was still changing, and many features were presented only as rough notes. Some parts of the design were cluttered, and the connection between educational mechanics and core gameplay was not yet fully resolved. However, this was acceptable because the purpose of Prototype 1 was not to test visual polish. Its role was to make the early concept concrete enough that the team could identify missing pieces, inconsistencies, and overly ambitious ideas.
 
-    \subsection{Prototype 2: Learning-First Approach}
+    Prototype 1 was especially useful for surfacing the following design questions:
 
-    The second prototype concept made the educational component more visible and explicit. In this direction, dozenal content is emphasized through stronger prompts, more noticeable explanations, and more deliberate instructional interaction. Users are guided more directly toward the mathematical purpose of the system.
+    \begin{itemize}
+        \item how number-base selection should be presented to the player;
+        \item whether multiple game modes should be supported;
+        \item where rules and options should appear so that they remain accessible without dominating the screen;
+        \item how arithmetic interactions should be triggered by cards;
+        \item and how much information should be shown at one time without overwhelming the user.
+    \end{itemize}
 
-    The purpose of this prototype was to determine whether clearer and more explicit educational support would improve understanding and help users recognize the learning objective more immediately.
+    For these reasons, Prototype 1 served primarily as a concept exploration tool. It allowed the team to externalize assumptions and begin narrowing the design space.
 
-    Its primary strength is that it aligns more visibly with the educational purpose of the project. However, its main risk is that the game may begin to feel more like instruction than play, thereby weakening user enjoyment and flow.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{P1.1.png}
+        \caption{Prototype 1 - Preliminary Sketches (Part 1)}
+        \label{fig:p1_1}
+    \end{figure}
 
-    \subsection{Comparison Criteria}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{P1.2.png}
+        \caption{Prototype 1 - Preliminary Sketches (Part 2)}
+        \label{fig:p1_2}
+    \end{figure}
 
-    The two prototype directions were compared according to the following criteria:
+    \subsection{Prototype 2: Core Gameplay Wireframe}
 
-    \begin{enumerate}[leftmargin=2em]
-        \item ease of initial understanding,
-        \item perceived approachability,
-        \item visibility of the educational objective,
-        \item effect on gameplay flow,
-        \item and overall balance between learning and enjoyment.
-    \end{enumerate}
+    The second prototype marked a shift away from broad concept exploration and toward a more focused representation of the in-game user experience. In this version, the design concentrated on the main gameplay screen and the information that would need to remain visible during play.
 
-    These criteria helped ensure that the evaluation of prototype directions remained grounded in user-centered concerns.
+    Prototype 2 presented a simplified wireframe of the central game board. It displayed the player's score, the opponent's score, the target score, and the selected base at the top of the screen. Below this, the layout clearly separated the opponent's hand, the draw pile, the discard pile, and the player's hand. At the bottom, the essential interaction buttons were reduced to direct and recognizable actions such as drawing a card or playing a card.
+
+    Compared with Prototype 1, this prototype was far more coherent as an interface. The major gameplay regions were easier to identify, the hierarchy of information was clearer, and the basic flow of a turn became more understandable. Instead of trying to represent every possible feature or rule at once, Prototype 2 focused on the recurring interaction pattern of the game and the minimum information needed to support it.
+
+    Prototype 2 was useful for evaluating whether a first-time user could quickly understand the layout of play. In particular, it helped the team reason about whether the score information was visible enough, whether the piles and hands were visually distinct, and whether the interface emphasized the player's most important actions in a sufficiently direct way.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{P2.png}
+        \caption{Prototype 2 - Core Gameplay Wireframe}
+        \label{fig:p2}
+    \end{figure}
+
+    \subsection{Prototype 3: Refined Interface Variation}
+
+    The third prototype further refined the direction established by Prototype 2. It preserved the core gameplay layout but added greater interface completeness by introducing peripheral controls and suggesting how auxiliary functions could be accessed in a more finished product.
+
+    In this version, the main board still centered on the same elements as in Prototype 2: the opponent area, the draw pile, the discard pile, the player's hand, and the main control buttons. However, extra interface elements were added around the sides of the screen, indicating how secondary actions or supporting features could be integrated without disrupting the core gameplay arrangement.
+
+    Prototype 3 is important because it shows that the design had progressed beyond a simple wireframe into a more product-oriented interface concept. It demonstrated that the layout developed in Prototype 2 was stable enough to support additional functionality. Rather than replacing the earlier design, Prototype 3 extended it, suggesting a direction for how the game could feel more complete while preserving clarity.
+
+    This prototype therefore represented a refinement stage rather than a conceptual restart. It helped the team consider not just the play area itself, but also the broader question of how the interface could remain expandable and usable as more features were incorporated.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{P3.png}
+        \caption{Prototype 3 - Refined Interface Variation}
+        \label{fig:p3}
+    \end{figure}
 
     \section{User Feedback and Comparison}
 
-    The feedback associated with the prototype directions revealed a clear tension between accessibility and educational visibility.
+    \subsection{Comparison Across the Three Prototypes}
 
-    Users responded positively to the familiarity-first direction because it reduced intimidation and made the system easier to approach. The recognizable gameplay structure provided confidence and helped users begin interacting without feeling that they first needed to master an entirely new system. This supports the earlier finding that familiarity is an effective means of lowering the entry barrier.
+    The three prototypes demonstrate a gradual narrowing and strengthening of the design direction.
 
-    At the same time, this approach introduced a potential weakness. When educational content was made too subtle, users were less likely to notice what the game was attempting to teach. In such cases, the experience risked being interpreted as an ordinary card game with only superficial differences.
+    Prototype 1 emphasized exploration. It was broad, speculative, and useful for identifying the range of possible mechanics, modes, and educational interactions. However, it also revealed the danger of trying to communicate too many ideas simultaneously.
 
-    The learning-first direction made the educational purpose much clearer. Users were more likely to recognize that the game was about a non-decimal numeral system and to pay attention to the meaning of the additional information presented. However, stronger prompts and instructional interruptions sometimes reduced the natural flow of play. For certain users, this made the system feel less like a game and more like a guided exercise.
+    Prototype 2 emphasized focus. It took the most important recurring gameplay elements and organized them into a clearer wireframe that was easier to understand and more suitable for user-centered evaluation.
 
-    Overall, the feedback suggested that neither extreme was ideal. A design that is too subtle may fail to support learning, while a design that is too explicit may harm engagement. The strongest direction therefore appears to be a hybrid one: preserving the accessibility and low-pressure entry of the familiarity-first approach while incorporating carefully selected instructional features from the learning-first approach.
+    Prototype 3 emphasized refinement. It retained the successful structure of Prototype 2 while indicating how additional controls and supporting features could be incorporated into a more complete interface.
+
+    Taken together, the three prototypes show a natural progression from concept exploration, to gameplay wireframing, to interface refinement. This progression reflects the convergence phase of Design Thinking, in which early ideas are gradually reduced and improved until a more defensible direction emerges.
+
+    \subsection{Feedback from Prof.\ Rapoport}
+
+    Feedback from Prof.\ Rapoport contributed primarily to the refinement of game rules, educational mechanics, and the relationship between numeral bases and gameplay. His comments helped identify areas where the rule system needed stronger consistency and where some mechanics could be simplified.
+
+    One major area of feedback concerned the relationship between decimal and dozenal play. The game was expected to support both bases, and several related rule details needed to be made explicit, such as the number of cards dealt, the number of wild cards, and the point target associated with each base. This reinforced the need for base selection to be treated as a meaningful game-setting decision rather than as a cosmetic label.
+
+    Another important part of the feedback addressed wild cards and arithmetic triggers. The comments suggested that the arithmetic system should be simplified and made more systematic. Instead of relying on random operation choice or unnecessarily complicated trigger logic, the arithmetic effects should be more directly linked to recognizable card categories or suits. This advice reduced ambiguity and helped move the design toward a structure that would be easier for players to learn and for the team to implement consistently.
+
+    The feedback also emphasized that typed answers would be more appropriate for arithmetic questions than more complicated multiple-choice generation. In addition, optional educational support resources, such as static addition or multiplication tables, were suggested as a better form of support than external media such as videos.
+
+    Overall, the feedback from Prof.\ Rapoport was valuable because it pushed the project toward stronger rule consistency, simpler educational mechanics, and a more coherent relation between gameplay and learning.
+
+    \subsection{Feedback from the Instructor}
+
+    The instructor feedback focused more heavily on implementation completeness, visual clarity, and practical usability. While the earlier prototypes were valuable for concept development, the feedback on the Rev0 direction emphasized that the system should move closer to a complete and credible implementation.
+
+    One major point was that the interface and implementation needed to progress beyond placeholder-level representation. The feedback specifically noted that actual card designs should be used rather than overly abstract substitutes, and that certain visual or unicode issues required correction. This reinforced the importance of making the game appear understandable and polished enough for users to interpret game state correctly.
+
+    Additional feedback highlighted missing or incomplete system features, such as authentication, timing options, support for multiple simultaneous games, and leaderboard or database integration. Although not all of these items were necessarily the highest priority, their identification showed that the project would ultimately be judged not only as a concept, but also as a functioning software system.
+
+    The instructor also stressed the importance of testing and usability evaluation. Since the project involves a rule-based game with educational mechanics, the team was encouraged to think carefully about edge cases and to ensure that game rules would always be enforced correctly. This further confirmed that usability and correctness are closely linked in the context of this project.
+
+    Taken together, the instructor feedback pushed the design from conceptual refinement toward implementation realism. It encouraged the team to think not only about what the interface should contain, but also about whether the overall system would be complete, understandable, and robust enough to support real use.
 
     \section{Design Iteration}
 
-    The feedback led to a revised direction centered on progressive and contextual support. Rather than presenting large amounts of explanation before gameplay begins, the system should reveal educational content at the moment it becomes relevant. This approach reduces unnecessary cognitive load while preserving the instructional value of the interaction.
+    The progression from Prototype 1 to Prototype 2 and then to Prototype 3 illustrates the iterative nature of the Design Thinking process in this project.
 
-    One implication of this decision is that tutorials should be integrated into gameplay rather than isolated from it. For example, if a user encounters a dozenal element for the first time, the system should provide a concise explanation in that moment. Similarly, when an invalid move or misunderstanding occurs, the resulting feedback should clarify the relevant rule instead of merely indicating failure.
+    The first prototype made it possible to externalize broad ideas about gameplay, arithmetic learning, base selection, and rule variation. However, it also showed that the system risked becoming too complicated if too many ideas were presented at once.
 
-    Another implication is that the relationship between familiar and unfamiliar representations must be made visible. If decimal and dozenal information are both relevant, the interface should communicate their connection clearly so that first-time learners are not forced to infer the meaning of the notation independently.
+    The second prototype addressed this by reducing the interface to a clearer gameplay wireframe centered on the main play experience. This made the recurring structure of the game easier to understand and provided a stronger basis for discussing usability.
 
-    In short, the iteration phase demonstrated that the goal is not to maximize the amount of educational content shown to the user. Rather, it is to provide the right support at the right time in a way that preserves confidence, curiosity, and gameplay continuity.
+    The third prototype then built on this improvement by extending the same basic layout into a more complete interface concept. Instead of redesigning the system again, it refined the established structure and suggested how more functionality could be added without losing clarity.
+
+    The two groups of external feedback further strengthened this process. Prof.\ Rapoport's comments improved rule consistency and educational mechanics, while the instructor feedback emphasized implementation completeness, testing, and usability. Together, these responses helped the team move from early conceptual enthusiasm toward a design that was clearer, more practical, and more defensible.
+
+    The final design direction that emerged from this process can be summarized as follows:
+
+    \begin{itemize}
+        \item maintain a familiar and readable card-game layout;
+        \item support both decimal and dozenal in a more systematic way;
+        \item simplify arithmetic interactions so that they remain educational without becoming confusing;
+        \item present core game information clearly during play;
+        \item and refine the interface incrementally rather than introducing unnecessary complexity too early.
+    \end{itemize}
+
+    This iterative development path demonstrates that prototyping was not merely a visual exercise. It was a way of identifying uncertainty, collecting feedback, and progressively improving both the gameplay concept and the interface structure of the project.
 
     \section{Impact on the Broader Project}
 
