@@ -1,3 +1,12 @@
+/**
+ * @file index.ts
+ * @module backend
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Application entry point: wires together storage, authentication,
+ *          matchmaking, real-time gateway, and HTTP server, then starts
+ *          listening on the configured port.
+ */
 import http from "node:http";
 import { Server as IOServer } from "socket.io";
 
@@ -15,7 +24,7 @@ import { initDb } from "./modules/db/initDb";
 const useInMemory = process.env.USE_INMEMORY === "true";
 
 async function main() {
-  // Choose repository & audit store
+  // Select the storage back-end based on the USE_INMEMORY environment flag
   let repo: InMemoryRepository | PgRepository;
   let audit: InMemoryAuditStore | PgAuditStore;
 
@@ -39,7 +48,7 @@ async function main() {
 
   const matchmaking = makeMatchmakingService({ audit });
 
-  // create and reuse a single gameSessions map
+  // Shared in-memory map that keeps all active game sessions alive for the server's lifetime
   const gameSessions = new Map<string, any>();
 
   // HTTP + WS server
@@ -51,11 +60,11 @@ async function main() {
     pingInterval: 30000,  // 30s — heartbeat interval
   });
 
-  // WS gateway (uses gameSessions, tracks users for force-logout)
+  // Register the WS gateway and make it accessible to the REST API for admin force-logout operations
   const gateway = makeRealtimeGateway({ io, auth, audit, gameSessions, repo });
   gateway.register();
 
-  // Inject gateway into app for admin force-logout
+  // Expose the gateway on the Express app instance so admin routes can call forceDisconnectUser
   (app as any)._gateway = gateway;
 
   const port = Number(process.env.PORT ?? 3001);

@@ -1,3 +1,12 @@
+/**
+ * @file LobbyScreen.tsx
+ * @module frontend/components/LobbyScreen
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Lobby and authentication screen: displays login/registration,
+ *          room creation, room browser, guest access, and waiting states
+ *          before a game session starts.
+ */
 import React, { useState, useEffect } from 'react';
 import './LobbyScreen.css';
 

@@ -1,4 +1,12 @@
-// shared/src/systems.ts
+/**
+ * @file systems.ts
+ * @module shared/systems
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Defines the NumeralSystem configurations (decimal, dozenal, octal) that
+ *          govern deck composition, scoring targets, wildcard symbols, and
+ *          display formatting for each supported game mode.
+ */
 import type { BaseSpec } from "./baseConversion.js";
 import { DOZENAL_SPEC } from "./baseConversion.js";
 

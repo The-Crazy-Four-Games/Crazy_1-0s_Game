@@ -1,4 +1,14 @@
 
+/**
+ * @file baseConversion.ts
+ * @module shared/baseConversion
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Utilities for arbitrary-base numeral systems: validation, normalization,
+ *          parsing, and formatting of digit strings in any supported base
+ *          (decimal, dozenal, octal, etc.).
+ */
+
 export class InvalidNumberFormat extends Error {
     constructor(message: string) {
         super(message);
@@ -7,11 +17,11 @@ export class InvalidNumberFormat extends Error {
 }
 
 export type BaseSpec = Readonly<{
-    base: number; // dozenal, hexadecimal, etc.
-    digits: readonly string[]; //length must be equal to base
-    aliases?: Readonly<Record<string, string>>; // alternative representations for digits
-    allowPlusSign?: boolean;// whether to allow '+' sign in the number string. false by default
-    stripLeadingZeros?: boolean; // whether to strip leading zeros from the number string. true by default
+    base: number;                                   // Numeric base (e.g. 10 for decimal, 12 for dozenal)
+    digits: readonly string[];                      // Ordered digit symbols; length must equal base
+    aliases?: Readonly<Record<string, string>>;     // Optional alternative input symbols mapped to canonical digits
+    allowPlusSign?: boolean;                        // Whether a leading '+' is accepted; defaults to false
+    stripLeadingZeros?: boolean;                    // Whether leading zero digits are removed; defaults to true
 }>
 
 export function validateBaseSpec(spec: BaseSpec): void {
@@ -67,15 +77,11 @@ export function normalizeNumberString(input: string, spec: BaseSpec): string {
     if (s.length === 0) throw new InvalidNumberFormat(`Missing digits after sign.`);
   }
 
-  // Build reverse map of canonical digits -> value
+  // Canonical digit set for O(1) membership lookup
   const canonicalSet = new Set(digits);
 
-  // Apply alias mapping and also normalize ASCII case (optional)
-  // Strategy:
-  // - For each symbol, first try direct match in canonical digits
-  // - Else try alias mapping (case-sensitive first, then uppercase fallback)
-  // Note: If your digit symbols are multi-char tokens, you'd need tokenization.
-  // For card games, digits are typically single-char, so char-based is fine.
+  // Resolve each input character to its canonical digit symbol,
+  // accepting aliases case-insensitively when an exact match fails
   const outChars: string[] = [];
   for (const ch of Array.from(s)) {
     if (canonicalSet.has(ch)) {
@@ -107,7 +113,7 @@ export function normalizeNumberString(input: string, spec: BaseSpec): string {
 }
 
 
-// Check validity without throwing; returns boolean.
+/** Returns true if the input string is a valid number in the given base; never throws. */
 export function isValidNumberString(input: string, spec: BaseSpec): boolean {
   try {
     normalizeNumberString(input, spec);
@@ -121,7 +127,7 @@ export function fromBase(input: string, spec: BaseSpec): bigint {
   const norm = normalizeNumberString(input, spec);
   const { base, digits } = spec;
 
-  // Prepare symbol -> value
+  // Digit-to-value lookup table built from the spec
   const valueMap = new Map<string, bigint>();
   digits.forEach((sym, i) => valueMap.set(sym, BigInt(i)));
 
@@ -137,7 +143,7 @@ export function fromBase(input: string, spec: BaseSpec): bigint {
   for (const ch of Array.from(s)) {
     const v = valueMap.get(ch);
     if (v === undefined) {
-      // Shouldn't happen if normalize validated
+      // Guard: normalizeNumberString should have already caught invalid symbols
       throw new InvalidNumberFormat(`Invalid digit symbol: "${ch}".`);
     }
     acc = acc * b + v;
@@ -169,7 +175,7 @@ export function toBase(n: bigint, spec: BaseSpec): string {
   return sign + parts.join("");
 }
 
-/** Convenience: parse to JS number if safe. */
+/** Parses a base-string into a JS number, throwing if the value exceeds safe-integer bounds. */
 export function fromBaseToNumber(input: string, spec: BaseSpec): number {
   const bi = fromBase(input, spec);
   const num = Number(bi);
@@ -180,7 +186,7 @@ export function fromBaseToNumber(input: string, spec: BaseSpec): number {
   return num;
 }
 
-/** Convenience: convert JS number (safe integer) to base string. */
+/** Converts a JS safe integer to its string representation in the given base. */
 export function toBaseFromNumber(n: number, spec: BaseSpec): string {
   if (!Number.isFinite(n) || !Number.isInteger(n)) {
     throw new InvalidNumberFormat(`Input must be a finite integer.`);
@@ -191,10 +197,8 @@ export function toBaseFromNumber(n: number, spec: BaseSpec): string {
   return toBase(BigInt(n), spec);
 }
 
-/** ----------- Dozenal spec (↊ ↋) + aliases ----------- */
-
-// If you prefer ASCII canonical, swap digits[10],digits[11] to "A","B"
-// and keep aliases mapping to also accept ↊↋.
+/** Base-12 (dozenal) specification using Unicode digits ↊ (ten) and ↋ (eleven),
+ *  with common ASCII aliases accepted on input (A/a/X/x for ten, B/b/E/e for eleven). */
 export const DOZENAL_SPEC: BaseSpec = {
   base: 12,
   digits: ["0","1","2","3","4","5","6","7","8","9","↊","↋"] as const,
@@ -213,7 +217,7 @@ export const DOZENAL_SPEC: BaseSpec = {
   stripLeadingZeros: true,
 };
 
-// Wrappers matching your MIS names (optional)
+// Convenience wrappers for the dozenal numeral system
 export function decimalToDozenal(n: number): string {
   return toBaseFromNumber(n, DOZENAL_SPEC);
 }

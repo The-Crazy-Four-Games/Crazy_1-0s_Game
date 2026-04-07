@@ -1,3 +1,13 @@
+/**
+ * @file ArithmeticPopup.tsx
+ * @module frontend/components/ArithmeticPopup
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Floating arithmetic challenge popup shown to both players when
+ *          a face card is played.  Presents the equation in the active
+ *          numeral base, accepts input via numpad, and displays the
+ *          dual-player resolution result (win / wrong / timeout).
+ */
 import React, { useMemo, useState, useEffect } from 'react';
 import type { MathChallenge } from '../types/game';
 import { getChallengeLabel, computeChallengeAnswer, sanitizeDozenalDisplay } from '../types/game';

@@ -1,3 +1,12 @@
+/**
+ * @file Card.tsx
+ * @module frontend/components/Card
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Renders a single playing card as an image, supporting
+ *          face-up / face-down states, interactive selection,
+ *          wildcard / skip visual badges, and drag-and-drop.
+ */
 import React from 'react';
 import type { Card as CardType } from '../types/game';
 import { getCardImagePath } from '../types/game';
