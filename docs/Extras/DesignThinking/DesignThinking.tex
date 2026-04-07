@@ -1,0 +1,257 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\title{\textbf{Design Thinking Report for Crazy 1-0s / Crazy Tens}}
+\author{
+    Team \#25, The Crazy Four\\
+    Ruida Chen \and Ammar Sharbat \and Alvin Qian \and Jiaming Li
+}
+\date{\today}
+
+\begin{document}
+
+    \maketitle
+    \thispagestyle{empty}
+    \newpage
+
+    \tableofcontents
+    \newpage
+
+    \section{Introduction}
+
+    This document presents the Design Thinking process used to support the development of the \textit{Crazy 1-0s / Crazy Tens} project. The project aims to create a digital card game that introduces users to dozenal concepts through interactive gameplay. Since the project combines educational objectives with entertainment-oriented interaction, the design problem is not purely technical. In addition to implementing a working game system, the project must ensure that users can understand the rules, remain engaged, and perceive the learning elements as helpful rather than burdensome.
+
+    A Design Thinking approach was appropriate because the success of the project depends heavily on the user experience. Even if the system is functionally correct, it may still fail if first-time users find the game confusing, intimidating, or excessively instructional. Accordingly, the purpose of this report is to document how user-centered investigation informed the design of the system before major design choices were finalized.
+
+    This report focuses on the stages of the Design Thinking process that are most relevant to the current phase of the project: understanding the problem context, identifying target users, planning and interpreting interviews, organizing empathy-based findings, defining the design problem, comparing early prototype directions, analyzing user feedback, and identifying the implications of these findings for the broader project.
+
+    \section{Design Challenge}
+
+    The central design challenge of this project is to introduce dozenal concepts in a form that is understandable, engaging, and accessible to first-time users. Most potential users are highly familiar with decimal representation and may have little to no prior exposure to base-12 notation. As a result, the project must do more than merely present alternative numeral representations. It must actively reduce the cognitive and emotional barriers associated with unfamiliar mathematical content.
+
+    This challenge is complicated by the dual nature of the project. On one hand, the system is intended to serve an educational purpose by helping users become more comfortable with dozenal ideas, numerical representation, and related mechanics. On the other hand, it must still function as a game. If the system places too much emphasis on instruction, it risks becoming tedious or intimidating. If it places too little emphasis on learning support, it may fail to achieve its educational objective.
+
+    The design challenge can therefore be stated as follows:
+
+    \begin{quote}
+        \textbf{How might we design a digital card game that introduces dozenal concepts in a way that feels approachable, engaging, and not overwhelming to first-time users?}
+    \end{quote}
+
+    This question guided the remainder of the Design Thinking process. It helped shift the focus from simply adding features to determining which design choices would most effectively support user understanding and sustained engagement.
+
+    \section{Target Users}
+
+    \subsection{Primary Users}
+
+    The primary users of the proposed system are students and other first-time players who are familiar with simple card-game mechanics but are unfamiliar with dozenal notation and related mathematical ideas. These users are especially important because they represent the intended learning audience of the system. Their responses are likely to reflect whether the game is successful as an introductory educational experience.
+
+    A second segment of the primary user group consists of casual players who enjoy rule-based games and are open to experimental or educational mechanics, provided that the experience remains intuitive and enjoyable. This group is useful because it helps evaluate whether the project can function as a game in its own right, rather than only as a teaching aid.
+
+    \subsection{Secondary Users and Stakeholders}
+
+    Secondary users and stakeholders include instructors, supervisors, teaching assistants, and evaluators who may view the system as an educational tool or as an example of user-centered design in software engineering. Although these users are not necessarily the main gameplay audience, their perspective is important when evaluating whether the learning objectives are clearly represented and whether the design decisions are justified.
+
+    \subsection{Shared User Needs}
+
+    Despite differences among these groups, several user needs were identified as common and significant:
+
+    \begin{itemize}[leftmargin=2em]
+        \item a clear and approachable introduction to the rules,
+        \item gradual exposure to unfamiliar dozenal concepts,
+        \item meaningful feedback when mistakes occur,
+        \item a game structure that feels coherent and familiar,
+        \item and a balance between educational value and enjoyment.
+    \end{itemize}
+
+    Recognizing these shared needs helped frame the project in terms of user experience rather than implementation convenience.
+
+    \section{Interview Plan}
+
+    \subsection{Purpose of the Interviews}
+
+    The interview stage was intended to help the team understand how potential users approach unfamiliar games, how they respond to educational mechanics, and what kinds of guidance they find useful when learning new rules. The interviews were not designed to confirm that the existing concept was already correct. Rather, their purpose was to gather evidence about user expectations, frustrations, and preferences so that the design could be refined accordingly.
+
+    \subsection{Interview Objectives}
+
+    The interviews were structured around the following objectives:
+
+    \begin{enumerate}[leftmargin=2em]
+        \item To understand users' prior familiarity with card games and rule-learning processes.
+        \item To investigate how users react to mathematical or educational content within a game.
+        \item To identify what makes a game feel approachable or intimidating.
+        \item To determine what form of tutorial, hint, or feedback users find most useful.
+        \item To reveal design risks that might not be obvious from the development team's perspective.
+    \end{enumerate}
+
+    \subsection{Sample Interview Questions}
+
+    To support these objectives, the interview questions were designed to be open-ended and exploratory. Representative questions included the following:
+
+    \begin{enumerate}[leftmargin=2em]
+        \item What kinds of card games or turn-based games are you already familiar with?
+        \item When learning a new game, what helps you understand the rules most effectively?
+        \item How would you respond if a game introduced a mathematical idea that you had not previously encountered?
+        \item What would make an educational game feel enjoyable rather than forced?
+        \item What types of hints or tutorials do you find helpful, and what types do you tend to ignore?
+        \item If you made a mistake because of an unfamiliar rule, what sort of feedback would you want from the system?
+        \item Would you prefer to learn most rules before starting, or gradually during gameplay?
+    \end{enumerate}
+
+    \subsection{Rationale}
+
+    These questions were selected because they allow users to describe their own experiences, habits, and frustrations rather than merely reacting to a yes-or-no proposal. This approach makes it easier to identify patterns in user behaviour and expectation, which is the primary purpose of the early Design Thinking stages.
+
+    \section{Empathy Findings}
+
+    Following the interviews, the observed responses were interpreted through an empathy-based framework. This helped organize the findings into patterns related to what users say, think, do, and feel when interacting with a new game concept.
+
+    \subsection{What Users Say}
+
+    Users generally reported that they were comfortable with familiar card-game structures, particularly when the core interaction involved recognizable actions such as playing, drawing, and matching cards. However, they also indicated that a system may become discouraging if too many new rules are introduced at once. Several users expressed a preference for concise and contextual explanations rather than long introductory tutorials.
+
+    \subsection{What Users Think}
+
+    The interviews suggested that many users implicitly view dozenal content as unfamiliar and potentially difficult, even when they are curious about it. There was also evidence that some users associate educational games with lower entertainment value. This indicates that the system must establish trust quickly by demonstrating that it is still enjoyable as a game, even while it introduces learning-oriented mechanics.
+
+    \subsection{What Users Do}
+
+    Users tend to rely on familiar patterns when approaching a new system. In practice, this means that they often search for visual cues, compare new rules to rules they already know, and pause when they are uncertain whether an action is valid. If explanations are too dense or separated from the moment in which confusion occurs, users may skip them and instead attempt to proceed by trial and error.
+
+    \subsection{What Users Feel}
+
+    The emotional responses inferred from the interviews included a mixture of curiosity, hesitation, and concern about making mistakes. Users may be interested in the novelty of a different numeral system, but they are less likely to persist if the game makes them feel incompetent early on. By contrast, a design that frames mistakes as informative and recoverable may help transform uncertainty into engagement.
+
+    \subsection{Summary of Empathy Findings}
+
+    Overall, the empathy findings indicate that the project must balance three requirements carefully:
+
+    \begin{itemize}[leftmargin=2em]
+        \item familiarity, so that users are willing to begin;
+        \item support, so that users can understand what is happening;
+        \item and novelty, so that the educational purpose of the project remains meaningful.
+    \end{itemize}
+
+    \section{Key Insights and Problem Definition}
+
+    Several important insights emerged from the interview and empathy stages.
+
+    \subsection{Insight 1: Users Resist Overload More Than Learning Itself}
+
+    The evidence suggests that users are not necessarily opposed to learning dozenal concepts. Rather, they are more likely to resist an experience that appears dense, complicated, or inaccessible at the beginning. This means that the primary obstacle is not the content itself, but the manner in which it is introduced.
+
+    \subsection{Insight 2: Familiar Gameplay Lowers the Entry Barrier}
+
+    A recognizable card-game structure provides an important scaffold for the learning experience. By embedding new ideas within a familiar framework, the system can reduce uncertainty and encourage users to continue interacting with the game even when unfamiliar elements appear.
+
+    \subsection{Insight 3: Feedback Functions as a Learning Mechanism}
+
+    In this project, system feedback is not merely a usability feature. Since the game introduces unfamiliar representations and rules, feedback also serves as an instructional tool. Well-timed explanations can transform errors into learning opportunities, while unclear rejection messages may increase frustration and confusion.
+
+    \subsection{Refined Problem Definition}
+
+    Based on these insights, the design problem was refined into the following statement:
+
+    \begin{quote}
+        \textbf{First-time users require a game experience that introduces dozenal concepts gradually through familiar gameplay, contextual guidance, and low-pressure feedback, because abrupt complexity and poorly timed explanations can make the system feel confusing rather than educational.}
+    \end{quote}
+
+    This refined definition provided a more concrete basis for comparing prototype directions and interpreting later feedback.
+
+    \section{Prototype Directions}
+
+    To investigate possible design directions, two early prototype concepts were considered. These were not intended to represent finalized implementations. Instead, they were used to explore different ways of balancing educational explicitness and gameplay accessibility.
+
+    \subsection{Prototype 1: Familiarity-First Approach}
+
+    The first prototype concept emphasized familiarity. In this direction, the game remains structurally close to a conventional turn-based card game, and dozenal-related content is introduced in a lighter manner through score displays, labels, or optional hints. The educational elements remain present, but they do not dominate the early user experience.
+
+    The purpose of this prototype was to test whether users would feel more comfortable entering the system if the game initially resembled something they already understood. The expected benefit of this approach was a lower cognitive burden and a stronger sense of confidence during the first interaction.
+
+    Its main limitation is that the educational content may become too subtle, making it easier for users to overlook what they are meant to learn.
+
+    \subsection{Prototype 2: Learning-First Approach}
+
+    The second prototype concept made the educational component more visible and explicit. In this direction, dozenal content is emphasized through stronger prompts, more noticeable explanations, and more deliberate instructional interaction. Users are guided more directly toward the mathematical purpose of the system.
+
+    The purpose of this prototype was to determine whether clearer and more explicit educational support would improve understanding and help users recognize the learning objective more immediately.
+
+    Its primary strength is that it aligns more visibly with the educational purpose of the project. However, its main risk is that the game may begin to feel more like instruction than play, thereby weakening user enjoyment and flow.
+
+    \subsection{Comparison Criteria}
+
+    The two prototype directions were compared according to the following criteria:
+
+    \begin{enumerate}[leftmargin=2em]
+        \item ease of initial understanding,
+        \item perceived approachability,
+        \item visibility of the educational objective,
+        \item effect on gameplay flow,
+        \item and overall balance between learning and enjoyment.
+    \end{enumerate}
+
+    These criteria helped ensure that the evaluation of prototype directions remained grounded in user-centered concerns.
+
+    \section{User Feedback and Comparison}
+
+    The feedback associated with the prototype directions revealed a clear tension between accessibility and educational visibility.
+
+    Users responded positively to the familiarity-first direction because it reduced intimidation and made the system easier to approach. The recognizable gameplay structure provided confidence and helped users begin interacting without feeling that they first needed to master an entirely new system. This supports the earlier finding that familiarity is an effective means of lowering the entry barrier.
+
+    At the same time, this approach introduced a potential weakness. When educational content was made too subtle, users were less likely to notice what the game was attempting to teach. In such cases, the experience risked being interpreted as an ordinary card game with only superficial differences.
+
+    The learning-first direction made the educational purpose much clearer. Users were more likely to recognize that the game was about a non-decimal numeral system and to pay attention to the meaning of the additional information presented. However, stronger prompts and instructional interruptions sometimes reduced the natural flow of play. For certain users, this made the system feel less like a game and more like a guided exercise.
+
+    Overall, the feedback suggested that neither extreme was ideal. A design that is too subtle may fail to support learning, while a design that is too explicit may harm engagement. The strongest direction therefore appears to be a hybrid one: preserving the accessibility and low-pressure entry of the familiarity-first approach while incorporating carefully selected instructional features from the learning-first approach.
+
+    \section{Design Iteration}
+
+    The feedback led to a revised direction centered on progressive and contextual support. Rather than presenting large amounts of explanation before gameplay begins, the system should reveal educational content at the moment it becomes relevant. This approach reduces unnecessary cognitive load while preserving the instructional value of the interaction.
+
+    One implication of this decision is that tutorials should be integrated into gameplay rather than isolated from it. For example, if a user encounters a dozenal element for the first time, the system should provide a concise explanation in that moment. Similarly, when an invalid move or misunderstanding occurs, the resulting feedback should clarify the relevant rule instead of merely indicating failure.
+
+    Another implication is that the relationship between familiar and unfamiliar representations must be made visible. If decimal and dozenal information are both relevant, the interface should communicate their connection clearly so that first-time learners are not forced to infer the meaning of the notation independently.
+
+    In short, the iteration phase demonstrated that the goal is not to maximize the amount of educational content shown to the user. Rather, it is to provide the right support at the right time in a way that preserves confidence, curiosity, and gameplay continuity.
+
+    \section{Impact on the Broader Project}
+
+    The Design Thinking process influenced the broader project in several important ways.
+
+    First, it shifted the design perspective from feature-centered reasoning to user-centered reasoning. Instead of focusing only on what mechanics could be implemented, the team was prompted to consider what users would understand, what they would hesitate over, and what would motivate continued engagement.
+
+    Second, it strengthened the rationale for several project priorities. The need for onboarding support, progressive learning assistance, and clear explanatory feedback became more significant after the user-centered stages of the process. These issues are not merely implementation details; they are central to whether the project can achieve its intended purpose.
+
+    Third, the process improved traceability. Design choices could now be linked back to observed or inferred user needs rather than justified solely by team preference. This strengthens the overall coherence of the project by connecting design decisions to concrete evidence gathered during early investigation.
+
+    For these reasons, the Design Thinking process served not as a separate exercise, but as a foundation that informed later requirements, interface decisions, and implementation priorities.
+
+    \section{Reflection}
+
+    The Design Thinking process provided several important lessons.
+
+    First, it demonstrated that educational software cannot be designed effectively from the development team's perspective alone. Even when the intended learning objective appears clear internally, users may interpret the same design very differently depending on their background, confidence, and expectations.
+
+    Second, it showed that uncertainty in the early stages of design is not necessarily a weakness. Questions regarding how visible the educational elements should be, how strong the feedback should be, and how much novelty users can tolerate proved valuable because they led to more focused inquiry and more meaningful prototype comparison.
+
+    Third, the process reinforced the importance of iteration. Initial design directions were useful starting points, but they became more defensible only after being examined through interview-based evidence, empathy analysis, and prototype feedback. This suggests that effective software design is not solely a matter of building a functional system, but of progressively refining a system so that it aligns with the needs and expectations of its intended users.
+
+    In future software engineering work, this experience will remain relevant wherever user understanding, confidence, and engagement are critical to project success. It illustrates that human-centered design is not an optional addition to development, but an essential part of creating software that is both usable and meaningful.
+
+\end{document}
