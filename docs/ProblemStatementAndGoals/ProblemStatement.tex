@@ -164,9 +164,20 @@
         \item Gamers
         \item Game Developers
         \item General Public (tradespeople, technicians, office workers)
+    \end{itemize}
 
     \subsection{Environment}
-    
+    The environment for this project is a web-first system that runs on everyday devices, not special hardware. It is built for modern browsers and a Node.js-backed server, with a focus on standard open-source tools that are easy for the team to install and use.
+
+    \begin{itemize}
+        \item \textbf{Hardware:} Standard desktop or laptop computers, ideally with a current CPU, 8GB+ RAM, and internet access. No special sensors, GPUs, or physical cards are required.
+        \item \textbf{Client Software:} Modern web browsers such as Chrome, Firefox, or Edge. The UI is intended for browser delivery so players can access it without installing native apps.
+        \item \textbf{Server Software:} Node.js on the backend, with a typical web stack supporting REST/WebSocket communication. The team expects the backend to run in local dev environments and cloud-friendly deployments.
+        \item \textbf{Data Layer:} A relational database like PostgreSQL or MySQL is expected for storing user profiles, game history, and scoring data.
+        \item \textbf{Development Environment:} The code is developed with TypeScript and unit-tested using Vitest. The shared library module in `src/rev0/shared` shows this is a modern JS/TS workspace.
+    \end{itemize}
+
+    The system is a browser-based game with a Node.js backend, delivered via standard web infrastructure and accessible from ordinary notebooks or PCs.
 
     \section{Goals}
 
@@ -177,19 +188,19 @@
         \caption{MVP Functional Goals}\label{TblMVPFunctionalGoals}
         \begin{tabular}{|p{0.22\textwidth}|p{0.46\textwidth}|p{0.28\textwidth}|}
             \hline
-            \textbf{Goal} & \textbf{Explanation} & \textbf{Reasoning} \\
+            \textbf{Goal} & \textbf{Description} & \textbf{Reasoning} \\
             \hline
-            Two-Player Core Loop &
-            Support a one-versus-one match with turn-taking, drawing, discarding, and win checks. Includes starter card, discard pile, and reshuffling the stock pile. &
+            Core Two-Player Gameplay Loop &
+            Support a 1v1 match system with turn-taking, drawing, discarding, and win checks. Includes starter card, discard pile, and reshuffling the stock pile. &
             Two players are the smallest playable unit; finishing this proves the core loop. \\
             \hline
-            Classic Rules Engine &
-            Implement standard Crazy Eights: match by suit or rank; an ``8'' is wild and lets the player declare a suit; draw if no valid move exists. &
-            Correct classic rules establish a solid baseline before adding variations. \\
+            Classic Rules Game Engine &
+            Implement standard Crazy Eights with a small twist: match by suit or rank; a ``10'' is wild and lets the player declare a suit; add another rule that incorporates counting; draw if no valid move exists. &
+            Classic / flagship rules establish a solid baseline before adding notable variations. \\
             \hline
             Dozenal (Base-12) Scoring/Display &
-            Display scores, counters, or thresholds in base-12 notation while keeping classic rules unchanged. &
-            Introduces dozenal in a simple, non-disruptive way that highlights novelty while retaining accessibility. \\
+            Display cards, scores, and numbers in Base-12 notation while keeping classic rules unchanged. &
+            Introduces Dozenal in a simple way that highlights novelty while retaining accessibility. \\
             \hline
         \end{tabular}
     \end{table}
@@ -199,52 +210,34 @@
         \caption{MVP Non-functional Goals}\label{TblMVPNonFunctionalGoals}
         \begin{tabular}{|p{0.22\textwidth}|p{0.46\textwidth}|p{0.28\textwidth}|}
             \hline
-            \textbf{Goal} & \textbf{Explanation} & \textbf{Reasoning} \\
+            \textbf{Goal} & \textbf{Description} & \textbf{Reasoning} \\
+            Game Understandability &
+            Simple and clear rules, Intuitive UI, and in-game prompts / notifications to guide new players. &
+            Ensures the game is accessible to a wide audience, including those unfamiliar with Dozenal. \\
             \hline
             Move Validation and Feedback &
-            Provide immediate invalid-move feedback, clear suit selection UI after playing an ``8,'' and real-time state indicators. &
-            Reduces errors and learning curve; improves usability. \\
+            Provide immediate invalid-move feedback, clear suit selection UI after playing a `10,'' and real-time state indicators. &
+            Standardizes gameplay and behaviour; Reduces errors and learning curve; Improves usability.\\
             \hline
             Testability and Determinism &
-            Support seeded shuffling and provide basic logs or replays for each session. &
-            Enables reproducible unit/integration testing and debugging. \\
+            Support seeded shuffling and provide basic or detailed logs for each session. &
+            Enables reproducible unit/integration testing and easy debugging. \\
             \hline
             Stability and Performance &
             Ensure responsive UI \(<200\,\text{ms}\), no crashes, no deadlocks, and correct reshuffling. &
-            Reliability is the baseline for acceptance and live demonstration. \\
+            Reliability is the baseline for swift acceptance and live demonstrations. \\
             \hline
             Minimal UI &
-            Provide a desktop~or web interface showing hand, discard pile, current state, and a dozenal score tracker. &
+            Provide web interface showing hand, discard pile, current state, and a Dozenal score tracker. &
             Covers essential interactions while limiting complexity at the MVP stage. \\
+            \hline
+            Fun gameplay &
+            Ensure the game is enjoyable and engaging, with a good balance of strategy and chance. &
+            A fun game will encourage players to return and learn more about Dozenal counting, increasing educational impact. \\
             \hline
         \end{tabular}
     \end{table}
 
-    \subsubsection{Non-functional Goals}
-    \begin{table}[h!]
-        \caption{MVP Non-functional Goals}\label{TblMVPNonFunctionalGoals}
-        \begin{tabularx}{\textwidth}{|L|L|L|}
-            \hline
-            \textbf{Goal} & \textbf{Explanation} & \textbf{Reasoning} \\
-            \hline
-            Move Validation and Feedback &
-            Provide immediate invalid-move feedback, clear suit selection UI after playing an ``8,'' and real-time state indicators. &
-            Reduces errors and learning curve; improves usability. \\
-            \hline
-            Testability and Determinism &
-            Support seeded shuffling and provide basic logs or replays for each session. &
-            Enables reproducible unit/integration testing and debugging. \\
-            \hline
-            Stability and Performance &
-            Ensure responsive UI, no crashes, no deadlocks, and correct reshuffling. &
-            Reliability is the baseline for acceptance and live demonstration. \\
-            \hline
-            Minimal UI &
-            Provide a desktop~or web interface showing hand, discard pile, current state, and a dozenal score tracker. &
-            Covers essential interactions while limiting complexity at the MVP stage. \\
-            \hline
-        \end{tabularx}
-    \end{table}
 
     \section{Stretch Goals}
 
