@@ -26,7 +26,7 @@
 
 \begin{document}
 
-\title{Software Requirements Specification for \progname: subtitle describing software}
+\title{Software Requirements Specification for\\\progname}
 \author{
     Team \#25, The Crazy Four \\[1ex]
     Ruida Chen \\
@@ -65,6 +65,8 @@
         10.9 & Alvin Qian & Appendix and Reflection\\
         10.12 & Ammar Sharbat & Section 1.1, 2, 5, 13, 15, 18\\
         10.13 & Ammar Sharbat & Section 18, 19, 25\\
+        04.06 & Ammar Sharbat & Section 1, 11, Removed Section 18\\
+        
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -85,15 +87,32 @@ We aim to accomplish the aforementioned by designing and implementing an educati
 \end{itemize}
 
 \subsection{Goals of the Project}
-The goals of this project are:
+The Minimum Viable Product (MVP) introduces dozenal (base-12) concepts through an engaging Crazy Eights card game, while laying the foundation for future educational expansions.
+
+\subsubsection{MVP Functional Goals}
 \begin{itemize}
-    \item Educational Integration: Seamlessly incorporate Dozenal concepts (numerical symbols, factorization, arithmetic) into the gameplay, ensuring that players learn by playing without requiring formal prior knowledge.
-    \item Gameplay Design: Deliver a working digital version of this variant of \textit{Crazy 8s} that is intuitive, responsive, and enjoyable, while maintaining the familiar flow of the original game and introducing Dozenal-specific mechanics.
-    \item Accessibility: Create a user-friendly interface that lowers the barrier to learning, accessible for casual users while offering depth for learners who want to explore Dozenal further.
-    \item Testability: Implement robust testing strategies to ensure correctness of game logic, Dozenal calculations, and user interactions.
-    \item Measuring Educational Impact (Stretch Goal): Assessing impact by collecting user data through user engagement, playtesting, progress monitoring and player feedback collection.
-    \item Scalability (Stretch Goal): Explore the potential for extending the system to other educational card or board games, and investigate how different number bases can be taught through similar game mechanics.
+    \item \textbf{Two-Player Core Loop:} Support a one-versus-one match with turn-taking, drawing, discarding, and win checks. Includes starter card, discard pile, and reshuffling the stock pile. \\
+    \textbf{Rationale:} Two players are the smallest playable unit; finishing this proves the core loop.
+    \item \textbf{Classic Rules Engine:} Implement standard Crazy Eights: match by suit or rank; an ``8'' is wild and lets the player declare a suit; draw if no valid move exists. \\
+    \textbf{Rationale:} Correct classic rules establish a solid baseline before adding variations.
+    \item \textbf{Dozenal (Base-12) Scoring/Display:} Display scores, counters, or thresholds in base-12 notation while keeping classic rules unchanged. \\
+    \textbf{Rationale:} Introduces dozenal in a simple, non-disruptive way that highlights novelty while retaining accessibility.
 \end{itemize}
+
+\subsubsection{MVP Non-functional Goals}
+\begin{itemize}
+    \item \textbf{Move Validation and Feedback:} Provide immediate invalid-move feedback, clear suit selection UI after playing an ``8,'' and real-time state indicators. \\
+    \textbf{Rationale:} Reduces errors and learning curve; improves usability.
+    \item \textbf{Testability and Determinism:} Support seeded shuffling and provide basic logs or replays for each session. \\
+    \textbf{Rationale:} Enables reproducible unit/integration testing and debugging.
+    \item \textbf{Stability and Performance:} Ensure responsive UI $<200\,\text{ms}$, no crashes, no deadlocks, and correct reshuffling. \\
+    \textbf{Rationale:} Reliability is the baseline for acceptance and live demonstration.
+    \item \textbf{Minimal UI:} Provide a desktop or web interface showing hand, discard pile, current state, and a dozenal score tracker. \\
+    \textbf{Rationale:} Covers essential interactions while limiting complexity at the MVP stage.
+\end{itemize}
+
+\subsubsection{Stretch Goals}
+Stretch goals include extending the game to support more players, online multiplayer, AI opponents, advanced dozenal variants, and enhanced usability features such as tutorials and cross-platform deployment. These are detailed in the Waiting Room section.
 
 \section{Stakeholders}
 
@@ -903,6 +922,31 @@ This section lists unimplemented features (stretch goals) relating to the Crazy 
 
 \subsection{Functional Stretch Requirements}
 \begin{enumerate}
+
+  \item \textbf{Online Multiplayer (Stretch-L1)}\\
+  \textbf{Description:} Create/join rooms and synchronize game state; provide basic reconnection.\\
+  \textbf{Rationale:} Demonstrates system design capability and supports real usage.\\
+  \textbf{Fit Criterion:} Players can create and join rooms, game state synchronizes across clients, and reconnection works after brief disconnections.
+  
+  \item \textbf{AI Opponent (Stretch-L1)}\\
+  \textbf{Description:} Computer-controlled players with simple heuristics for card choice and suit declaration.\\
+  \textbf{Rationale:} Enables single-player testing and showcases extensibility.\\
+  \textbf{Fit Criterion:} AI opponent plays valid moves, declares suits appropriately, and loses/wins matches against human players.
+  
+  \item \textbf{Advanced Dozenal Variants (Stretch-L1)}\\
+  \textbf{Description:} Optional rule packs (e.g., effects for 12-related cards; base-12 scoring thresholds such as \(60_{12}\)).\\
+  \textbf{Rationale:} Deepens the dozenal theme while keeping the classic mode intact.\\
+  \textbf{Fit Criterion:} Variant rules can be enabled in lobby, affect gameplay as specified, and scores are computed in dozenal.
+  
+  \item \textbf{Rule Configurator (Stretch-L1)}\\
+  \textbf{Description:} Toggles for house rules (draw-until-playable, stacking eights, scoring methods in decimal or dozenal).\\
+  \textbf{Rationale:} Shows variability management; supports experimentation and future product-line thinking.\\
+  \textbf{Fit Criterion:} House rules can be toggled in lobby settings and correctly applied during gameplay.
+  
+  \item \textbf{Save/Replay System (Stretch-L1)}\\
+  \textbf{Description:} Save completed games and replay event sequences.\\
+  \textbf{Rationale:} Aids debugging, user study, and documentation.\\
+  \textbf{Fit Criterion:} Completed games can be saved and replayed with accurate event sequences.
   
   \item \textbf{4-player match support (Stretch-L2)}\\
   \textbf{Description:} Extend session logic to allow 3--4 players, clear turn rotation, and UI to display additional hands.\\
@@ -934,6 +978,11 @@ This section lists unimplemented features (stretch goals) relating to the Crazy 
 
 \subsection{Education / Learning Stretch Requirements (mapped to Section 11)}
 \begin{enumerate}
+  \item \textbf{Tutorial and Visual Guidance (Stretch-E1)}\\
+  \textbf{Description:} First-game tutorial, invalid-move highlights, and play suggestions.\\
+  \textbf{Rationale:} Lowers the learning curve and improves usability.\\
+  \textbf{Fit Criterion:} Tutorial guides new players through basic gameplay, highlights invalid moves, and provides suggestions during play.
+  
   \item \textbf{Advanced arithmetic mini-challenges (Stretch-E1)}\\
   \textbf{Description / Form:} When enabled in lobby, certain wild-card plays trigger short arithmetic mini-challenges (e.g., compute sum in active base). These are optional and configurable.\\
   \textbf{Motivation:} Deepen learning for engaged classes.\\
