@@ -239,9 +239,9 @@ Stretch goals include extending the game to support more players, online multipl
 Stakeholder list and contact/role assignments exist in the project README and team Kanban; at least one named representative for each stakeholder category is recorded. Evidence: README / Team Roles section and meeting minutes indicating stakeholder reviews.
 
 
-\section{3. Mandated Constraints}
+\section{Mandated Constraints}
 
-\subsection{3a. Solution Constraints}
+\subsection{Solution Constraints}
 \textbf{Description:} The system must be developed using a sound and scalable technology stack that supports web-based deployment.
 \textbf{Rationale:} Ensures the team gains proficiency in useful modern web development frameworks, aligning with the project's educational goals and contributing to long-term career growth. These technologies provide strong essential knowledge for building robust web applications.
 \textbf{Fit Criterion:} The frontend code is written in React (verified by package.json and component structure), and the backend is implemented in Node.js (verified by server files and runtime environment).
@@ -250,7 +250,7 @@ Stakeholder list and contact/role assignments exist in the project README and te
 \textbf{Rationale:} Version control is essential for collaborative development, and maintaining a history of changes, which is critical for team coordination and project traceability.
 \textbf{Fit Criterion:} All code is stored in a GitHub repository, with commits made for each significant change and pull requests used for code reviews.
 
-\subsection{3b. Implementation Environment of the Current System}
+\subsection{Implementation Environment of the Current System}
 
 \textbf{Server-hosting:} The backend must operate with a consistent server side connection.
 \textbf{Rationale:} A stable server environment is essential for hosting the game logic, managing user sessions, and ensuring real-time interactions between players.
@@ -264,7 +264,7 @@ Stakeholder list and contact/role assignments exist in the project README and te
 \textbf{Rationale:} Targeting modern browsers ensures broad accessibility and compatibility with standard web technologies.
 \textbf{Fit Criterion:} The application loads and functions correctly in Chrome, Firefox, and Edge, verified through cross-browser testing.
 
-\subsection{3c. Partner or Collaborative Applications}
+\subsection{Partner or Collaborative Applications}
 
 \textbf{Description:} The team must use GitHub for code collaboration and issue tracking.
 \textbf{Rationale:} GitHub facilitates distributed development and project management through its integrated tools.
@@ -274,7 +274,7 @@ Stakeholder list and contact/role assignments exist in the project README and te
 \textbf{Rationale:} Discord provides efficient channels for quick updates, discussions, and meetings, supporting remote collaboration.
 \textbf{Fit Criterion:} Team communications occur via Discord channels, with records of key decisions logged.
 
-\subsection{3d. Off-the-Shelf Software}
+\subsection{Off-the-Shelf Software}
 
 \textbf{Description:} The system must rely primarily on open-source libraries.
 \textbf{Rationale:} Open-source libraries reduce costs and promote community-supported, reliable components.
@@ -284,13 +284,13 @@ Stakeholder list and contact/role assignments exist in the project README and te
 \textbf{Rationale:} Ensuring no proprietary dependencies allows free access and broad usability.
 \textbf{Fit Criterion:} The application runs without requiring any proprietary software installations, verified by user testing.
 
-\subsection{3e. Anticipated Workplace Environment}
+\subsection{Anticipated Workplace Environment}
 
 \textbf{Description:} End users are expected to interact with the application primarily on web browsers.
 \textbf{Rationale:} Web-based deployment simplifies access and reduces platform-specific requirements.
 \textbf{Fit Criterion:} The application is fully functional within web browsers without additional software.
 
-\subsection{3f. Schedule Constraints}
+\subsection{Schedule Constraints}
 
 \textbf{Description:} The project must be completed within the academic deadline.
 \textbf{Rationale:} Academic timelines ensure timely delivery and alignment with course requirements.
@@ -300,7 +300,7 @@ Stakeholder list and contact/role assignments exist in the project README and te
 \textbf{Rationale:} Regular check-ins provide oversight and feedback to maintain project quality.
 \textbf{Fit Criterion:} Check-ins occur as scheduled, with documented progress and TA approvals.
 
-\subsection{3g. Budget Constraints}
+\subsection{Budget Constraints}
 
 \textbf{Description:} Total financial budget is under 500 Canadian Dollars.
 \textbf{Rationale:} Limited budget enforces cost-effective development using free or low-cost tools.
@@ -310,7 +310,7 @@ Stakeholder list and contact/role assignments exist in the project README and te
 \textbf{Rationale:} Free tools minimize costs and promote sustainable development practices.
 \textbf{Fit Criterion:} All development tools and services are free or open-source, confirmed by usage logs.
 
-\subsection{3h. Enterprise Constraints}
+\subsection{Enterprise Constraints}
 
 \textbf{Description:} The project must comply with academic integrity and university policies.
 \textbf{Rationale:} Compliance ensures ethical development and avoids penalties.
@@ -374,33 +374,30 @@ involved in the Project}
 \section{The Scope of the Work}
 \subsection{The Current Situation}
 
-The current numerical system used around the world is predominantly decimal (base-10). This system, while widely adopted, has limitations in representing fractions cleanly, as its prime factors (2 and 5) result in recurring decimals for simple ratios 1/3 or 1/6. On the other hand, the dozenal (base-12) system, with divisors 2, 3, 4, and 6, offers a more intuitive and concise fraction representations, historically used in trade and measurement systems (e.g., dozens, hours). However, dozenal is underutilized in education and practice, leaving students, educators, and professionals reliant on decimal despite its inefficiencies for certain calculations. There is no current fun and engaging way to demonstrate the practical advantages of dozenal, such as a card game like Crazy Eights, to promote its adoption.
+No pre-existing educational card game exists that integrates Dozenal (Base-12) scoring and notation into gameplay to teach alternative number systems. Existing card games like Crazy Eights use decimal scoring, and educational tools for dozenal are limited to abstract calculators or texts, lacking interactive, gamified experiences that could engage learners and demonstrate practical advantages.
 
 \subsection{The Context of the Work}
 
-The project focuses on the software implementation of the Crazy Eights card game that incorporates dozenal (base-12) scoring and display to highlight the benefits of the dozenal system. The context includes:
+The work context focuses on the educational and recreational use of card games to teach alternative number systems. Adjacent systems include:
 
-\begin{itemize}
-    \item \textbf{Educational Context}: The project will simplify mathematical understanding for the user by showing dozenal's advantages in a familiar and fun game format.
-    \item \textbf{Technical Context}: The software will be developed using a modern tech stack for web applications (JavaScript, TypeScript, Node.js, React, PostgreSQL) and use GitHub CI/CD pipelines for version control and testing.
-    \item \textbf{Stakeholder Context}: Key stakeholders include students, educators, mathematicians, computer scientists, and the general public, all of whom could benefit from clearer fraction representations and easier mental arithmetic.
-\end{itemize}
+- Educational institutions (providing curriculum integration and student access).
+- Math communities and academics (supplying feedback on dozenal concepts).
+- Online desktop gaming platforms (providing gameplay data and engagement metrics).
+- Web browsers and devices (enabling access to the game).
+
+Inputs: User login data, game start requests, move inputs. Outputs: Game states, scores in dozenal, educational feedback.
+
+This context ensures the product fits into learning environments without disrupting existing workflows.
 
 \subsection{Work Partitioning}
 
-The workload is divided into the following major phases, aligned with the development plan:
-
-\begin{enumerate}
-    \item \textbf{Problem Definition and Planning (Weeks 3--4)}: Draft problem statement, development plan, and initial proof of concept (PoC) to establish scope and feasibility.
-    \item \textbf{Requirements and Hazard Analysis (Week 6)}: Develop the SRS and identify potential risks and mitigation strategies.
-    \item \textbf{Verification and Validation Planning (Week 8)}: Define testing strategies to ensure the software meets functional and non-functional requirements.
-    \item \textbf{System Design (Weeks 10--16)}: Create and refine architecture diagrams, decompose the system into modules (frontend, backend, database, API), and document extensibility.
-    \item \textbf{Implementation and Testing (Weeks 11--19)}: Develop the MVP (two-player game with classic rules and dozenal scoring), conduct unit and integration testing, and prepare for demonstrations.
-    \item \textbf{Demonstrations and Refinement (Weeks 19--24)}: Conduct Revision 0 and final demonstrations, incorporating feedback to improve functionality and performance.
-    \item \textbf{Final Documentation and EXPO (Week 26)}: Finalize documentation and present a polished product at the EXPO.
-\end{enumerate}
-
-Each task is tracked via GitHub Issues and the Kanban board, with responsibilities assigned to team members based on rotating roles (developer, reviewer, meeting chair, note-taker).
+The work is partitioned into business events and their corresponding business use cases (BUCs):
+\begin{itemize}
+  \item \textbf{BUC:  Game Initiation} - Triggered by user request to start a game.\\ Initialize Game Session. Outputs: Shuffled deck, dealt hands.
+  \item \textbf{BUC:  Player Move} - Triggered by player selecting a card.\\ Process Move. Outputs: Updated game state, feedback.
+  \item \textbf{BUC:  Game End} - Triggered when a player empties their hand.\\ Calculate and Display Score. Outputs: Final scores in dozenal.
+  \item \textbf{BUC:  Educational Query} - Triggered by user requesting dozenal explanations.\\Provide Learning Resources. Outputs: Tutorials or hints.
+\end{itemize}
 
 \subsection{Specifying a Business Use Case (BUC)}
 
