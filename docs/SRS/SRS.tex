@@ -66,6 +66,7 @@
         10.12 & Ammar Sharbat & Section 1.1, 2, 5, 13, 15, 18\\
         10.13 & Ammar Sharbat & Section 18, 19, 25\\
         04.06 & Ammar Sharbat & Section 1, 11, Removed Section 18\\
+        04.07 & Ammar Sharbat & Section 2\\
         
         \bottomrule
     \end{tabularx}
@@ -118,56 +119,120 @@ Stretch goals include extending the game to support more players, online multipl
 
 \subsection{Client}
 \begin{itemize}
-  \item \textbf{Supervisor} Dr. Spencer Smith - primary sponsor of the deliverable; approves acceptance criteria for academic evaluation and EXPO demonstration.
-  \item \textbf{Supervisor:} Dr. Paul Rapoport — academic acceptance authority and milestone reviewer.
+  \item \textbf{Professor Paul Rapoport, Mathematician} - paul.rapoport@mcmaster.ca. As a professor at McMaster University, he is responsible for the general direction, design decisions of the project, and concept mentorship.
+  \item \textbf{Dr. Spencer Smith, Engineering Professor} - spencer.smith@mcmaster.ca. As a professor at McMaster University, he is responsible for project progress, deliverables, and development mentorship.
 \end{itemize}
 
 \subsection{Customer}
 \begin{itemize}
-  \item \textbf{Course Instructor / Teaching Staff:} Consumer of the deliverable for grading and course outcomes.
-  \item \textbf{End-users (primary customer persona):} Educators and students who may adopt the game as a learning aid; they decide whether the product fits classroom or self-study needs.
+  \item \textbf{Mathematicians:} Responsible for conceptual design decisions, ensuring the game's mathematical accuracy and educational value.
+  \item \textbf{Educators:} Responsible for teaching aspects of the game and gameplay, including how it integrates into curricula and learning outcomes.
+  \item \textbf{Students:} Responsible for the UI/web-game design and gameplay feedback, focusing on usability and engagement for their age group.
 \end{itemize}
 
 \subsection{Other Stakeholders}
 \begin{itemize}
-  \item \textbf{Subject Matter Experts:} Dozenal advocates/educators consulted for correctness of dozenal content.
-  \item \textbf{Usability / Accessibility Experts:} Provide guidance to meet WCAG guidelines.
-  \item \textbf{IT / Hosting Providers:} Maintain hosting infrastructure and CI/CD.
-  \item \textbf{Testers / Demonstration Audience:} Provide feedback during PoC and demos.
+  \item \textbf{Other Scientists:} Provide expert input on alternative number systems and their applications, relating to use cases involving educational deployments and conceptual validation.
+  \item \textbf{Parents and Children:} Offer feedback on family-friendly aspects, influencing deployments in home settings and casual learning scenarios.
+  \item \textbf{Gamers:} Contribute to gameplay balance and fun factor, impacting use cases for recreational play and competitive modes.
+  \item \textbf{Game Developers:} Advise on technical implementation and best practices, supporting deployments across different platforms and integrations.
+  \item \textbf{General Public:} Represent broader societal interest, affecting use cases for public education and awareness campaigns.
 \end{itemize}
 
 \subsection{Hands-On Users of the Product}
 \begin{itemize}
-  \item \textbf{Casual Learners (novice):} Students or hobbyists with little/no dozenal experience. Low technical skill; require strong onboarding and hints.
-  \item \textbf{Educators (journeyman):} Teachers who use the game in lessons; expect configurable sessions and exportable results.
-  \item \textbf{Capstone Evaluators / Demo Attendees (master/journeyman):} Technical audience who will assess correctness, stability, and educational value.
+  \item \textbf{User name/category:} Students (ages 10-30). \\
+  \textbf{User role:} Players who engage with the game for fun and learning. \\
+  \textbf{Subject matter experience:} Novice - little to no prior knowledge of dozenal or alternative bases. \\
+  \textbf{Technological experience:} Novice - basic computer skills, comfortable with web browsers. \\
+  \textbf{Other user characteristics:} Ages 10-30, motivated by curiosity; may need simple tutorials; prefer visual and interactive elements.
+  
+  \item \textbf{User name/category:} Educators (teachers or instructors). \\
+  \textbf{User role:} Facilitators who use the game in classroom settings. \\
+  \textbf{Subject matter experience:} Journeyman - familiar with math education but may not know dozenal deeply. \\
+  \textbf{Technological experience:} Journeyman - regular use of educational software and online tools. \\
+  \textbf{Other user characteristics:} Ages 25-55, focused on pedagogical value; need exportable results and session management; value ease of setup.
+  
+  \item \textbf{User name/category:} Gamers. \\
+  \textbf{User role:} Players who enjoy strategic card games and challenges. \\
+  \textbf{Subject matter experience:} Journeyman - interested in learning new concepts through play. \\
+  \textbf{Technological experience:} Master - experienced with online games and interfaces. \\
+  \textbf{Other user characteristics:} Ages 5-40, competitive; appreciate fair rules and replay features; tolerant of brief learning curves.
+  
+  \item \textbf{User name/category:} Capstone Evaluators (professors or experts). \\
+  \textbf{User role:} Assessors who evaluate the project's technical and educational merits. \\
+  \textbf{Subject matter experience:} Master - deep expertise in software engineering and math education. \\
+  \textbf{Technological experience:} Master - proficient in various development tools and platforms. \\
+  \textbf{Other user characteristics:} Ages 30-60, analytical; focus on correctness, stability, and scalability; provide detailed feedback.
+  
+  \item \textbf{User name/category:} Parents. \\
+  \textbf{User role:} Supervisors who introduce the game to children at home. \\
+  \textbf{Subject matter experience:} Novice to journeyman - basic math knowledge, supportive of learning. \\
+  \textbf{Technological experience:} Journeyman - regular internet users, comfortable with family apps. \\
+  \textbf{Other user characteristics:} Ages 25-50, concerned with safety and appropriateness; prefer guided experiences for kids.
+  
+  \item \textbf{User name/category:} Children (young learners). \\
+  \textbf{User role:} Young players exploring math through games. \\
+  \textbf{Subject matter experience:} Novice - early math exposure, curious about numbers. \\
+  \textbf{Technological experience:} Novice - learning to use devices, enjoy interactive content. \\
+  \textbf{Other user characteristics:} Ages 8-14, playful; need simple, colorful interfaces; short attention spans.
 \end{itemize}
 
 \subsection{Personas}
-\begin{itemize}
-  \item \textbf{Maya (16, Student)}: Low dozenal familiarity; wants a short tutorial and visual hints to learn while playing.
-  \item \textbf{Prof. Singh (45, Educator)}: Wants quick setup for classroom demo, configurable rules, and exportable session results.
-  \item \textbf{Jordan (21, Competitive Hobbyist)}: Interested in multiplayer fairness and replay logs; tolerates brief tutorials.
-\end{itemize}
+
+\subsubsection{Educators / Instructors}
+\includegraphics[width=1\textwidth]{Personas/elena_ramirez.jpg} \\
+\textbf{Elena Ramirez, 42-year-old High School Math Teacher:} Elena is a dedicated educator at a local high school, passionate about making math engaging for her students. She discovered dozenal through a professional development workshop and sees it as a way to challenge traditional teaching methods. In her daily life, she spends hours planning lessons, grading papers, and attending parent-teacher meetings. Elena uses educational apps to supplement her classroom activities and is always looking for innovative tools to spark student interest. She dreams of inspiring the next generation of mathematicians and enjoys hiking and reading science fiction in her free time. For this project, Elena would provide feedback on how the game fits into curricula and helps students grasp alternative number systems.
+
+\subsubsection{Students / Casual Learners}
+\includegraphics[width=1\textwidth]{Personas/alex_chen.jpg} \\
+\textbf{Alex Chen, 16-year-old High School Student:} Alex is a curious teenager who loves puzzles and games but finds traditional math classes boring. He stumbled upon dozenal while browsing online and became fascinated by how it could simplify fractions. As a student, Alex juggles schoolwork, extracurricular activities like the chess club, and hanging out with friends. He spends a lot of time on his phone playing mobile games and watching educational YouTube videos. Alex is tech-savvy, preferring intuitive apps over complicated software. He hopes to pursue engineering in college and sees learning dozenal as a fun way to build his problem-solving skills. For this project, Alex would test the game's usability and suggest improvements to make it more engaging for peers his age.
+
+\subsubsection{Gamers / General Public}
+\includegraphics[width=1\textwidth]{Personas/mike_torres.jpg} \\
+\textbf{Mike Torres, 28-year-old Software Developer and Casual Gamer:} Mike works as a software developer by day, coding and debugging applications, but unwinds by playing card games and strategy titles online. He came across dozenal in a forum discussion about efficient number systems and thought it could make for an interesting game mechanic. In his life, Mike balances work deadlines, gym sessions, and gaming nights with friends. He's active in online gaming communities, sharing tips and reviewing new releases. Mike values fair gameplay and innovative features that add depth without complexity. He enjoys learning new concepts through entertainment and often researches game design. For this project, Mike would evaluate the game's balance, provide technical feedback, and suggest ways to appeal to the broader gaming audience.
 
 \subsection{Priorities Assigned to Users}
 \begin{itemize}
-  \item \textbf{Key users:} Educators and students (primary product purpose is educational adoption).
-  \item \textbf{Secondary users:} Demonstration evaluators, hobbyists.
-  \item \textbf{Low priority:} Anonymous spectators and infrequent guest users.
+  \item \textbf{Key users:}
+    \begin{itemize}
+      \item Educators - they are the primary facilitators of the educational aspect and will integrate the game into learning environments.
+      \item Students - they are the main audience for the educational content and will provide critical feedback on usability and engagement.
+    \end{itemize}
+  
+  \item \textbf{Secondary users:}
+    \begin{itemize}
+      \item Capstone evaluators - they provide expert feedback on conceptual validity and educational value, influencing design decisions and future enhancements.
+      \item Parents and children - they represent the family audience and provide insights on accessibility and appeal for younger users, impacting use cases for home learning and casual play.
+      \item Mathematicians and Scientists - they contribute to the broader scientific context and potential applications of dozenal, influencing use cases for public education and awareness.
+      \item Gamers - they offer feedback on gameplay mechanics and balance, affecting use cases for recreational play and competitive modes.
+    \end{itemize}
+    These users are secondary as they provide valuable feedback during testing and demos, helping refine the product, but they are not the core audience for daily use.
+  
+  \item \textbf{Unimportant users:}
+    \begin{itemize}
+      \item Educational Institutions - while they influence many of the other stakeholders, they are not directly involved in the design or feedback process.
+      \item Game Developers - they may provide technical advice but are not the end users or primary evaluators of the educational content.
+      \item General public / Anonymous spectators - they may have general interest but do not actively participate in the design or feedback process.
+    \end{itemize}
+    These users are considered unimportant in terms of priority because, while they contribute to broader impact and family engagement, they have less direct involvement in the core functionality and decision-making processes.
 \end{itemize}
 
 \subsection{User Participation}
 \begin{itemize}
-  \item \textbf{Educator involvement:} Review of tutorial content and alignment with learning objectives (estimated 2--4 hours over term).
-  \item \textbf{Student testing:} Playtest sessions (estimated 3--5 sessions of 20--30 minutes) to validate usability and learning uptake.
-  \item \textbf{Developer/Testers:} Ongoing involvement in unit/integration test creation and bug triage.
+  \item \textbf{Educators:} Estimated 2-4 hours over the term for reviewing tutorial content and alignment with learning objectives; provide knowledge on pedagogical effectiveness and curriculum integration.
+  \item \textbf{Students:} Estimated 3-5 sessions of 20-30 minutes for playtesting; provide knowledge on usability, engagement, and age-appropriate design.
+  \item \textbf{Demonstration evaluators} Estimated 2-3 hours per month for feedback sessions; provide feedback on overall project / game progess and design and development.
+  \item \textbf{Mathematicians Scientists:} Estimated 1-2 hours for content review; provide knowledge on mathematical accuracy and conceptual depth.
+  \item \textbf{Parents and children:} Estimated 30 minutes - 1 hour for family testing; provide knowledge on accessibility and family-friendly features.
+  \item \textbf{Gamers:} Estimated 10-20 minute sessions for gameplay testing; provide knowledge on game balance and competitive elements.
+  \item \textbf{General Public and Anonymous spectators} Minimal participation; provide general impressions if surveyed.
 \end{itemize}
 
 \subsection{Maintenance Users and Service Technicians}
 \begin{itemize}
-  \item \textbf{DevOps / Maintainers:} Responsible for deployment, backups, and monitoring. Require documentation on deployment scripts and DB snapshot procedures.
-  \item \textbf{Support Contact (team liaison):} Handles escalations and coordinates fixes with team members.
+  \item \textbf{Computer Scientists:} Responsible for ongoing system maintenance, updates, and troubleshooting technical issues; they ensure the software remains functional and secure over time.
+  \item \textbf{Game Developers:} Handle content updates, bug fixes, and feature enhancements; they maintain the game's integrity and adapt it to new platforms or user needs.
 \end{itemize}
 
 \subsubsection*{Fit criterion}
