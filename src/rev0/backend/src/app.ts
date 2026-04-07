@@ -1,4 +1,12 @@
-// backend/src/app.ts
+/**
+ * @file app.ts
+ * @module backend/app
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Creates and configures the Express application, attaches CORS,
+ *          JSON parsing, JWT-based authentication middleware, and the
+ *          versioned REST API router.
+ */
 import express from "express";
 import cors from "cors";
 import type { Request, Response, NextFunction } from "express";
@@ -15,7 +23,7 @@ export function createApp(deps: {
   app.use(cors());
   app.use(express.json());
 
-  // token -> req.userId
+  // Extract Bearer token from Authorization header and attach the decoded userId to every request
   app.use((req: Request & any, _res: Response, next: NextFunction) => {
     const h = req.headers["authorization"];
     if (typeof h === "string") {

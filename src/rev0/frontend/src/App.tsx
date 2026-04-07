@@ -1,3 +1,13 @@
+/**
+ * @file App.tsx
+ * @module frontend/App
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Root React component for Crazy Tens.
+ *          Manages authentication state, lobby lifecycle, WebSocket
+ *          connection, game state projection, and top-level page routing
+ *          (lobby, game, profile, admin).
+ */
 import { useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import LobbyScreen from "./components/LobbyScreen";
@@ -118,7 +128,7 @@ export default function App() {
 
   const [challengeResult, setChallengeResult] = useState<{ won: boolean; correct: boolean; tooLate: boolean } | null>(null);
 
-  // Ref for lobby poll interval so it can be cleared on leave
+  // Interval handle for lobby status polling; stored in a ref to survive re-renders
   const lobbyPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [myHand, setMyHand] = useState<Card[]>([]);
@@ -126,20 +136,20 @@ export default function App() {
   const [log, setLog] = useState<string[]>([]);
   const pushLog = useCallback((s: string) => setLog((x) => [s, ...x].slice(0, 200)), []);
 
-  // Track if we've joined the game via WS
+  // Whether the WebSocket room join handshake for the current game has completed
   const [gameJoined, setGameJoined] = useState(false);
 
   // Lobby status
   const [lobbyStatus, setLobbyStatus] = useState<"idle" | "created" | "joined" | "starting" | "ready">("idle");
 
-  // Restart state
+  // Negotiated rematch state: waiting for self or waiting for opponent
   const [restartStatus, setRestartStatus] = useState<'none' | 'waiting' | 'opponent_requested'>('none');
   const [opponentLeftMsg, setOpponentLeftMsg] = useState<string>('');
 
-  // Saved game ID for rejoin
+  // gameId persisted to sessionStorage so the player can rejoin after a page refresh
   const [savedGameId, setSavedGameId] = useState<string>(() => sessionStorage.getItem("savedGameId") || "");
 
-  // Room list for lobby browser
+  // Available open rooms fetched from the matchmaking API for the lobby browser
   const [rooms, setRooms] = useState<any[]>([]);
 
   // Profile page visibility
@@ -182,7 +192,7 @@ export default function App() {
 
   // Challenge start timestamp (for countdown timer)
   const [challengeStartTime, setChallengeStartTime] = useState<number | null>(null);
-  // Tracks last challenge signature to avoid resetting timer on repeated GAME_STATE events
+  // Deduplicate challenge timer resets by tracking a signature for the current challenge
   const prevChallengeRef = useRef<string | null>(null);
 
   // Toast notification
@@ -198,7 +208,7 @@ export default function App() {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
   }, []);
 
-  // Determine if we should show game screen
+  // The game screen is shown only once both game state and the WS room join are confirmed
   const showGameScreen = ps !== null && gameJoined;
 
   // --- auth ---
@@ -246,7 +256,7 @@ export default function App() {
     pushLog(`Guest login as ${out.user.username}`);
   }
   async function doLogoutLocal() {
-    // Call backend to clear session IAT (prevents "already logged in" on re-login)
+    // Tell the backend to clear the session IAT so the next login does not hit AlreadyLoggedIn
     if (token) {
       try {
         await fetch(`${API}/auth/logout`, {
@@ -301,7 +311,7 @@ export default function App() {
 
     s.on("connect", () => {
       pushLog(`Connected to server`);
-      // Auto-join the game room once connected
+      // Hand off the game-ready event: emit JOIN_GAME so the server sends the initial state and private hand
       s.emit(WS.JOIN_GAME, { gameId: gId });
       pushLog(`Joining game...`);
       setGameJoined(true);
@@ -322,7 +332,7 @@ export default function App() {
     s.on(WS.GAME_STATE, (state: PublicState) => {
       setPs(state);
       if (state.activeChallenge) {
-        // Build a signature for this challenge to detect if it's truly new
+        // Detect a genuinely new challenge by comparing a content-derived signature
         const sig = `${state.activeChallenge.type}-${state.activeChallenge.op1}-${state.activeChallenge.op2}`;
         if (prevChallengeRef.current !== sig) {
           // Genuinely new challenge — reset everything
@@ -331,7 +341,7 @@ export default function App() {
           setChallengeResolution(null);
           setChallengeStartTime(Date.now());
         }
-        // If same challenge, don't reset timer or clear results
+        // Same challenge still active — keep the existing timer and result state intact
       } else {
         // No active challenge
         prevChallengeRef.current = null;
@@ -555,7 +565,7 @@ export default function App() {
     setLobbyStatus("joined");
     pushLog(`Joined room: ${roomLobbyId}`);
 
-    // Start polling for game start
+    // Poll the lobby status endpoint until the host starts the game
     pollForGameStart(roomLobbyId, token);
   }
 
@@ -718,7 +728,7 @@ export default function App() {
 
   // Back to lobby handler
   function handleBackToLobby() {
-    // Voluntary leave: do NOT save gameId for rejoin (game will be deleted by LEAVE_GAME)
+    // Emit LEAVE_GAME first so the server notes the departure before the socket closes
     setSavedGameId("");
     sessionStorage.removeItem("savedGameId");
     // Emit LEAVE_GAME before disconnecting so server can notify opponent

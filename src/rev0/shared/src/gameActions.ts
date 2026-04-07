@@ -1,4 +1,12 @@
-// shared/src/gameActions.ts
+/**
+ * @file gameActions.ts
+ * @module shared/gameActions
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Defines the GameAction discriminated union (PLAY, DRAW, PASS,
+ *          ANSWER_CHALLENGE, CHEAT_WIN), plus helpers for timestamping
+ *          actions and asserting turn ownership before dispatch.
+ */
 import type { Card, PlayerID } from "./rules.js";
 import type { Suit } from "./systems.js";
 

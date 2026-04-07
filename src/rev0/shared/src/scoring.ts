@@ -1,4 +1,11 @@
-// shared/src/scoring.ts
+/**
+ * @file scoring.ts
+ * @module shared/scoring
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Calculates the point gain awarded to the round winner
+ *          by summing the face value of every card remaining in the loser's hand.
+ */
 import type { Card } from "./rules.js";
 import type { NumeralSystem } from "./systems.js";
 import { isFace, numericValueDec, formatInSystem } from "./rules.js";

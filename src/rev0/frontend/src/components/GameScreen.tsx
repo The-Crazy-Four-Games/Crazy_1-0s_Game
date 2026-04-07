@@ -1,3 +1,12 @@
+/**
+ * @file GameScreen.tsx
+ * @module frontend/components/GameScreen
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Full in-game UI: renders the player's hand, opponent's hand,
+ *          discard/draw piles, arithmetic challenge popup, score display,
+ *          game-over/round-end modals, chat panel, and hint tables.
+ */
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import Card from './Card';
 import CardEffects from './CardEffects';

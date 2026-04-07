@@ -1,3 +1,13 @@
+/**
+ * @file realtimeGateway.ts
+ * @module backend/realtimeGateway
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Socket.IO gateway for all real-time game events.
+ *          Handles player authentication on connect, game-room management,
+ *          action dispatch, arithmetic challenge tracking with dual-player
+ *          competition, in-game chat, restart negotiation, and result persistence.
+ */
 import type { Server as IOServer, Socket } from "socket.io";
 import crypto from "crypto";
 
@@ -58,13 +68,13 @@ export function makeRealtimeGateway(deps: {
 }) {
   const { io, auth, audit, gameSessions, repo } = deps;
 
-  // Track restart requests per game: gameId -> Set of userIds who requested restart
+  // Pending restart votes per game: gameId -> set of userIds who have voted to rematch
   const restartRequests = new Map<string, Set<string>>();
 
-  // Track userId -> socketId for targeted events (force-logout)
+  // Maps userId to socketId to support targeted admin operations (e.g. force-logout)
   const userSockets = new Map<string, string>();
 
-  // Challenge tracking per game: tracks wrong answers and timeout
+  // Per-game challenge tracker: records wrong-answer submissions and the expiry timer
   type ChallengeTracker = {
     wrongPlayers: Set<string>;
     timer: ReturnType<typeof setTimeout>;
@@ -73,7 +83,7 @@ export function makeRealtimeGateway(deps: {
   };
   const activeChallenges = new Map<string, ChallengeTracker>();
 
-  // Per-game challenge stats: gameId -> { playerId -> { attempted, correct, first } }
+  // Cumulative challenge statistics per player per game: attempts, correct answers, first-to-answer count
   const challengeStats = new Map<string, Map<string, { attempted: number; correct: number; first: number }>>();
 
   function getOrCreateStats(gameId: string, playerId: string) {
@@ -89,7 +99,7 @@ export function makeRealtimeGateway(deps: {
     if (!challenge) return;
 
     const timer = setTimeout(async () => {
-      // Timeout: resolve challenge, reveal answer, advance turn
+      // Timeout expired: reveal the correct answer and advance the turn without awarding points
       const curGame = gameSessions.get(gameId);
       if (!curGame || !curGame.round?.activeChallenge) return;
 
@@ -227,7 +237,7 @@ export function makeRealtimeGateway(deps: {
         const cur = gameSessions.get(payload.gameId);
         if (!cur) throw new Error("GameNotFound");
 
-        // anti-cheat: playerId in action must match userId
+        // Security check: the action's playerId must match the authenticated user's ID
         if ((payload.action as any).playerId !== userId) {
           throw new Error("PlayerIdMismatch");
         }
@@ -235,7 +245,7 @@ export function makeRealtimeGateway(deps: {
         // only players can act
         assertPlayerInGame(cur, userId);
 
-        // Capture score before action to detect if this player scored
+        // Snapshot score before action to detect whether this player earned challenge points
         const scoreBefore = cur.scoresDec?.[userId] ?? 0;
         const hadChallenge = !!cur.round?.activeChallenge;
 
@@ -253,12 +263,12 @@ export function makeRealtimeGateway(deps: {
         // emit private hands to players
         await emitHandsToRoom(payload.gameId, next);
 
-        // Start challenge timer when a new challenge appears
+        // Begin the 60-second challenge clock when a new challenge becomes active
         if (!hadChallenge && !!next.round?.activeChallenge) {
           startChallengeTimer(payload.gameId, next);
         }
 
-        // Handle challenge answers with dual-player competition
+        // Resolve dual-player challenge competition after an ANSWER_CHALLENGE submission
         if (hadChallenge && (payload.action as any).type === "ANSWER_CHALLENGE") {
           const won = scoreAfter > scoreBefore;
           const stillActive = !!next.round?.activeChallenge;
@@ -292,7 +302,7 @@ export function makeRealtimeGateway(deps: {
               challengeData: tracker?.challengeData,
             });
 
-            // Legacy result for backward compat
+            // Legacy individual result — kept for backward compatibility with older clients
             socket.emit(WS.CHALLENGE_RESULT, { won: true, correct: true, tooLate: false });
           } else if (!won && !stillActive) {
             // Wrong answer — challenge cleared by game engine somehow
@@ -350,7 +360,7 @@ export function makeRealtimeGateway(deps: {
           }
         }
 
-        // Record match results when game ends
+        // Persist both players' match statistics to the repository when the game concludes
         if (next.status === "GAME_OVER" && pubState.lastRoundResult) {
           const lr = pubState.lastRoundResult as any;
           const players = next.round.players;
@@ -358,9 +368,7 @@ export function makeRealtimeGateway(deps: {
           const now = Date.now();
           const baseId = next.sys?.id ?? "dec";
 
-          // Determine winner — the lastRoundResult.winner is the round winner,
-          // but for the overall game, check if someone reached targetScore.
-          // The game is over, so we can look at scores to determine who won.
+          // Identify the overall game winner by comparing each player's score against the target
           let winnerId: string | undefined;
           const targetScoreDec = next.sys?.targetScoreText ? parseInSystem(next.sys.targetScoreText, next.sys) : 100;
           for (const pid of players) {
@@ -393,11 +401,11 @@ export function makeRealtimeGateway(deps: {
             }
           }
 
-          // Clean up challenge stats for this game
+          // Release per-game challenge stats now that the session has ended
           challengeStats.delete(payload.gameId);
         }
       } catch (e: any) {
-        // If it's a late challenge answer (NoActiveChallenge), send feedback instead of generic error
+        // A NoActiveChallenge error on ANSWER_CHALLENGE means the player answered too late
         if (e?.message === "NoActiveChallenge" && (payload?.action as any)?.type === "ANSWER_CHALLENGE") {
           socket.emit(WS.CHALLENGE_RESULT, { won: false, correct: false, tooLate: true });
           return;
@@ -415,7 +423,7 @@ export function makeRealtimeGateway(deps: {
         const game = gameSessions.get(payload.gameId);
         if (!game) throw new Error("GameNotFound");
 
-        // Only allow restart requests when game is over
+        // Only permit restart requests after the game has concluded
         if (game.status !== "GAME_OVER") {
           throw new Error("GameNotOver");
         }
@@ -535,10 +543,9 @@ export function makeRealtimeGateway(deps: {
         // Clean up restart requests
         restartRequests.delete(gameId);
 
-        // Check if game is still ongoing
+        // Forfeit the in-progress game session so no misleading match record is created
         const game = gameSessions.get(gameId);
         const wasOngoing = game && game.status !== "GAME_OVER";
-
         if (wasOngoing) {
           gameSessions.delete(gameId);
           audit.logSystemEvent?.({ type: "GAME_PLAYER_LEFT", at: Date.now(), userId, gameId });
@@ -579,8 +586,8 @@ export function makeRealtimeGateway(deps: {
           const game = gameSessions.get(gameId);
           const wasOngoing = game && game.status !== "GAME_OVER";
 
+          // Purge the game session so no partial match result is recorded for an aborted game
           if (wasOngoing) {
-            // Remove the game session so no match result gets recorded
             gameSessions.delete(gameId);
             audit.logSystemEvent?.({ type: "GAME_ABORTED", at: Date.now(), userId, gameId });
           }
