@@ -181,9 +181,9 @@
 
     \section{Goals}
 
-    \subsection{Minimum Viable Product (MVP) Goals}
+    {\large\bfseries Minimum Viable Product (MVP) Goals}
 
-    \subsubsection{Functional Goals}
+    \subsection{Functional Goals}
     \begin{table}[H]
         \caption{MVP Functional Goals}\label{TblMVPFunctionalGoals}
         \begin{tabular}{|p{0.22\textwidth}|p{0.46\textwidth}|p{0.28\textwidth}|}
@@ -205,7 +205,7 @@
         \end{tabular}
     \end{table}
 
-    \subsubsection{Non-functional Goals}
+    \subsection{Non-functional Goals}
     \begin{table}[H]
         \caption{MVP Non-functional Goals}\label{TblMVPNonFunctionalGoals}
         \begin{tabular}{|p{0.22\textwidth}|p{0.46\textwidth}|p{0.28\textwidth}|}
@@ -246,27 +246,31 @@
         \caption{Functional Stretch Goals}\label{TblStretchFunctionalGoals}
         \begin{tabular}{|p{0.22\textwidth}|p{0.46\textwidth}|p{0.28\textwidth}|}
             \hline
-            \textbf{Goal} & \textbf{Explanation} & \textbf{Reasoning} \\
-            \hline
-            3--4 Player Matches &
-            Extend gameplay to three or more players with clear turn rotation and visualization. &
-            Increases replayability; closer to common play. \\
+            \textbf{Goal} & \textbf{Description} & \textbf{Reasoning} \\
             \hline
             Online Multiplayer &
             Create/join rooms and synchronize game state; provide basic reconnection. &
             Demonstrates system design capability and supports real usage. \\
             \hline
+            Rule Configurator &
+            Toggles for house rules (draw-until-playable, stacking eights, scoring methods in decimal or dozenal). &
+            Shows variability management; supports experimentation and future product-line thinking. \\
+            \hline
+            Mobile-friendly UI &
+            Optimize the user interface for mobile devices, ensuring touch-friendly controls and responsive design. &
+            Expands the potential user base and improves accessibility across platforms. \\
+            \hline
+            3--4 Player Matches &
+            Extend gameplay to three or more players with clear turn rotation and visualization. &
+            Increases replayability; closer to common play. \\ 
+            \hline
             AI Opponent &
             Computer-controlled players with simple heuristics for card choice and suit declaration. &
             Enables single-player testing and showcases extensibility. \\
             \hline
-            Advanced Dozenal Variants &
-            Optional rule packs (e.g., effects for 12-related cards; base-12 scoring thresholds such as \(60_{12}\)). &
-            Deepens the dozenal theme while keeping the classic mode intact. \\
-            \hline
-            Rule Configurator &
-            Toggles for house rules (draw-until-playable, stacking eights, scoring methods in decimal or dozenal). &
-            Shows variability management; supports experimentation and future product-line thinking. \\
+            Alternative Number Bases &
+            Support additional bases (e.g. Octal, Hexadecimal) with appropriate card deck, scoring, and gameplay adjustments. &
+            Demonstrates flexibility and broadens educational scope. \\
             \hline
         \end{tabular}
     \end{table}
@@ -282,19 +286,19 @@
             First-game tutorial, invalid-move highlights, and play suggestions. &
             Lowers the learning curve and improves usability. \\
             \hline
-            Save/Replay System &
-            Save completed games and replay event sequences. &
-            Aids debugging, user study, and documentation. \\
-            \hline
             Cross-Platform Packaging &
             Deploy as a web app or desktop executable (Windows/macOS). &
             Lowers the barrier for evaluators and external users to try the system. \\
+            \hline
+            Save/Replay System &
+            Save completed games and replay event sequences. &
+            Aids debugging, user study, and documentation. \\
             \hline
         \end{tabular}
     \end{table}
 
     \section{Extras}
-    Commonality Analysis - 
+    
 
 
     \newpage{}
