@@ -1,0 +1,240 @@
+bjbj
+Volere
+Requirements Specification Template
+Edition 16
+2012
+by James Robertson & Suzanne Robertson 
+principals of the Atlantic Systems Guild
+The Volere Requirements Specification Template is intended for use as a basis for your requirements specifications. The template provides sections for each of the requirements types appropriate to today's software systems. You may download the template from the Volere site and adapt it to your requirements gathering process and requirements tool. The template can be used with Requisite, DOORS, Caliber RM, IRqA and other popular tools see 
+ HYPERLINK "http://www.volere.co.uk/tools.htm" 
+http://www.volere.co.uk/tools.htm
+The template may not be sold, or used for commercial gain or purposes other than as a basis for a requirements specification without prior written permission. The Template may be modified or copied and used for your requirements work, provided you include the following copyright notice in any document that uses any part of this template:
+We acknowledge that this document uses material from the Volere Requirements Specification Template, copyright 
+ 1995 
+ 2012 the Atlantic Systems Guild Limited.
+Contents
+Project Drivers
+1. The Purpose of the Project 
+2. The Stakeholders
+Project Constraints
+3. Mandated Constraints
+4. Naming Conventions and Terminology 
+5. Relevant Facts and Assumptions
+Functional Requirements
+6. The Scope of the Work
+7. Business Data Model & Data Dictionary
+8. The Scope of the Product
+9. Functional Requirements 
+Non-functional Requirements
+10. Look and Feel Requirements 
+11. Usability and Humanity Requirements
+12. Performance Requirements
+13. Operational and Environmental Requirements
+14. Maintainability and Support Requirements
+15. Security Requirements
+16. Cultural Requirements
+17. Legal Requirements
+Project Issues
+18. Open Issues 
+19. Off-the-Shelf Solutions
+20. New Problems 
+21. Tasks 
+22. Migration to the New Product
+23. Risks
+24. Costs
+25. User Documentation and Training
+26. Waiting Room
+27. Ideas for Solutions
+The Volere Requirements Knowledge Model (included with the download of Version 16 of this template) shows the formal structure and cross references between the components in the above table of contents.
+Volere
+Volere is the result of many years of practice, consulting, and research in requirements engineering and business analysis. We have packaged our experience in the form of a generic requirements process, requirements training, requirements consultancy, requirements audits, a variety of downloadable guides and articles, a requirements knowledge model and this requirements template. We also provide requirements specification-writing services.
+The first edition of the Volere Requirements Specification Template was released in 1995. Since then, organizations from all over the world have saved time and money by using the template as the basis for discovering, organizing, and communicating their requirements. 
+The Volere web site www.volere.co.uk contains articles about the Volere techniques, experiences of Volere users and case studies, requirements tools, and other information useful to requirements practitioners. 
+The Volere requirements process is described in the book Mastering the Requirements Process
+Second Edition by Suzanne Robertson and James Robertson, Addison-Wesley, 2006. ISBN 0-321-41949-9
+For more about managing requirements see Requirements Led Project Management by Suzanne Robertson and James Robertson, Addison-Wesley, 2005. ISBN 0-321-65904-X
+Updates to this template and instructions for downloading are available at 
+ HYPERLINK "http://www.volere.co.uk" 
+http://www.volere.co.uk
+Public seminars on Volere are run on a regular basis in Europe, the United States, Australia, and New Zealand. For a schedule of courses, refer to 
+ HYPERLINK "http://www.volere.co.uk" 
+www.volere.co.uk
+Requirements Types
+For ease of use, we have found it convenient to think of requirements as belonging to a type. There are two reasons for the type: as an aid to finding the requirements, to be able to group the requirements that are relevant to a specific expert specialty.
+Functional requirements are the fundamental or essential subject matter of the product. They describe what the product has to do or what processing actions it must take.
+Non-functional requirements are the properties that the functions must have, such as performance and usability. Do not be deterred by the unfortunate name for this kind of requirements, they are as important as the functional requirements for the product
+s success. 
+Project constraints are restrictions on the product due to the budget or the time available to build the product. 
+Design constraints impose restrictions on how the product must be designed. For example, it might have to be implemented in the hand-held device being given to major customers, or it might have to use the existing servers and desktop computers, or any other hardware, software, or business practice.
+Project drivers are the business-related forces. For example, the purpose of the project is a project driver, as are all of the stakeholders
+each for different reasons. 
+Project issues define the conditions under which the project will be done. Our reason for including them as part of the requirements is to present a coherent picture of all factors that contribute to the success or failure of the project and to illustrate how managers can use requirements as input when managing a project.
+Testing Requirements
+The Volere philosophy is to start testing requirements as soon as you start writing them. You make a requirement testable by adding its fit criterion. This fit criterion measures the requirement, making it possible to determine whether a given solution fits the requirement. If a fit criterion cannot be found for a requirement, then the requirement is either ambiguous or poorly understood. All requirements can be measured, and all should carry a fit criterion. 
+Atomic Requirements Shell
+The requirements shell is a guide to writing each atomic requirement. The components of the shell (also called a 
+snow card
+) are identified below. You might decide to add some additional attributes to provide traceability necessary for your environment. For example: products that implement this requirement, version of the software that implements this requirement, departments who are interested in this requirement, etc. There are others but do not capriciously add attributes unless they really help you: every attribute you add needs to be maintained. 
+This requirements shell can, and should, be automated. When you download the template you will also find an Excel spreadsheet implementation of the snow card.
+The following discusses and provides examples for each of the sections of the Volere Requirements Specification Template. For each section, the Content, Motivation, Considerations, Examples and Form provide the template user with some guidance for writing each type of requirement. When you download the template you will also find a Template Skeleton that you might find convenient to use as the basis for producing a document.
+1. The Purpose of the Project
+The first section of the template deals with the fundamental reason your client asked you to build a new product. That is, it describes the business problem the client faces and explains how the product is intended to solve the problem. 
+1a. The User Business or Background of the Project Effort
+Content
+A short description of the business being done, its context, and the situation that triggered the development effort. It should also describe the work that the user intends to do with the delivered product. 
+Motivation
+Without this statement, the project lacks justification and direction.
+Considerations
+You should consider whether the business problem is serious, and whether and why it needs to be solved.
+Perhaps there are no serious problems, just a significant business opportunity your client wishes to exploit. In this case, describe the opportunity 
+Alternatively, the project may seek to explore or investigate possibilities. In this case the project deliverable, instead of a new product, would be a document proving that the requirements for a product can (or cannot) be satisfied. 
+Form
+A short text description is often sufficient to provide an understanding of the project. You can choose to support the description with some combination of a current situation model, business process models, samples of current documents, photographs and videos of the current situation, website addresses and organization charts.
+1b. Goals of the Project 
+Content
+This part of the specification describes what we want the product to do and what advantage it will bring to the overall goals of the work. Do not be too wordy in this section
+a brief explanation of the project
+s goals is usually more valuable than a long, rambling treatise. A short, sharp goal will be clearer to the stakeholders and improve the chances of reaching a consensus for the goal. 
+Motivation
+There is a danger that this purpose may get lost along the way. As the development effort heats up, and as the customer and developers discover more about what is possible, the system could potentially wander away from the original goals as it undergoes construction. This is a bad thing unless there is some deliberate act by the client to change the goals. It may be necessary to appoint a person to be custodian of the goals, but it is probably sufficient to make the goals public and periodically remind the developers of them. It should be mandatory to acknowledge the goals at every review session.
+Examples
+We want to give immediate and complete response to customers who order our goods online. 
+To reduce road accidents by accurately forecasting and scheduling the de-icing of roads.
+Measurement 
+Any reasonable goal must be measurable. This is necessary if you are ever to test whether you have succeeded with the project. The measurement must quantify the advantage gained by the business through doing the project. If the project is worthwhile, there must be some solid business reason for doing it. For example, if the goal of the project is 
+We want to give immediate and complete response to customers who order our goods online.
+you have to ask what advantage meeting that goal brings to the organization. If immediate response will result in more satisfied customers, then the measurement must quantify that satisfaction. For example, you could measure the increase in repeat business (on the basis that a happy customer comes back for more), the increase in customer approval ratings from surveys, the increase in revenue from returning customers, and so on. 
+Ask whether your goal is a:
+- Service goal: This is measured by quantifying what it does for the customer
+- Revenue goal: quantify how much revenue or revenue growth over what period of time. Alternatively, a revenue goal could be quantified by market share. 
+- Legal goal: this is not a quantification, but a way of knowing that the product conforms to a piece of legislation (this could be the law of the land or might be a standard of your industry or organization). 
+It is crucial to the rest of the development effort that the goal is firmly established, is reasonable, and is measured. It is usually the latter that makes the former possible. 
+Form
+You can use Purpose, Advantage, Measurement (PAM) to structure your goal.
+Purpose: one sentence to explain the organisation
+s reason for investing in the project.
+Advantage: One sentence describing the benefit that the organization will realize if the project is successful.
+Measurement: One sentence or a graph or diagram that quantifies how you will measure whether or not the benefit has been achieved.
+Another form for your goals might be to use some kind of goal model. For example, the Extended Enterprise Modelling Language EEML, includes a goal modelling technique. If your organization is using enterprise modelling then this provides a connection between the enterprise
+s strategic goals and the goal of an individual project.
+2. The Stakeholders
+This section describes the stakeholders
+the people who have an interest in the product. It is worth your while to spend enough time to accurately determine and describe these people, as the penalty for not knowing who they are can be very high. 
+2a. The Client 
+Content
+This item gives the name of the client (sometimes referred to as the sponsor) It is permissible to have several names, but having more than three negates the point.
+Motivation
+The client has the final say on acceptance of the product, and thus must be satisfied with the product as delivered. You can think of the client as the person who makes the investment in the product. Where the product is being developed for in-house consumption, the same person often fills the roles of the client and the customer. If you cannot find a name for your client, then perhaps you should not be building the product.
+Considerations
+Sometimes, when building a package or a product for external users, the client is the marketing department. In this case, a person from the marketing department must be named as the client.
+Form
+An annotated organization chart showing where the client fits within the organization. 
+A list of the decisions for which the client will be responsible. 
+You can also include a chart showing the review checkpoints and itemizing what you will provide for the client as progress indicators for the project.  
+2b. The Customer 
+Content
+The person intended to buy the product. In the case of in-house development, the client and the customer are probably the same person. The customer might also be the manager who decides whether or not the people for whom he is responsible will adopt a new/changed product. 
+In the case of development of a mass-market product, this section contains a description of the persona developed as the archetypical customer for the product (See section 2e).  
+Motivation
+The customer is ultimately responsible for deciding whether to buy or recommend the use of the product. The correct requirements can be gathered only if you understand the customer and his aspirations when it comes to using your product. 
+Form
+A list of the decisions for which the customer will be responsible. 
+You can also include a chart showing the review checkpoints and itemizing what you will provide for the customer as progress indicators for the project.  This might include a list of possible prototypes or simulations that you will provide for the customer during the progress of the project.
+2c. Other Stakeholders
+Content
+The roles and (if possible) names of other people and organizations who are affected by the product, or whose input is needed to build the product. These stakeholders might wo
+takeholders who have an interest in the same knowledge
+Motivation
+Failure to recognize stakeholders results in missing requirements. 
+Form
+A stakeholder map supported by the name of the representative of each role together with the knowledge to be supplied by that role. The following diagram is a generic stakeholder map that you can use as a checklist and replace the role names with the specific people/roles/organizations for your project. For more on stakeholder maps refer to 
+ HYPERLINK "http://www.volere.co.uk" 
+http://www.volere.co.uk
+Another form you can use to identify the stakeholders is a Stakeholder Analysis Spreadsheet. A sample is downloadable at 
+ HYPERLINK "http://www.volere.co.uk" 
+http://www.volere.co.uk
+An annotated organization chart is also a useful form for defining stakeholders.
+2d. The Hands-On Users of the Product 
+Content
+A list of a special type of stakeholder
+the potential users of the product. For each category of user, provide the following information: 
+the users that have an effect on the requirements and eventual design of the product. For example: 
+Physical abilities/disabilities
+Intellectual abilities/disabilities
+Attitude toward job
+Attitude toward technology
+Physical location
+Education
+Linguistic skills
+Age group
+Gender
+Ethnic group/s
+Motivation
+Users are human beings who interface with the product in some way. Use the characteristics of the users to define the usability requirements for the product. Users are also known as actors.
+Examples
+Users can come from wide variety of (sometimes unexpected) sources. Consider the possibility of your users being clerical staff, shop workers, managers, highly trained operators, the general public, casual users, passers-by, illiterate people, tradesmen, students, test engineers, foreigners, children, lawyers, remote users, people using the system over the telephone or an Internet connection, emergency workers, and so on. 
+Form
+A simple list or a spreadsheet containing the User Characteristics for each User Role + User Name/Representative
+2e. Personas
+Content
+A story about an invented person that includes:
+Persona
+s name, age, job, family, hobbies, where they live, favourite food, favourite music, likes, dislikes, where they go on holiday, attitude to technology, attitude to money, or any other characteristic that could influence the way that the persona thinks of the product. It helps if you include a photograph or drawing of the imagined person.
+Motivation
+By having one or more (limit it to 3) personas you can make the requirements specific to the people you are trying to satisfy. This is a particularly effective technique if you are specifying the requirements for a consumer product or a product that will be used by members of the public.
+Form
+A profile containing the life story of the persona. Include a photograph or drawing of the person. The profile can be in the form of a document that you use to introduce project participants to the persona. You can also put the profile onto a large format, A3, card that you display at meetings to remind participants about whose requirements you are trying to discover. Another idea is to build a storyboard of the persona
+s life. Also you can make a website for the persona and keep him/her alive by adding more about the persona
+s everyday life. All of these forms of capturing and communicating the persona are intended to help people think of the persona as a real user with specific, rather than general, real requirements. 
+2f. Priorities Assigned to Users
+Content
+Attach a priority t
+ers: This category of user is given the lowest priority. It includes infrequent, unauthorized, and unskilled users, as well as people who misuse the product. 
+The percentage of the type of user is intended to assess the amount of consideration given to each category of user. 
+Motivation
+If some users are considered to be more important to the product or to the organization, then this preference should be stated because it should affect the way that you design the product. For instance, you need to know if there is a large customer group who has specifically asked for the product, and for which, if they do not get what they want, the results could be a significant loss of business. 
+Some users may be listed as having no impact on the product. These users will make use of the product, but have no vested interest in it. In other words, these users will not complain, nor will they contribute. Any special requirements from these users will have a lower design priority.
+Form
+Include the user importance rating on your user characteristics spreadsheet, see 2d, for the information of the core project team. Depending on the culture of your organization, you might need to treat this as sensitive information.
+2g. User Participation
+Content
+Where appropriate, attach to the category of user a statement of the participation that you think will be necessary for those users to provide the requirements. Describe the contribution that you expect these users to provide
+for example, business knowledge, interface prototyping, or usability requirements. If possible, assess the minimum amount of time that these users must spend for you to be able to determine the complete requirements. 
+Motivation
+Many projects fail through lack of user participation, sometimes because the required degree of participation was not made clear. When people have to make a choice between getting their everyday work done and working on a new project, the everyday work usually takes priority. This requirement makes it clear, from the outset, that specified user resources must be allocated to the project.
+Form
+Include the estimated user participation time, together with the type of knowledge you expect that user to provide, on your user characteristics spreadsheet, see 2d.
+2h. Maintenance Users and Service Technicians
+Content
+Maintenance users are a special type of hands-on users who have requirements that are specific to maintaining and changing the product. 
+Motivation
+Many of these requirements will be discovered by considering the various types of maintenance requirements detailed in section 14. However, if we define the characteristics of the people who maintain the product, it will help to trigger requirements that might otherwise be missed.
+Form
+Include the maintenance users, on your user characteristics spreadsheet, see 2d.
+3. Mandated Constraints
+This section describes constraints on the eventual design of the product. 
+Constraints are global
+they are factors that apply to the entire product. The product must be built within the stated constraints. Often you know about the constraints, or they are mandated before the project gets under way. They are probably determined by management and are worth considering carefully
+they restrict what you can do and so shape the product. Constraints, like other types of requirements have a description, rationale, and fit criterion, and generally are written in the same format as functional and non-functional requirements.
+3a. Solution Constraints 
+Content
+This specifies constraints on the way that the problem must be solved. Describe the mandated technology or solution. Include any appropriate version numbers. You should also explain the reason for using the technology.
+Motivation
+To identify constraints that guide the final product. Your client, customer, or user may have design preferences, or only certain solutions may be acceptable. If these constraints are not met, your solution is not acceptable.
+Examples
+Constraints are written using the same form as other atomic requirements (refer to the requirements snow card/shell for the attributes). It is important for each constraint to have a rationale and a fit criterion, as they help to expose false constraints (solutions masquerading as constraints). Also, you will usually find that a constraint affects the entire product rather than one or more product use cases.
+Description: The product shall use the current two-way radio system to communicate with the drivers in their trucks.
+Rationale: The client will not pay for a new radio system, nor are any other means of communication available to the drivers. 
+Fit criterion: All signals generated by the product shall be audible and understandable by all drivers via their two-way radio system. 
+Description: The product shall operate using Windows XP.
+Rationale: The client uses XP and does not wish to change to a later version. 
+Fit criterion: The product shall be approved as XP compliant by the MS testing group. 
+Description: The product shall be a hand-held device.
+Rationale: The product is to be marketed to hikers and mountain climbers. 
+Fit criterion: The product shall weigh no more than 300 grams, no dimension shall be more than 15 centimetres, and there shall be no external power source. 
+Considerations
+We want to define the boundaries within which we can solve the problem. Be careful, because anyone who has experience with or exposure to a piece of technology tends to see requirements in terms of that technology. This tendency leads people to impose solution constraints for the wrong reason, making it very easy for false constraints to creep into a specification. The solution constraints should only be those that are absolutely non-negotiable. In other words, however you solve this problem, you must use this particular technology. Any other solution would be unacceptable.
+Form
+Include the constraint requirements as a specific type of atomic requirement in your requirements spreadsheet or database. For attributes of an atomic requirement see the Atomic Requirements Shell example at the start of this template. Also refer to article on atomic requirements at 
+ HYPERLINK "http://www.volere.co.uk" 
+http://www.volere.co.uk
