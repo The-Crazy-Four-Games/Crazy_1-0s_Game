@@ -1,4 +1,12 @@
-// shared/src/gameEngine.ts
+/**
+ * @file gameEngine.ts
+ * @module shared/gameEngine
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Top-level game state machine for Crazy Tens.
+ *          Orchestrates round transitions, action dispatch, scoring,
+ *          automatic turn advancement, and public-state projection.
+ */
 import type { PlayerID, RoundState, Card, MathChallenge } from "./rules.js";
 import { initRound, applyDraw, applyPlay, passTurn, advanceTurn, isRoundOver, roundWinner, parseInSystem, formatInSystem, systemFromBaseId, getPlayableCards, canDraw } from "./rules.js";
 import type { BaseId, NumeralSystem } from "./systems.js";
@@ -42,7 +50,7 @@ function newGameId(): string {
 
 export function createGame(opts: CreateGameOptions): GameState {
   const sys = systemFromBaseId(opts.baseId);
-  const round = initRound(sys, opts.players, opts.initialHandSize ?? 7, opts.rngDeck);
+  const round = initRound(sys, opts.players, opts.initialHandSize ?? 8, opts.rngDeck);
 
   return {
     gameId: opts.gameId ?? newGameId(),
@@ -58,14 +66,14 @@ export function createGame(opts: CreateGameOptions): GameState {
 export function applyAction(game: GameState, action: GameAction): GameState {
   if (game.status === "GAME_OVER") throw new Error("GameOver");
 
-  // Clear lastRoundResult on any new action so the popup dismisses
+  // Dismiss any lingering round-result banner before processing a new action
   if (game.lastRoundResult) {
     game = { ...game, lastRoundResult: undefined };
   }
 
   const a = withTimestamp(action);
 
-  // Skip turn check for ANSWER_CHALLENGE and CHEAT_WIN
+  // ANSWER_CHALLENGE and CHEAT_WIN are not turn-bound — any player may respond
   if (a.type !== 'ANSWER_CHALLENGE' && a.type !== 'CHEAT_WIN') {
     assertTurn(game.round.turn, a);
   }
@@ -88,15 +96,29 @@ export function applyAction(game: GameState, action: GameAction): GameState {
 
       const isCorrect = round.activeChallenge.answer === a.answer;
       if (isCorrect) {
-        // Correct answer: add points and clear challenge
+        // Award bonus points to the player who answered correctly
         const reward = round.activeChallenge.reward;
+        const newScoresDec = {
+          ...game.scoresDec,
+          [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
+        };
         game = {
           ...game,
-          scoresDec: {
-            ...game.scoresDec,
-            [a.playerId]: (game.scoresDec[a.playerId] ?? 0) + reward
-          }
+          scoresDec: newScoresDec
         };
+
+        // Bonus points may push the score past the win threshold mid-round — end the game immediately if so
+        const midTargetDec = parseInSystem(game.sys.targetScoreText, game.sys);
+        if (newScoresDec[a.playerId] >= midTargetDec) {
+          round = { ...round, activeChallenge: undefined };
+          return {
+            ...game,
+            round,
+            actionLog: [...game.actionLog, a],
+            lastSnapshot: snapshot,
+            status: "GAME_OVER",
+          };
+        }
 
         const shouldPass = round.activeChallenge.shouldPassTurn;
         round = { ...round, activeChallenge: undefined };
@@ -105,9 +127,9 @@ export function applyAction(game: GameState, action: GameAction): GameState {
           round = advanceTurn(round);
         }
       }
-      // Wrong answer: challenge stays active, other player can still attempt
+      // Incorrect answer — challenge remains open so the opponent can still respond
       break;
-    case "CHEAT_WIN":
+    case "CHEAT_WIN": // Debug-only: clears the requesting player's hand to trigger a round-over
       // Empty this player's hand → triggers round-over + scoring
       round = { ...round, hands: { ...round.hands, [a.playerId]: [] } };
       break;
@@ -120,7 +142,7 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     lastSnapshot: snapshot,
   };
 
-  // Auto-pass: if current player has no playable cards and can't draw, pass their turn
+  // Auto-pass: a player with no legal moves and no drawable cards is skipped automatically
   if (!isRoundOver(next.round) && !next.round.activeChallenge) {
     const currentPlayer = next.round.turn;
     const playable = getPlayableCards(next.sys, next.round, currentPlayer);
@@ -131,7 +153,7 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     }
   }
 
-  // round end -> scoring + new round OR game over
+  // On round end: tally points from the loser's hand, then start a new round or end the game
   if (isRoundOver(next.round)) {
     const winner = roundWinner(next.round)!;
     const [p1, p2] = next.round.players;
@@ -153,7 +175,7 @@ export function applyAction(game: GameState, action: GameAction): GameState {
     if (over) {
       next = { ...next, scoresDec, status: "GAME_OVER", lastRoundResult: roundResult };
     } else {
-      const newRound = initRound(next.sys, next.round.players, 7);
+      const newRound = initRound(next.sys, next.round.players, 8);
       next = { ...next, scoresDec, round: newRound, lastRoundResult: roundResult };
     }
   }
@@ -176,7 +198,7 @@ export function getPublicState(game: GameState) {
     ? { ...game.round.activeChallenge, answer: undefined }
     : undefined;
 
-  // Format lastRoundResult with base-aware text
+  // Convert the last round's numeric scores to the active numeral system's text representation
   let lastRoundResultFormatted: any = undefined;
   if (game.lastRoundResult) {
     const r = game.lastRoundResult;

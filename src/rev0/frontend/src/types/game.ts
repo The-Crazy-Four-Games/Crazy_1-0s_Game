@@ -78,6 +78,14 @@ export const SUIT_COLORS: Record<Suit, string> = {
   S: '#2c3e50',
 };
 
+// Brighter colors for dark backgrounds (forced suit indicator, etc.)
+export const SUIT_COLORS_DARK: Record<Suit, string> = {
+  H: '#ff6b7a',
+  D: '#ff8c69',
+  C: '#6effa0',
+  S: '#a8c4ff',
+};
+
 export const SUIT_NAMES: Record<Suit, string> = {
   H: 'Hearts',
   D: 'Diamonds',

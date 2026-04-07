@@ -1,3 +1,12 @@
+/**
+ * @file authService.ts
+ * @module backend/auth
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Provides account management and JWT-based session control:
+ *          registration, login, guest sessions, logout, password change,
+ *          and admin login, backed by bcrypt hashing and audit logging.
+ */
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -31,7 +40,7 @@ export class AuthService {
   ) { }
 
   private validatePasswordStrength(password: string): void {
-    // school-project simple policy
+    // Enforce a minimum password length adequate for a school project
     if (password.length < 6) throw new WeakPassword("Password must be at least 6 characters.");
   }
 
@@ -51,7 +60,7 @@ export class AuthService {
   verifyToken(token: SessionToken): TokenClaims {
     try {
       const decoded = jwt.verify(token, this.cfg.jwtSecret) as any;
-      // jwt.verify returns payload; subject lives in decoded.sub
+      // jwt.verify attaches the subject (userId) to decoded.sub per the JWT spec
       return {
         userId: decoded.sub,
         username: decoded.username,
@@ -71,7 +80,7 @@ export class AuthService {
     if (!username) throw new UsernameTaken("Username cannot be empty.");
     this.validatePasswordStrength(password);
 
-    // Create player first
+    // Register the player profile first, then store hashed credentials separately
     let playerId: string;
     try {
       const player = await this.repo.createPlayer({ username });
@@ -81,18 +90,18 @@ export class AuthService {
       throw e;
     }
 
-    // Store hashed credential
+    // Persist the bcrypt-hashed password; plain-text password is never stored
     const passwordHash = await bcrypt.hash(password, this.cfg.bcryptRounds);
     try {
       await this.repo.storeCredential(playerId, { username, passwordHash, playerId });
     } catch (e: any) {
-      // if storing credential fails, this is a simple project; keep it minimal
+      // Storing credentials is critical; surface the error rather than silently failing
       throw e;
     }
 
     const token = this.issueToken(playerId, "user", username);
 
-    // Mark session as active
+    // Record the token's issuedAt time so concurrent login detection works correctly
     const claims = this.verifyToken(token);
     await this.repo.setSessionIat(playerId, claims.iat);
 
@@ -114,7 +123,7 @@ export class AuthService {
       const ok = await bcrypt.compare(password, cred.passwordHash);
       if (!ok) throw new InvalidCredentials();
 
-      // Check if there's an active session
+      // Reject the login attempt if the user already has a non-expired active session
       const existingIat = await this.repo.getSessionIat(cred.playerId);
       if (existingIat !== null) {
         const expiresAt = existingIat + this.cfg.tokenTtlSeconds;
@@ -126,7 +135,7 @@ export class AuthService {
 
       const token = this.issueToken(cred.playerId, "user", username);
 
-      // Mark session as active
+      // Record the new session start so future concurrent-login checks are accurate
       const claims = this.verifyToken(token);
       await this.repo.setSessionIat(cred.playerId, claims.iat);
 
@@ -159,13 +168,13 @@ export class AuthService {
     const tag = deviceId || crypto.randomUUID().slice(0, 8);
     const guestUsername = `guest_${tag}`;
 
-    // Create a real player record so other modules can reference playerId
+    // Guest players receive a real player-ID so other modules can reference them normally
     const player = await this.repo.createPlayer({ username: guestUsername, displayName: `Guest_${tag.slice(0, 4)}` });
     const playerId = player.id;
 
     const token = this.issueToken(playerId, "guest", guestUsername);
 
-    // Mark session active
+    // Activate the guest session so concurrent-login guards treat it like a regular session
     const claims = this.verifyToken(token);
     await this.repo.setSessionIat(playerId, claims.iat);
 
@@ -189,7 +198,7 @@ export class AuthService {
       // token might be invalid/expired, still allow logout
     }
 
-    // If guest, delete their temporary player record
+    // Guest player records are temporary — remove them from the database on logout
     if (claims && claims.role === "guest") {
       try {
         await this.repo.deletePlayer(claims.userId);
@@ -205,20 +214,20 @@ export class AuthService {
 
   async refreshToken(token: SessionToken): Promise<SessionToken> {
     const claims = this.verifyToken(token);
-    // MVP: just re-issue a new token with fresh expiry
+    // Simple token refresh: re-signs the existing claims with a new expiry timestamp
     return this.issueToken(claims.userId, claims.role, claims.username);
   }
 
   async changePassword(userId: string, username: string, oldPassword: string, newPassword: string): Promise<void> {
-    // Verify old password
+    // Verify identity before allowing the password to change
     const cred = await this.repo.getCredentialByUsername(username);
     const ok = await bcrypt.compare(oldPassword, cred.passwordHash);
     if (!ok) throw new InvalidCredentials("Current password is incorrect.");
 
-    // Validate new password
+    // Apply strength rules before committing the new password
     this.validatePasswordStrength(newPassword);
 
-    // Hash and store
+    // Hash the new password and overwrite the stored credential
     const newHash = await bcrypt.hash(newPassword, this.cfg.bcryptRounds);
     await this.repo.changePassword(username, newHash);
 

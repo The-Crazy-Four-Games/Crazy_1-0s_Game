@@ -267,3 +267,29 @@
 .result-icon {
   font-size: 1.5rem;
 }
+
+/* Countdown timer */
+.challenge-timer {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  transition: color 0.3s;
+}
+
+.challenge-timer.timer-urgent {
+  color: #f44336;
+  animation: timerPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes timerPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.15); color: #ff1744; }
+}
+
+.result-message.waiting {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+  border: 2px solid rgba(255, 193, 7, 0.4);
+}

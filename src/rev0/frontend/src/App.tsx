@@ -1,3 +1,13 @@
+/**
+ * @file App.tsx
+ * @module frontend/App
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Root React component for Crazy Tens.
+ *          Manages authentication state, lobby lifecycle, WebSocket
+ *          connection, game state projection, and top-level page routing
+ *          (lobby, game, profile, admin).
+ */
 import { useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import LobbyScreen from "./components/LobbyScreen";
@@ -33,6 +43,8 @@ const WS = {
   ROOM_DELETED: "room_deleted",
   // Challenge result
   CHALLENGE_RESULT: "challenge_result",
+  CHALLENGE_RESOLVED: "challenge_resolved",
+  CHALLENGE_WRONG: "challenge_wrong",
 } as const;
 
 type AuthResult = { token: string; user: { userId: string; username: string; role: string } };
@@ -50,7 +62,7 @@ type RoundResult = {
 
 type PublicState = {
   gameId: string;
-  baseId: "doz" | "dec";
+  baseId: "doz" | "dec" | "oct";
   status: "ONGOING" | "GAME_OVER";
   turn: string;
   topCard: Card;
@@ -106,7 +118,7 @@ export default function App() {
   const [token, setToken] = useState<string>(() => sessionStorage.getItem("token") || "");
   const [userId, setUserId] = useState<string>(() => sessionStorage.getItem("userId") || "");
 
-  const [baseId, setBaseId] = useState<"doz" | "dec">("doz");
+  const [baseId, setBaseId] = useState<"doz" | "dec" | "oct">("doz");
   const [lobbyId, setLobbyId] = useState("");
 
   const [gameId, setGameId] = useState("");
@@ -116,7 +128,7 @@ export default function App() {
 
   const [challengeResult, setChallengeResult] = useState<{ won: boolean; correct: boolean; tooLate: boolean } | null>(null);
 
-  // Ref for lobby poll interval so it can be cleared on leave
+  // Interval handle for lobby status polling; stored in a ref to survive re-renders
   const lobbyPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [myHand, setMyHand] = useState<Card[]>([]);
@@ -124,20 +136,20 @@ export default function App() {
   const [log, setLog] = useState<string[]>([]);
   const pushLog = useCallback((s: string) => setLog((x) => [s, ...x].slice(0, 200)), []);
 
-  // Track if we've joined the game via WS
+  // Whether the WebSocket room join handshake for the current game has completed
   const [gameJoined, setGameJoined] = useState(false);
 
   // Lobby status
   const [lobbyStatus, setLobbyStatus] = useState<"idle" | "created" | "joined" | "starting" | "ready">("idle");
 
-  // Restart state
+  // Negotiated rematch state: waiting for self or waiting for opponent
   const [restartStatus, setRestartStatus] = useState<'none' | 'waiting' | 'opponent_requested'>('none');
   const [opponentLeftMsg, setOpponentLeftMsg] = useState<string>('');
 
-  // Saved game ID for rejoin
+  // gameId persisted to sessionStorage so the player can rejoin after a page refresh
   const [savedGameId, setSavedGameId] = useState<string>(() => sessionStorage.getItem("savedGameId") || "");
 
-  // Room list for lobby browser
+  // Available open rooms fetched from the matchmaking API for the lobby browser
   const [rooms, setRooms] = useState<any[]>([]);
 
   // Profile page visibility
@@ -155,7 +167,48 @@ export default function App() {
   // Chat
   const [chatMessages, setChatMessages] = useState<{ from: string; text: string; ts: number }[]>([]);
 
-  // Determine if we should show game screen
+  // Challenge resolution (new dual-player system)
+  type ChallengeResolution = {
+    winnerId: string | null;
+    correctAnswer: number;
+    timedOut: boolean;
+    bothWrong?: boolean;
+    challengeData?: { type: string; op1: number; op2: number; reward: number };
+  };
+  const [challengeResolution, setChallengeResolution] = useState<ChallengeResolution | null>(null);
+
+  // Challenge history for current game
+  type ChallengeHistoryEntry = {
+    type: string;
+    op1: number;
+    op2: number;
+    correctAnswer: number;
+    myAnswer?: number;
+    won: boolean;
+    timedOut: boolean;
+    timestamp: number;
+  };
+  const [challengeHistory, setChallengeHistory] = useState<ChallengeHistoryEntry[]>([]);
+
+  // Challenge start timestamp (for countdown timer)
+  const [challengeStartTime, setChallengeStartTime] = useState<number | null>(null);
+  // Deduplicate challenge timer resets by tracking a signature for the current challenge
+  const prevChallengeRef = useRef<string | null>(null);
+
+  // Toast notification
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'info' } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showToast = useCallback((message: string, type: 'error' | 'info' = 'error') => {
+    setToast({ message, type });
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+  const clearToast = useCallback(() => {
+    setToast(null);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+  }, []);
+
+  // The game screen is shown only once both game state and the WS room join are confirmed
   const showGameScreen = ps !== null && gameJoined;
 
   // --- auth ---
@@ -203,7 +256,7 @@ export default function App() {
     pushLog(`Guest login as ${out.user.username}`);
   }
   async function doLogoutLocal() {
-    // Call backend to clear session IAT (prevents "already logged in" on re-login)
+    // Tell the backend to clear the session IAT so the next login does not hit AlreadyLoggedIn
     if (token) {
       try {
         await fetch(`${API}/auth/logout`, {
@@ -258,7 +311,7 @@ export default function App() {
 
     s.on("connect", () => {
       pushLog(`Connected to server`);
-      // Auto-join the game room once connected
+      // Hand off the game-ready event: emit JOIN_GAME so the server sends the initial state and private hand
       s.emit(WS.JOIN_GAME, { gameId: gId });
       pushLog(`Joining game...`);
       setGameJoined(true);
@@ -270,13 +323,29 @@ export default function App() {
       setGameJoined(false);
     });
 
-    s.on(WS.ERROR, (e: unknown) => pushLog(`ERROR: ${JSON.stringify(e)}`));
+    s.on(WS.ERROR, (e: unknown) => {
+      const msg = typeof e === 'object' && e !== null && 'message' in e ? (e as any).message : JSON.stringify(e);
+      pushLog(`ERROR: ${msg}`);
+      showToast(msg, 'error');
+    });
 
     s.on(WS.GAME_STATE, (state: PublicState) => {
       setPs(state);
-      // Clear stale challenge result when a new challenge appears
       if (state.activeChallenge) {
-        setChallengeResult(null);
+        // Detect a genuinely new challenge by comparing a content-derived signature
+        const sig = `${state.activeChallenge.type}-${state.activeChallenge.op1}-${state.activeChallenge.op2}`;
+        if (prevChallengeRef.current !== sig) {
+          // Genuinely new challenge — reset everything
+          prevChallengeRef.current = sig;
+          setChallengeResult(null);
+          setChallengeResolution(null);
+          setChallengeStartTime(Date.now());
+        }
+        // Same challenge still active — keep the existing timer and result state intact
+      } else {
+        // No active challenge
+        prevChallengeRef.current = null;
+        setChallengeStartTime(null);
       }
       if (state.status === "GAME_OVER") {
         setSavedGameId("");
@@ -369,9 +438,35 @@ export default function App() {
       }
     });
 
-    // Challenge result from server
+    // Challenge result from server (legacy)
     s.on(WS.CHALLENGE_RESULT, (payload: { won: boolean; correct: boolean; tooLate: boolean }) => {
       setChallengeResult(payload);
+    });
+
+    // Challenge resolved (new dual-player system)
+    s.on(WS.CHALLENGE_RESOLVED, (payload: ChallengeResolution) => {
+      setChallengeResolution(payload);
+      // Add to history
+      if (payload.challengeData) {
+        setChallengeHistory(prev => [...prev, {
+          type: payload.challengeData!.type,
+          op1: payload.challengeData!.op1,
+          op2: payload.challengeData!.op2,
+          correctAnswer: payload.correctAnswer,
+          won: payload.winnerId === sessionStorage.getItem('userId'),
+          timedOut: payload.timedOut,
+          timestamp: Date.now(),
+        }]);
+      }
+      // Auto-dismiss after 3 seconds
+      setTimeout(() => {
+        setChallengeResolution(null);
+      }, 3000);
+    });
+
+    // Challenge wrong (server tells this player they're wrong)
+    s.on(WS.CHALLENGE_WRONG, (_payload: { playerId: string }) => {
+      // Already handled by CHALLENGE_RESULT for UI
     });
   }
 
@@ -470,7 +565,7 @@ export default function App() {
     setLobbyStatus("joined");
     pushLog(`Joined room: ${roomLobbyId}`);
 
-    // Start polling for game start
+    // Poll the lobby status endpoint until the host starts the game
     pollForGameStart(roomLobbyId, token);
   }
 
@@ -586,6 +681,11 @@ export default function App() {
     emitAction({ type: "DRAW", playerId: userId });
   }
 
+  function doPass() {
+    if (!userId) return;
+    emitAction({ type: "PASS", playerId: userId });
+  }
+
   function doPlay(card: Card, chosenSuit?: "S" | "H" | "D" | "C", chosenOperation?: '+' | '-' | '*' | '/') {
     if (!userId) return;
     emitAction({ type: "PLAY", playerId: userId, card, chosenSuit, chosenOperation });
@@ -628,7 +728,7 @@ export default function App() {
 
   // Back to lobby handler
   function handleBackToLobby() {
-    // Voluntary leave: do NOT save gameId for rejoin (game will be deleted by LEAVE_GAME)
+    // Emit LEAVE_GAME first so the server notes the departure before the socket closes
     setSavedGameId("");
     sessionStorage.removeItem("savedGameId");
     // Emit LEAVE_GAME before disconnecting so server can notify opponent
@@ -646,6 +746,9 @@ export default function App() {
     setGameId("");
     setLobbyId("");
     setChatMessages([]);
+    setChallengeHistory([]);
+    setChallengeResolution(null);
+    setChallengeStartTime(null);
     // Delay disconnect so server has time to process LEAVE_GAME and notify opponent
     if (s) {
       setTimeout(() => {
@@ -666,6 +769,7 @@ export default function App() {
         log={log}
         onDraw={doDraw}
         onPlay={doPlay}
+        onPass={doPass}
         onAnswerChallenge={doAnswerChallenge}
         challengeResult={challengeResult}
         onBackToLobby={handleBackToLobby}
@@ -676,6 +780,11 @@ export default function App() {
         chatMessages={chatMessages}
         onSendChat={sendChat}
         opponentLeftMsg={opponentLeftMsg}
+        toast={toast}
+        onClearToast={clearToast}
+        challengeResolution={challengeResolution}
+        challengeHistory={challengeHistory}
+        challengeStartTime={challengeStartTime}
       />
     );
   }
@@ -717,28 +826,30 @@ export default function App() {
       setPassword={setPassword}
       token={token}
       userId={userId}
-      onRegister={() => doRegister().catch((e) => pushLog(`Error: ${e.message}`))}
-      onLogin={() => doLogin().catch((e) => pushLog(`Error: ${e.message}`))}
+      onRegister={() => doRegister().catch((e) => { pushLog(`Error: ${e.message}`); showToast(e.message, 'error'); })}
+      onLogin={() => doLogin().catch((e) => { pushLog(`Error: ${e.message}`); showToast(e.message, 'error'); })}
       onLogout={doLogoutLocal}
       baseId={baseId}
       setBaseId={setBaseId}
       lobbyId={lobbyId}
       setLobbyId={setLobbyId}
       lobbyStatus={lobbyStatus}
-      onCreateLobby={() => handleCreateLobby().catch((e) => pushLog(`Error: ${e.message}`))}
-      onJoinRoom={(id: string) => handleJoinRoom(id).catch((e) => pushLog(`Error: ${e.message}`))}
-      onStartGame={() => handleStartGame().catch((e) => pushLog(`Error: ${e.message}`))}
+      onCreateLobby={() => handleCreateLobby().catch((e) => { pushLog(`Error: ${e.message}`); showToast(e.message, 'error'); })}
+      onJoinRoom={(id: string) => handleJoinRoom(id).catch((e) => { pushLog(`Error: ${e.message}`); showToast(e.message, 'error'); })}
+      onStartGame={() => handleStartGame().catch((e) => { pushLog(`Error: ${e.message}`); showToast(e.message, 'error'); })}
       savedGameId={savedGameId}
       onRejoinGame={handleRejoinGame}
       rooms={rooms}
       onRefreshRooms={fetchRooms}
       onOpenProfile={() => setShowProfile(true)}
-      onAdminLogin={() => doAdminLogin().catch((e) => pushLog(`Error: ${e.message}`))}
-      onGuestLogin={() => doGuestLogin().catch((e) => pushLog(`Error: ${e.message}`))}
+      onAdminLogin={() => doAdminLogin().catch((e) => { pushLog(`Error: ${e.message}`); showToast(e.message, 'error'); })}
+      onGuestLogin={() => doGuestLogin().catch((e) => { pushLog(`Error: ${e.message}`); showToast(e.message, 'error'); })}
       onLeaveRoom={handleLeaveRoom}
       roomHasGuest={roomHasGuest}
       log={log}
       isGuest={isGuest}
+      toast={toast}
+      onClearToast={clearToast}
     />
   );
 }

@@ -151,11 +151,17 @@
 
 .match-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 6px;
     padding: 10px 14px;
     border-radius: 8px;
     font-size: 0.9rem;
+}
+
+.match-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .match-win {
@@ -194,6 +200,18 @@
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.5);
+}
+
+.match-challenge-stats {
+    display: flex;
+    gap: 16px;
+    padding-left: 4px;
+    font-size: 0.8rem;
+}
+
+.challenge-stat {
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 600;
 }
 
 /* Settings */

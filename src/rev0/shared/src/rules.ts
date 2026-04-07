@@ -1,4 +1,12 @@
-// shared/src/rules.ts
+/**
+ * @file rules.ts
+ * @module shared/rules
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Core card-game rules for Crazy Tens: deck creation, round initialisation,
+ *          play / draw / pass mechanics, wildcard and challenge resolution,
+ *          and win-condition detection.
+ */
 import { fromBaseToNumber, toBaseFromNumber } from "./baseConversion.js";
 import type { NumeralSystem, Suit } from "./systems.js";
 import { getSystem } from "./systems.js";
@@ -30,7 +38,7 @@ export type MathChallenge = Readonly<{
   shouldPassTurn: boolean;
 }>;
 
-// baseConversion usage
+// Delegate numeric-string parsing and formatting to the numeral-system abstraction
 export function parseInSystem(text: string, sys: NumeralSystem): number {
   return fromBaseToNumber(text, sys.spec);
 }
@@ -68,7 +76,7 @@ export function createDeck(sys: NumeralSystem): Card[] {
 export function initRound(
   sys: NumeralSystem,
   players: [PlayerID, PlayerID],
-  initialHandSize = 7,
+  initialHandSize = 8,
   rngDeck?: Card[]
 ): RoundState {
   if (players[0] === players[1]) throw new Error("InvalidPlayers");
@@ -120,21 +128,21 @@ export function isPlayable(sys: NumeralSystem, state: RoundState, playerId: Play
   if (state.turn !== playerId) return false;
 
   if (state.activeChallenge) return false;
-  // ✅ freePlay：无视 topCard/forcedSuit，可出任意手牌
+  // freePlay: player may place any card from their hand, bypassing normal match rules
   if (state.freePlayFor === playerId) return true;
 
   const hand = state.hands[playerId] ?? [];
   const hasCard = hand.some(c => c.suit === card.suit && c.rank === card.rank);
   if (!hasCard) return false;
 
-  // wildcards always playable
+  // Wildcard ("ten") cards are always legal regardless of top-card suit or rank
   if (card.rank === sys.wildcardTenSymbol) return true;
   if (card.rank === sys.wildcardSkipSymbol) return true;
 
-  if (card.suit === effectiveSuit(state)) return true; // match suit
-  if (card.rank === state.topCard.rank) return true; // match rank
+  if (card.suit === effectiveSuit(state)) return true; // Legal: card shares the required suit
+  if (card.rank === state.topCard.rank) return true;    // Legal: card matches the top-card rank
 
-  // sum rule: numeric + numeric = target
+  // "Crazy Tens" rule: a numeric card that sums with the top numeric card to the base target is legal
   if (!isFace(card.rank, sys) && !isFace(state.topCard.rank, sys)) {
     const targetSumDec = parseInSystem(sys.targetSumText, sys);
     const sum = numericValueDec(card.rank, sys) + numericValueDec(state.topCard.rank, sys);
@@ -166,17 +174,7 @@ export function applyDraw(sys: NumeralSystem, state: RoundState, playerId: Playe
     drawCountThisTurn: s.drawCountThisTurn + 1,
   };
 
-  // ✅ 抽满3次仍无可出牌：自动切到对面 + 对面 freePlay 1 次
-  if (s.drawCountThisTurn >= 3 && getPlayableCards(sys, s, playerId).length === 0 && !s.activeChallenge) {
-    const nxt = nextPlayer(s);
-    s = {
-      ...s,
-      turn: nxt,
-      drawCountThisTurn: 0,
-      freePlayFor: nxt,
-      forcedSuit: undefined, // clear forced suit
-    };
-  }
+  // After drawing, the player must choose to play a card or manually pass — no automatic advancement
   return s;
 }
 
@@ -203,10 +201,10 @@ export function applyPlay(
     forcedSuit = chosenSuit;
   }
 
-  // After playing, clear freePlay (it's been used)
+  // Wildcard-ten requires the player to nominate the next required suit
   let nextFreePlayFor: PlayerID | undefined = undefined;
 
-  // Skip card: same player continues with a free play
+  // Skip card: grants the playing player an immediate bonus free play
   if (card.rank === sys.wildcardSkipSymbol) {
     nextFreePlayFor = playerId;
   }
@@ -221,7 +219,7 @@ export function applyPlay(
     drawCountThisTurn: 0,
   };
 
-  // Determine challenge type
+  // Determine which arithmetic operation (if any) this card triggers
   let challengeType: '+' | '-' | '*' | '/' | undefined;
   const randomOp = (): '+' | '-' | '*' | '/' => {
     const ops: ('+' | '-' | '*' | '/')[] = ['+', '-', '*', '/'];
@@ -229,30 +227,28 @@ export function applyPlay(
   };
 
   if (card.rank === 'J' || card.rank === 'Q') {
-    // J and Q trigger a random arithmetic operation
+    // J and Q both trigger a random arithmetic challenge
     challengeType = randomOp();
   } else if (sys.id === 'dec' && card.rank === 'K') {
-    // K in decimal: player selects operation (fallback to random)
+    // Decimal King: player may choose the operation; falls back to random if none given
     challengeType = chosenOperation ?? randomOp();
   } else if (sys.id === 'doz' && card.rank === 'C') {
-    // C in dozenal: player selects operation (fallback to random)
+    // Dozenal Chancellor: player may choose the operation; falls back to random if none given
     challengeType = chosenOperation ?? randomOp();
   } else if (sys.id === 'doz' && card.rank === 'K') {
-    // K in dozenal: random (not player-selectable)
+    // Dozenal King: always random — player has no choice
     challengeType = randomOp();
   }
 
   if (challengeType) {
-    // Determine operand range: Multiplication caps at 12, Addition/Subtraction caps at 100
-    // (Division ignores this range and handles its own 1-12 boundary below)
+    // Operand range varies by operation: multiplication uses single-digit pairs, others use up to 100
     const range = (challengeType === '*') ? 12 : 100;
 
     const op1 = Math.floor(Math.random() * range) + 1;
     let op2 = Math.floor(Math.random() * range) + 1;
 
     if (challengeType === '/') {
-      // For division: create a clean division problem
-      // Pick two numbers exactly between 1-12, multiply them, then ask product / a = ?
+      // Division: construct a guaranteed whole-number answer using factor pairs in [1, 12]
       const a = Math.floor(Math.random() * 12) + 1;
       const b = Math.floor(Math.random() * 12) + 1;
       const product = a * b;
@@ -270,7 +266,7 @@ export function applyPlay(
         }
       };
     } else if (challengeType === '-') {
-      // Ensure non-negative answer: make op1 >= op2
+      // Subtraction: guarantee a non-negative result by reordering operands
       const high = Math.max(op1, op2);
       const low = Math.min(op1, op2);
 
@@ -306,7 +302,7 @@ export function applyPlay(
     }
   }
 
-  // skip wildcard -> same player continues
+  // Skip wildcard — same player continues; turn does not advance
   if (card.rank === sys.wildcardSkipSymbol) return after;
 
   return {
@@ -341,7 +337,7 @@ export function roundWinner(state: RoundState): PlayerID | null {
   return null;
 }
 
-// Convenience for engine: build system from baseId
+// Build the NumeralSystem for a given base identifier — convenience used by the engine layer
 export function systemFromBaseId(baseId: import("./systems.js").BaseId): NumeralSystem {
   return getSystem(baseId);
 }

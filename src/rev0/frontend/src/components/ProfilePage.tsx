@@ -14,6 +14,9 @@ type ProfileData = {
         opponentNickname?: string;
         baseId?: string;
         timestamp: number;
+        challengesAttempted?: number;
+        challengesCorrect?: number;
+        challengesFirst?: number;
     }[];
 };
 
@@ -190,14 +193,27 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ token, onBack, onLogou
                     <div className="match-list">
                         {history.map((m) => (
                             <div key={m.id} className={`match-row match-${m.outcome}`}>
-                                <span className="match-outcome">{outcomeIcon(m.outcome)} {outcomeLabel(m.outcome)}</span>
-                                <span className="match-score">
-                                    {m.playerScore ?? '?'} – {m.opponentScore ?? '?'}
-                                </span>
-                                <span className="match-opponent">
-                                    vs {m.opponentNickname || 'Unknown'}
-                                </span>
-                                <span className="match-base">{m.baseId === 'doz' ? 'Doz' : 'Dec'}</span>
+                                <div className="match-main-info">
+                                    <span className="match-outcome">{outcomeIcon(m.outcome)} {outcomeLabel(m.outcome)}</span>
+                                    <span className="match-score">
+                                        {m.playerScore ?? '?'} – {m.opponentScore ?? '?'}
+                                    </span>
+                                    <span className="match-opponent">
+                                        vs {m.opponentNickname || 'Unknown'}
+                                    </span>
+                                    <span className="match-base">{m.baseId === 'doz' ? 'Doz' : 'Dec'}</span>
+                                </div>
+                                {(m.challengesAttempted ?? 0) > 0 && (
+                                    <div className="match-challenge-stats">
+                                        <span className="challenge-stat" title="Correct / Attempted">
+                                            🎯 {m.challengesCorrect ?? 0}/{m.challengesAttempted ?? 0}
+                                            ({m.challengesAttempted ? Math.round(((m.challengesCorrect ?? 0) / m.challengesAttempted) * 100) : 0}%)
+                                        </span>
+                                        <span className="challenge-stat" title="First to answer">
+                                            ⚡ {m.challengesFirst ?? 0} first
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

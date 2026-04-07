@@ -1,3 +1,12 @@
+/**
+ * @file LobbyScreen.tsx
+ * @module frontend/components/LobbyScreen
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Lobby and authentication screen: displays login/registration,
+ *          room creation, room browser, guest access, and waiting states
+ *          before a game session starts.
+ */
 import React, { useState, useEffect } from 'react';
 import './LobbyScreen.css';
 
@@ -6,7 +15,7 @@ type Room = {
   hostId: string;
   hostUsername: string;
   guestId?: string;
-  baseId: 'doz' | 'dec';
+  baseId: 'doz' | 'dec' | 'oct';
   createdAt: number;
   status: 'OPEN' | 'STARTED';
 };
@@ -24,8 +33,8 @@ interface LobbyScreenProps {
   onLogout: () => void;
 
   // Room creation
-  baseId: 'doz' | 'dec';
-  setBaseId: (v: 'doz' | 'dec') => void;
+  baseId: 'doz' | 'dec' | 'oct';
+  setBaseId: (v: 'doz' | 'dec' | 'oct') => void;
   lobbyId: string;
   setLobbyId: (v: string) => void;
   lobbyStatus: 'idle' | 'created' | 'joined' | 'starting' | 'ready';
@@ -59,6 +68,10 @@ interface LobbyScreenProps {
 
   // Log
   log: string[];
+
+  // Toast notification
+  toast?: { message: string; type: 'error' | 'info' } | null;
+  onClearToast?: () => void;
 }
 
 export const LobbyScreen: React.FC<LobbyScreenProps> = ({
@@ -89,9 +102,12 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
   onLeaveRoom,
   roomHasGuest,
   log,
+  toast,
+  onClearToast,
 }) => {
   const isLoggedIn = !!token && !!userId;
   const [showLog, setShowLog] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Auto-refresh room list every 3 seconds when logged in and idle
   useEffect(() => {
@@ -101,7 +117,7 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
     return () => clearInterval(interval);
   }, [isLoggedIn, lobbyStatus]);
 
-  const baseName = (bid: string) => bid === 'doz' ? 'Dozenal' : 'Decimal';
+  const baseName = (bid: string) => bid === 'doz' ? 'Dozenal' : bid === 'oct' ? 'Octal 🧪' : 'Decimal';
 
   // Show game-themed login screen when not logged in
   if (!isLoggedIn) {
@@ -144,11 +160,19 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
               <span className="login-input-icon">🔒</span>
               <input
                 placeholder="Password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && onLogin()}
               />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowPassword(v => !v)}
+                tabIndex={-1}
+              >
+                {showPassword ? 'HIDE' : 'SHOW'}
+              </button>
             </div>
 
             <button className="login-btn-play" onClick={onLogin}>
@@ -170,6 +194,15 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
       </div>
     );
   }
+
+  // Friendly error map for toasts
+  const friendlyMsg = (msg: string) => {
+    if (msg.includes('Invalid credentials') || msg.includes('invalid_credentials')) return '❌ Wrong username or password';
+    if (msg.includes('already logged in') || msg.includes('ActiveSessionExists')) return '⚠️ This account is already logged in elsewhere';
+    if (msg.includes('User not found') || msg.includes('UserNotFound')) return '❌ Account not found';
+    if (msg.includes('Username already') || msg.includes('UserExists')) return '⚠️ Username already taken';
+    return msg;
+  };
 
   return (
     <div className="lobby-screen lobby-loggedin">
@@ -199,6 +232,15 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
         </div>
       </div>
 
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`lobby-toast lobby-toast-${toast.type}`} onClick={onClearToast}>
+          <span className="lobby-toast-icon">{toast.type === 'error' ? '⚠️' : 'ℹ️'}</span>
+          <span className="lobby-toast-msg">{friendlyMsg(toast.message)}</span>
+          <button className="lobby-toast-close" onClick={onClearToast}>✕</button>
+        </div>
+      )}
+
       {/* Game Room Section */}
       {lobbyStatus === 'idle' && (
         <div className="lobby-section lobby-section-game">
@@ -211,18 +253,41 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
             </button>
           )}
 
+          {/* Mode Selector — Prominent Toggle */}
+          <div className="mode-selector">
+            <div className="mode-selector-label">🎲 Choose Game Mode</div>
+            <div className="mode-toggle-group">
+              <button
+                className={`mode-toggle-btn mode-toggle-doz ${baseId === 'doz' ? 'active' : ''}`}
+                onClick={() => setBaseId('doz')}
+              >
+                <span className="mode-toggle-icon">12</span>
+                <span className="mode-toggle-name">Dozenal</span>
+                <span className="mode-toggle-desc">Base 12 · Harder math</span>
+              </button>
+              <button
+                className={`mode-toggle-btn mode-toggle-dec ${baseId === 'dec' ? 'active' : ''}`}
+                onClick={() => setBaseId('dec')}
+              >
+                <span className="mode-toggle-icon">10</span>
+                <span className="mode-toggle-name">Decimal</span>
+                <span className="mode-toggle-desc">Base 10 · Classic</span>
+              </button>
+              <button
+                className={`mode-toggle-btn mode-toggle-oct ${baseId === 'oct' ? 'active' : ''}`}
+                onClick={() => setBaseId('oct')}
+              >
+                <span className="mode-toggle-icon">8</span>
+                <span className="mode-toggle-name">Octal <span className="experimental-badge">🧪 Exp</span></span>
+                <span className="mode-toggle-desc">Base 8 · Experimental</span>
+              </button>
+            </div>
+          </div>
+
           {/* Create room */}
           <div className="create-room-bar">
-            <select
-              value={baseId}
-              onChange={(e) => setBaseId(e.target.value as 'doz' | 'dec')}
-              className="base-select"
-            >
-              <option value="doz">Dozenal (Base 12)</option>
-              <option value="dec">Decimal (Base 10)</option>
-            </select>
-            <button className="btn-create-room" onClick={onCreateLobby}>
-              + Create Room
+            <button className="btn-create-room" style={{ width: '100%' }} onClick={onCreateLobby}>
+              + Create {baseId === 'doz' ? 'Dozenal' : baseId === 'oct' ? 'Octal 🧪' : 'Decimal'} Room
             </button>
           </div>
 
@@ -324,27 +389,29 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
         </div>
       )}
 
-      {/* Log — collapsible */}
-      <div className="lobby-section log-section">
-        <button
-          className="log-toggle"
-          onClick={() => setShowLog(v => !v)}
-        >
-          📋 Activity Log {showLog ? '▼' : '▶'}
-        </button>
-        {showLog && (
-          <div className="log-container">
-            {log.map((x, i) => (
-              <div key={i}>{x}</div>
-            ))}
+      {/* Activity Log — floating corner button, not a grid column */}
+      <button
+        className="lobby-log-float-btn"
+        onClick={() => setShowLog(v => !v)}
+        title="Activity Log"
+      >
+        📋
+      </button>
+      {showLog && (
+        <div className="lobby-log-float-panel">
+          <div className="lobby-log-float-header">
+            <span>📋 Activity Log</span>
+            <button className="lobby-log-close-btn" onClick={() => setShowLog(false)}>✖</button>
           </div>
-        )}
-      </div>
+          <div className="lobby-log-float-content">
+            {log.length === 0
+              ? <div className="lobby-log-empty">No activity yet.</div>
+              : log.map((x, i) => <div key={i} className="lobby-log-entry">{x}</div>)
+            }
+          </div>
+        </div>
+      )}
 
-      {/* Instructions */}
-      <div className="lobby-instructions">
-        <strong>🎴 How to play:</strong> Open in two browsers. Create a room, wait for opponent, start!
-      </div>
     </div>
   );
 };

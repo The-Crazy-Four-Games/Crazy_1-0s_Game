@@ -37,6 +37,10 @@ export type MatchResult = {
   opponentScore?: number;
   baseId?: string;
   timestamp: number;
+  // Arithmetic challenge stats
+  challengesAttempted?: number;
+  challengesCorrect?: number;
+  challengesFirst?: number;
 };
 
 export type MatchHistoryEntry = MatchResult & {

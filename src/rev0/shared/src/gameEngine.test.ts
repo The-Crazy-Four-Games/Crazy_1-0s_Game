@@ -25,14 +25,14 @@ function makeRound(overrides: Partial<RoundState> = {}): RoundState {
 }
 
 describe("gameEngine", () => {
-  it("creates games with seven-card hands and the new target score", () => {
+  it("creates games with eight-card hands and the new target score", () => {
     const game = createGame({
       baseId: "dec",
       players: ["P1", "P2"],
     });
 
-    expect(game.round.hands.P1).toHaveLength(7);
-    expect(game.round.hands.P2).toHaveLength(7);
+    expect(game.round.hands.P1).toHaveLength(8);
+    expect(game.round.hands.P2).toHaveLength(8);
 
     const publicState = getPublicState(game);
     expect(publicState.targetScoreText).toBe("100");
@@ -58,8 +58,8 @@ describe("gameEngine", () => {
 
     expect(next.scoresDec.P1).toBe(roundGainDec(loserHand, DECIMAL_SYSTEM));
     expect(next.status).toBe("ONGOING");
-    expect(next.round.hands.P1).toHaveLength(7);
-    expect(next.round.hands.P2).toHaveLength(7);
+    expect(next.round.hands.P1).toHaveLength(8);
+    expect(next.round.hands.P2).toHaveLength(8);
     expect(next.actionLog).toHaveLength(1);
   });
 

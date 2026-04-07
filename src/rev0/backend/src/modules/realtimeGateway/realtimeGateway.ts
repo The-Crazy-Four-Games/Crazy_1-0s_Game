@@ -1,3 +1,13 @@
+/**
+ * @file realtimeGateway.ts
+ * @module backend/realtimeGateway
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose Socket.IO gateway for all real-time game events.
+ *          Handles player authentication on connect, game-room management,
+ *          action dispatch, arithmetic challenge tracking with dual-player
+ *          competition, in-game chat, restart negotiation, and result persistence.
+ */
 import type { Server as IOServer, Socket } from "socket.io";
 import crypto from "crypto";
 
@@ -29,6 +39,10 @@ export const WS = {
   ROOM_DELETED: "room_deleted",
   // Challenge result (server → individual player)
   CHALLENGE_RESULT: "challenge_result",
+  // Challenge resolved (server → room)
+  CHALLENGE_RESOLVED: "challenge_resolved",
+  // Challenge wrong (server → individual player)
+  CHALLENGE_WRONG: "challenge_wrong",
 } as const;
 
 export type JoinGamePayload = { gameId: string };
@@ -54,11 +68,82 @@ export function makeRealtimeGateway(deps: {
 }) {
   const { io, auth, audit, gameSessions, repo } = deps;
 
-  // Track restart requests per game: gameId -> Set of userIds who requested restart
+  // Pending restart votes per game: gameId -> set of userIds who have voted to rematch
   const restartRequests = new Map<string, Set<string>>();
 
-  // Track userId -> socketId for targeted events (force-logout)
+  // Maps userId to socketId to support targeted admin operations (e.g. force-logout)
   const userSockets = new Map<string, string>();
+
+  // Per-game challenge tracker: records wrong-answer submissions and the expiry timer
+  type ChallengeTracker = {
+    wrongPlayers: Set<string>;
+    timer: ReturnType<typeof setTimeout>;
+    correctAnswer: number;
+    challengeData: { type: string; op1: number; op2: number; reward: number };
+  };
+  const activeChallenges = new Map<string, ChallengeTracker>();
+
+  // Cumulative challenge statistics per player per game: attempts, correct answers, first-to-answer count
+  const challengeStats = new Map<string, Map<string, { attempted: number; correct: number; first: number }>>();
+
+  function getOrCreateStats(gameId: string, playerId: string) {
+    if (!challengeStats.has(gameId)) challengeStats.set(gameId, new Map());
+    const gs = challengeStats.get(gameId)!;
+    if (!gs.has(playerId)) gs.set(playerId, { attempted: 0, correct: 0, first: 0 });
+    return gs.get(playerId)!;
+  }
+
+  // Start challenge timeout for a game
+  function startChallengeTimer(gameId: string, game: GameState) {
+    const challenge = game.round?.activeChallenge;
+    if (!challenge) return;
+
+    const timer = setTimeout(async () => {
+      // Timeout expired: reveal the correct answer and advance the turn without awarding points
+      const curGame = gameSessions.get(gameId);
+      if (!curGame || !curGame.round?.activeChallenge) return;
+
+      const correctAnswer = curGame.round.activeChallenge.answer!;
+      const tracker = activeChallenges.get(gameId);
+
+      // Clear challenge and advance turn
+      const updatedRound = { ...curGame.round, activeChallenge: undefined };
+      // Advance turn
+      const players = updatedRound.players;
+      const currentIdx = players.indexOf(updatedRound.turn);
+      updatedRound.turn = players[(currentIdx + 1) % players.length];
+      (updatedRound as any).drawCountThisTurn = 0;
+
+      const next = { ...curGame, round: updatedRound };
+      gameSessions.set(gameId, next);
+
+      // Broadcast resolution
+      io.to(roomForGame(gameId)).emit(WS.CHALLENGE_RESOLVED, {
+        winnerId: null,
+        correctAnswer,
+        timedOut: true,
+        challengeData: tracker?.challengeData,
+      });
+
+      // Broadcast updated state
+      io.to(roomForGame(gameId)).emit(WS.GAME_STATE, getPublicState(next));
+      await emitHandsToRoom(gameId, next);
+
+      activeChallenges.delete(gameId);
+    }, 60000); // 60 seconds
+
+    activeChallenges.set(gameId, {
+      wrongPlayers: new Set(),
+      timer,
+      correctAnswer: challenge.answer!,
+      challengeData: {
+        type: challenge.type,
+        op1: challenge.op1,
+        op2: challenge.op2,
+        reward: challenge.reward,
+      },
+    });
+  }
 
   const roomForGame = (gameId: string) => `game:${gameId}`;
 
@@ -152,7 +237,7 @@ export function makeRealtimeGateway(deps: {
         const cur = gameSessions.get(payload.gameId);
         if (!cur) throw new Error("GameNotFound");
 
-        // anti-cheat: playerId in action must match userId
+        // Security check: the action's playerId must match the authenticated user's ID
         if ((payload.action as any).playerId !== userId) {
           throw new Error("PlayerIdMismatch");
         }
@@ -160,7 +245,7 @@ export function makeRealtimeGateway(deps: {
         // only players can act
         assertPlayerInGame(cur, userId);
 
-        // Capture score before action to detect if this player scored
+        // Snapshot score before action to detect whether this player earned challenge points
         const scoreBefore = cur.scoresDec?.[userId] ?? 0;
         const hadChallenge = !!cur.round?.activeChallenge;
 
@@ -178,15 +263,104 @@ export function makeRealtimeGateway(deps: {
         // emit private hands to players
         await emitHandsToRoom(payload.gameId, next);
 
-        // Send challenge result feedback to the answering player
+        // Begin the 60-second challenge clock when a new challenge becomes active
+        if (!hadChallenge && !!next.round?.activeChallenge) {
+          startChallengeTimer(payload.gameId, next);
+        }
+
+        // Resolve dual-player challenge competition after an ANSWER_CHALLENGE submission
         if (hadChallenge && (payload.action as any).type === "ANSWER_CHALLENGE") {
           const won = scoreAfter > scoreBefore;
           const stillActive = !!next.round?.activeChallenge;
-          // won = scored points (correct + first), correct = challenge cleared, tooLate = n/a
-          socket.emit(WS.CHALLENGE_RESULT, { won, correct: !stillActive, tooLate: false });
+          const tracker = activeChallenges.get(payload.gameId);
+
+          if (won) {
+            // Correct answer — this player wins
+            const stats = getOrCreateStats(payload.gameId, userId);
+            stats.attempted++;
+            stats.correct++;
+            stats.first++;
+
+            // Also count attempt for opponent if they answered wrong
+            const players = next.round.players;
+            const opponentId = players.find(p => p !== userId);
+            if (opponentId && tracker?.wrongPlayers.has(opponentId)) {
+              // Opponent already attempted and got wrong
+            }
+
+            // Clear timer
+            if (tracker) {
+              clearTimeout(tracker.timer);
+              activeChallenges.delete(payload.gameId);
+            }
+
+            // Send resolution to room
+            io.to(roomForGame(payload.gameId)).emit(WS.CHALLENGE_RESOLVED, {
+              winnerId: userId,
+              correctAnswer: tracker?.correctAnswer,
+              timedOut: false,
+              challengeData: tracker?.challengeData,
+            });
+
+            // Legacy individual result — kept for backward compatibility with older clients
+            socket.emit(WS.CHALLENGE_RESULT, { won: true, correct: true, tooLate: false });
+          } else if (!won && !stillActive) {
+            // Wrong answer — challenge cleared by game engine somehow
+            const stats = getOrCreateStats(payload.gameId, userId);
+            stats.attempted++;
+            socket.emit(WS.CHALLENGE_RESULT, { won: false, correct: false, tooLate: false });
+          } else if (stillActive) {
+            // Wrong answer but challenge still active (opponent hasn't answered yet / or this is 1st wrong)
+            const stats = getOrCreateStats(payload.gameId, userId);
+            stats.attempted++;
+
+            if (tracker) {
+              tracker.wrongPlayers.add(userId);
+
+              // Check if ALL players have now answered wrong
+              const players = cur.round.players;
+              const allWrong = players.every(p => tracker.wrongPlayers.has(p));
+
+              if (allWrong) {
+                // Both wrong — clear challenge, advance turn, broadcast resolution
+                clearTimeout(tracker.timer);
+
+                // Manually clear activeChallenge and advance turn in game state
+                const curGame = gameSessions.get(payload.gameId);
+                if (curGame) {
+                  const updatedRound = { ...curGame.round, activeChallenge: undefined };
+                  const currentIdx = updatedRound.players.indexOf(updatedRound.turn);
+                  updatedRound.turn = updatedRound.players[(currentIdx + 1) % updatedRound.players.length];
+                  (updatedRound as any).drawCountThisTurn = 0;
+                  const clearedGame = { ...curGame, round: updatedRound };
+                  gameSessions.set(payload.gameId, clearedGame);
+
+                  // Broadcast both-wrong resolution FIRST
+                  io.to(roomForGame(payload.gameId)).emit(WS.CHALLENGE_RESOLVED, {
+                    winnerId: null,
+                    correctAnswer: tracker.correctAnswer,
+                    timedOut: false,
+                    bothWrong: true,
+                    challengeData: tracker.challengeData,
+                  });
+
+                  // Then broadcast updated game state (no active challenge)
+                  io.to(roomForGame(payload.gameId)).emit(WS.GAME_STATE, getPublicState(clearedGame));
+                  await emitHandsToRoom(payload.gameId, clearedGame);
+                }
+
+                activeChallenges.delete(payload.gameId);
+              }
+            }
+
+            // Notify this player they were wrong
+            socket.emit(WS.CHALLENGE_WRONG, { playerId: userId });
+            // Legacy result
+            socket.emit(WS.CHALLENGE_RESULT, { won: false, correct: false, tooLate: false });
+          }
         }
 
-        // Record match results when game ends
+        // Persist both players' match statistics to the repository when the game concludes
         if (next.status === "GAME_OVER" && pubState.lastRoundResult) {
           const lr = pubState.lastRoundResult as any;
           const players = next.round.players;
@@ -194,9 +368,7 @@ export function makeRealtimeGateway(deps: {
           const now = Date.now();
           const baseId = next.sys?.id ?? "dec";
 
-          // Determine winner — the lastRoundResult.winner is the round winner,
-          // but for the overall game, check if someone reached targetScore.
-          // The game is over, so we can look at scores to determine who won.
+          // Identify the overall game winner by comparing each player's score against the target
           let winnerId: string | undefined;
           const targetScoreDec = next.sys?.targetScoreText ? parseInSystem(next.sys.targetScoreText, next.sys) : 100;
           for (const pid of players) {
@@ -209,6 +381,7 @@ export function makeRealtimeGateway(deps: {
           for (const pid of players) {
             const opponentId = players.find(p => p !== pid);
             const outcome = winnerId === pid ? "win" as const : winnerId ? "lose" as const : "draw" as const;
+            const cStats = challengeStats.get(payload.gameId)?.get(pid);
             try {
               await repo.saveMatchResult({
                 id: crypto.randomUUID(),
@@ -219,14 +392,20 @@ export function makeRealtimeGateway(deps: {
                 opponentScore: opponentId ? (scores as any)[opponentId] ?? 0 : 0,
                 baseId,
                 timestamp: now,
+                challengesAttempted: cStats?.attempted ?? 0,
+                challengesCorrect: cStats?.correct ?? 0,
+                challengesFirst: cStats?.first ?? 0,
               });
             } catch (e) {
               console.error("Failed to save match result:", e);
             }
           }
+
+          // Release per-game challenge stats now that the session has ended
+          challengeStats.delete(payload.gameId);
         }
       } catch (e: any) {
-        // If it's a late challenge answer (NoActiveChallenge), send feedback instead of generic error
+        // A NoActiveChallenge error on ANSWER_CHALLENGE means the player answered too late
         if (e?.message === "NoActiveChallenge" && (payload?.action as any)?.type === "ANSWER_CHALLENGE") {
           socket.emit(WS.CHALLENGE_RESULT, { won: false, correct: false, tooLate: true });
           return;
@@ -244,7 +423,7 @@ export function makeRealtimeGateway(deps: {
         const game = gameSessions.get(payload.gameId);
         if (!game) throw new Error("GameNotFound");
 
-        // Only allow restart requests when game is over
+        // Only permit restart requests after the game has concluded
         if (game.status !== "GAME_OVER") {
           throw new Error("GameNotOver");
         }
@@ -269,7 +448,7 @@ export function makeRealtimeGateway(deps: {
           const newGame = createGame({
             baseId: game.sys.id,
             players: players,
-            initialHandSize: 7,
+            initialHandSize: 8,
           });
 
           // Store the new game
@@ -364,10 +543,9 @@ export function makeRealtimeGateway(deps: {
         // Clean up restart requests
         restartRequests.delete(gameId);
 
-        // Check if game is still ongoing
+        // Forfeit the in-progress game session so no misleading match record is created
         const game = gameSessions.get(gameId);
         const wasOngoing = game && game.status !== "GAME_OVER";
-
         if (wasOngoing) {
           gameSessions.delete(gameId);
           audit.logSystemEvent?.({ type: "GAME_PLAYER_LEFT", at: Date.now(), userId, gameId });
@@ -408,8 +586,8 @@ export function makeRealtimeGateway(deps: {
           const game = gameSessions.get(gameId);
           const wasOngoing = game && game.status !== "GAME_OVER";
 
+          // Purge the game session so no partial match result is recorded for an aborted game
           if (wasOngoing) {
-            // Remove the game session so no match result gets recorded
             gameSessions.delete(gameId);
             audit.logSystemEvent?.({ type: "GAME_ABORTED", at: Date.now(), userId, gameId });
           }

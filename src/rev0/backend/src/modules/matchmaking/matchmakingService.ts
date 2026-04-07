@@ -1,4 +1,12 @@
-// backend/src/modules/matchmaking/matchmakingService.ts
+/**
+ * @file matchmakingService.ts
+ * @module backend/matchmaking
+ * @author The Crazy 4 Team
+ * @date 2026
+ * @purpose In-memory lobby manager for Crazy Tens matchmaking.
+ *          Handles lobby creation, guest joining, match start, and
+ *          graceful teardown when players leave or an admin deletes a room.
+ */
 import { randomUUID } from "node:crypto";
 import type { Lobby, LobbyID, UserID, GameID } from "../../types/matchmakingTypes";
 import { createGame, getPublicState } from "@rev0/shared";
@@ -100,7 +108,7 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
       const game = createGame({
         baseId: l.baseId,
         players,
-        initialHandSize: 7,
+        initialHandSize: 8,
       });
 
       const gameId = game.gameId;
@@ -131,7 +139,7 @@ export function makeMatchmakingService(deps: { audit: AuditStore }): Matchmaking
       const l = lobbies.get(lobbyId);
       if (!l) return;
       if (l.hostId === userId) {
-        // Host leaves: always delete the room
+        // Host departure permanently closes the room — guests are implicitly removed
         lobbies.delete(lobbyId);
         deps.audit.logSystemEvent({ type: "LOBBY_HOST_LEFT_DELETED", at: Date.now(), data: { lobbyId, userId } });
       } else if (l.guestId === userId) {
