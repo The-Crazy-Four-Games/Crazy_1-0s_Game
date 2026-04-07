@@ -26,20 +26,25 @@
   }
 
   .lobby-screen.lobby-loggedin {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto 1fr;
-    gap: 0 32px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 24px 40px;
   }
 
   .lobby-header-bar {
-    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 680px;
+  }
+
+  .lobby-section {
+    width: 100%;
+    max-width: 680px;
   }
 
   .lobby-toast-container {
-    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 680px;
   }
 }
 

@@ -201,7 +201,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ token, onBack, onLogou
                                     <span className="match-opponent">
                                         vs {m.opponentNickname || 'Unknown'}
                                     </span>
-                                    <span className="match-base">{m.baseId === 'doz' ? 'Doz' : 'Dec'}</span>
+                                    <span className="match-base">{m.baseId === 'doz' ? 'Doz' : m.baseId === 'oct' ? 'Oct 🧪' : 'Dec'}</span>
                                 </div>
                                 {(m.challengesAttempted ?? 0) > 0 && (
                                     <div className="match-challenge-stats">
