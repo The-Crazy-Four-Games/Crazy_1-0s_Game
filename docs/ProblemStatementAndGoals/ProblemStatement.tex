@@ -98,17 +98,25 @@
     For this, and so web-based deploymentis the best option.\\
     
     \subsection{Inputs and Outputs}
-    The problem can be characterized in terms of abstract inputs and outputs. The 
-    \textbf{inputs} include the numeric systems in use today (decimal as the default, 
-    and dozenal as an alternative), mathematical tasks requiring division into 
-    fractions, and cultural and educational assumptions that reinforce base-10 usage. 
-    The \textbf{outputs} of interest are representations of numbers, ease of computation, 
-    and the pedagogical clarity with which fractions and ratios can be expressed. 
-    Decimal often outputs cumbersome repeating decimals for simple divisions, whereas 
-    dozenal outputs concise terminating forms. A solution would aim to clarify these 
-    differences, provide comparative demonstrations, and yield recommendations for 
-    integrating dozenal into education and practice. Ultimately, the expected output 
-    is a stronger case for adoption or at least parallel usage of dozenal alongside decimal.
+    
+    \subsubsection{High-Level Inputs}
+    The system accepts the following categories of input:
+    \begin{itemize}
+        \item \textbf{Player Actions:} Discrete user actions submitted during gameplay -- match actions (join, leave, restart), card selection, suit changes, chat, etc.
+        \item \textbf{Numerical Base:} Selection of the number base (Decimal, Dozenal, or other bases) that determines deck composition, face ranks, scoring parameters and gameplay.
+        \item \textbf{User Identity:} Authentication credentials, session tokens, and profile information that authorize players to join matches.
+        \item \textbf{Game Context:} Current game state (hands, deck, discard pile, scores, turn order) needed to validate moves and compute state transitions within the game.
+    \end{itemize}
+
+    \subsubsection{High-Level Outputs}
+    The system produces the following outputs:
+    \begin{itemize}
+        \item \textbf{Synchronized Game State:} Real-time updates to gameplay for all players (e.g. game creation, rule validation, special effects).
+        \item \textbf{Numerical Outputs:} Values converted and accurately displayed in the active number base.
+        \item \textbf{User Feedback / Validation:} Response signals indicating move legality, game success/failure, in-game messages (notifications, chat) to facilitate player behavior in-game.
+        \item \textbf{Rendered User Interface:} Visual components presenting the game board, player hands, discard pile, scoreboard, lobbies, etc.
+        \item \textbf{Persistent User Data:} Stored profiles, match history, and statistics enabling continuity and progress tracking.
+    \end{itemize}
 
     \subsection{Stakeholders}
     Several groups are directly affected by the shortcomings of the Decimal number base and 
@@ -159,7 +167,7 @@
 
     \subsection{Environment}
     
-    
+
     \section{Goals}
 
     \subsection{Minimum Viable Product (MVP) Goals}
