@@ -74,12 +74,14 @@
 ~\newpage
 \section{Purpose of the Project}
 \subsection{User Business}
-The purpose is to study, evaluate and facilitate opportunities for gamification in supporting mathematical learning. Our team wants to determine whether concepts in numerical arithmetic (such as base conversions, or divisibility in Dozenal) can be effectively taught through play.\\\\
-We aim to accomplish the aformentioned by designing and implementing an educational card game based on the traditional \textit{Crazy 8s} rule set, but with the following differences and additions:
+The purpose is to create an educational, game-based experience that introduces alternate number systems, especially dozenal, to learners who are currently more familiar with decimal arithmetic. The product will demonstrate the advantages of dozenal by embedding base-12 scoring and notation into a familiar card game structure, making abstract concepts concrete through gameplay.\\
+\\
+We aim to accomplish the aforementioned by designing and implementing an educational card game based on the traditional \textit{Crazy Eights} rule set, but with the following differences and additions:
 \begin{itemize}
-    \item Switching the wild card from ``8'' to ``10'' to improve awareness of number system orders (i.e. 10 in base-10 is a Decimal is 10 in base-12 is a Dozenal).
-    \item Incorporating counting within the game, to improve understanding of number bases and basic arithmetic.
-    \item Integrating the \textbf{Dozenal (base-12) number system} using a special Dozenal deck of cards. We also want to add other potential number bases (e.g. Octal, Hexadecimal, etc).
+    \item Switching the wild card from ``8'' to ``10'' to highlight that the game uses alternate numeric notation: ``10'' in base-12 represents twelve in decimal, not ten.
+    \item Incorporating counting into the game so players learn base conversion and divisibility in context.
+    \item Integrating the \textbf{Dozenal (base-12)} number system into scoring, display, and feedback.
+    \item Using a special \textbf{Dozenal (base-12)} deck of cards (with 4 standard suits, ranks 0--9, \rotatebox{180}{2}, \rotatebox{180}{3}, 10 and face cards J, Q, K, C).
 \end{itemize}
 
 \subsection{Goals of the Project}
@@ -595,7 +597,8 @@ The following table summarizes the primary product use cases (PUCs):
 \subsection{Ease of Use Requirements}
 	\begin{itemize}
 		\item \textbf{Simplicity}: The interface must minimize the number of steps needed to perform core tasks.
-		\item Data collection and storage must follow privacy, security, and ethical guidelines.
+		\item \textbf{Intuitive Controls}: Card selection and game actions should be intuitive, with clear affordances (e.g., drag-and-drop or click-to-play).
+		\item \textbf{Clear workflow}: Core gameplay and learning activities must be discoverable within two actions from the main menu.
 	\end{itemize}
 \subsection{Personalization and Internationalization Requirements}
 	\begin{itemize}
@@ -603,7 +606,7 @@ The following table summarizes the primary product use cases (PUCs):
 	\end{itemize}
 \subsection{Learning Requirements}
 	\begin{itemize}
-		\item \textbf{Onboarding}A short interactive tutorial must explain the rules of the game and how counting in different bases works.
+		\item \textbf{Onboarding}: A short tutorial must explain the rules of the game and how counting in different bases works.
 	\end{itemize}
 \subsection{Understandability and Politeness Requirements}
 	\begin{itemize}
@@ -612,7 +615,8 @@ The following table summarizes the primary product use cases (PUCs):
 	\end{itemize}
 \subsection{Accessibility Requirements}
 	\begin{itemize}
-		\item\textbf{Keyboard Support}: All main actions must be accessible via keyboard shortcuts
+		\item \textbf{Tactile Feedback}: All main actions must be accessible via buttons with clear labels, and easily clickable targets.
+		\item \textbf{Contrast}: The UI must use accessible contrast ratios for text and interactive elements so they are easily read.
 	\end{itemize}
 
 \section{Performance Requirements}
@@ -754,197 +758,18 @@ The following table summarizes the primary product use cases (PUCs):
 \section{Compliance Requirements}
 
 \subsection{Legal Requirements}
-The game must comply with intellectual property laws and digital content distribution regulations.
-All assets (images, fonts, and sounds) used in the game must be open-source, royalty-free, or properly licensed.
+\begin{itemize}
+  \item The game must comply with intellectual property laws and digital content distribution regulations.
+  \item All assets (images, fonts, and sounds) used in the game must be open-source, royalty-free, or properly licensed.
+\end{itemize}
+
 
 \subsection{Standards Compliance Requirements}
-The software shall follow standard software development practices such as version control (Git), documentation standards (LaTeX-based SRS), and accessibility guidelines (WCAG 2.1 Level AA).
-The codebase should be compliant with modern C++/Python style conventions (PEP8 or equivalent).
-
-\section{Open Issues}
-
-\subsection{Which Supported bases?}
-  \begin{itemize}
-    \item \textbf{Description:} Decide whether to support only Decimal and Dozenal, or to include multiple other bases (Base-8: Octal, Base-16: Hexadecimal, Base-6: Senary, Base-9: Nonary).
-    \item \textbf{Stakeholders:} Educators; Students.
-    \item \textbf{Action:} 1. Fix inconsistencies within SRS documented about which number bases to implement. Discussion required.
-    \item \textbf{Status:} Open.
-    \item \textbf{Target resolution:} Educational stakeholders will give guidance on curriculum fit and scope.
-  \end{itemize}
-
-\subsection{Deck creation for supported bases}
-  \begin{itemize}
-    \item \textbf{Description:} Create physical or print-ready decks for additional number systems. (Decimal and Dozenal decks exist:\\
-    \url{https://www.thegamecrafter.com/games/k6t}.)
-    \item \textbf{Stakeholder:} Dr. Paul Rapoport
-    \item \textbf{Action:} Design and create decks for Octal and Hexadecimal; estimate cost and lead time.
-    \item \textbf{Resolution:} Dr. Rapoport will inquire and report back to the team with feasibility info.
-    \item \textbf{Status:} Pending response.
-  \end{itemize}
-
-\subsection{Counting mechanics vs. player enjoyment and game understandability}
-  \begin{itemize}
-    \item \textbf{Description:} How to add meaningful counting mechanics (teaching) while keeping game fun and understandable? Current ideas include:
-    \begin{itemize}
-      \item For non-winners, sum remaining cards at end of round to reduce point tally.
-      \item Trigger an arithmetic task each time a wild card (10) is played.
-      \item Other lightweight counting mini-games embedded in rounds.
-    \end{itemize}
-    \item \textbf{Stakeholders:} Dr. Paul Rapoport, UI/UX Designers, Educators, Students.
-    \item \textbf{Action:} Continue ideation and small-scale playtests to evaluate engagement.
-    \item \textbf{Status:} Ongoing.
-  \end{itemize}
-
-\subsection{Multiplayer mode implementation decision (ISS-04)}
 \begin{itemize}
-  \item \textbf{Description:} Decide whether online multiplayer (server-authoritative WebSocket rooms, reconnection, scaling) is in-scope for MVP or deferred to a post-MVP release. Identify minimal online feature set if approved.
-  \item \textbf{Stakeholders:} Course Instructor; Dr. Paul Rapoport; Developers; QA.
-  \item \textbf{Action:} Convene a design decision meeting; produce an options analysis (local hot-seat vs server-authoritative) with estimated engineering effort and acceptance criteria.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Decision recorded in GitHub Issue and linked to an implementation milestone or deferral note.
+  \item The software shall follow standard software development practices such as version control (Git), documentation standards (LaTeX-based SRS), and accessibility guidelines (WCAG 2.1 Level AA).
+  \item The system must adhere to web standards for HTML5, CSS3, and JavaScript (ES6+) to ensure cross-browser compatibility and maintainability.
 \end{itemize}
 
-\subsection{Educational feedback granularity and optional hints (ISS-05)}
-\begin{itemize}
-  \item \textbf{Description:} Determine the default level of educational feedback (none, minimal, optional per-game setting). Rapoport recommended hints be optional to avoid over-assistance.
-  \item \textbf{Stakeholders:} Dr. Paul Rapoport; Educators; Students; UX Designers.
-  \item \textbf{Action:} Draft an “Hints/pedagogy” matrix for modes (Off / Minimal / Full), map to UI options, and prepare a small A/B playtest.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Hints implemented as opt-in per-player or per-session; documented in Settings and Instructor Notes.
-\end{itemize}
-
-\subsection{Multiple-round scoring to 100 and base-consistent thresholds (ISS-06)}
-\begin{itemize}
-  \item \textbf{Description:} Clarify multi-round scoring rules (target score e.g., 100) and whether thresholds are expressed and accumulated in the active base (decimal or dozenal).
-  \item \textbf{Stakeholders:} Dr. Paul Rapoport; Course Instructor.
-  \item \textbf{Action:} Specify scoring rules and sample round calculations in both decimal and dozenal; include acceptance tests.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} SRS updated with explicit scoring calculation examples and unit tests in repo.
-\end{itemize}
-
-\subsection{Card deck cardinality and representation discrepancy (ISS-07)}
-\begin{itemize}
-  \item \textbf{Description:} Resolve inconsistency: SRS currently states \"52 cards\" (decimal) and elsewhere implies a different card count for dozenal (e.g., 64). Decide canonical deck construction per base and document mapping of ranks (0..?).
-  \item \textbf{Stakeholders:} Developers; Dr. Paul Rapoport; Game Designers.
-  \item \textbf{Action:} Produce a deck specification per base (ranks, face-cards, zero inclusion) and update Data Dictionary and Business Data Model.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Deck spec reviewed and accepted; design files / test vectors added to repo.
-\end{itemize}
-
-\subsection{Rank ordering and rank semantics (Ace/1/face cards) (ISS-08)}
-\begin{itemize}
-  \item \textbf{Description:} Formalize rank ordering (is Ace low or high?) and whether face-cards participate in arithmetic rules; clarify how face cards map to numeric values when arithmetic is required.
-  \item \textbf{Stakeholders:} Game Designers; Dr. Paul Rapoport.
-  \item \textbf{Action:} Document rank-to-value mapping for each base and add example scenarios demonstrating validity checks (UC5).
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Data Dictionary updated to include numeric mapping for face cards and Ace.
-\end{itemize}
-
-\subsection{Sum-target rule ambiguity (10 vs 11 / base-dependence) (ISS-09)}
-\begin{itemize}
-  \item \textbf{Description:} Rapoport suggests using sum-to-11 (in base) rather than sum-to-10 to avoid duplication and to make face cards usable. Determine canonical “sum-target” and implications for move validity and pacing.
-  \item \textbf{Stakeholders:} Dr. Paul Rapoport; Game Designers; Educators.
-  \item \textbf{Action:} Evaluate both options via short gameplay simulations; choose target (10 or 11) and document trade-offs and acceptance tests.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Update FR-3 and UC5 to reflect chosen rule; add test cases.
-\end{itemize}
-
-\subsection{Optional zero-card and deck-extension (ISS-10)}
-\begin{itemize}
-  \item \textbf{Description:} Evaluate whether to include a zero card to support arithmetic rules involving face-card pairings (as suggested in review).
-  \item \textbf{Stakeholders:} Dr. Paul Rapoport; Designers.
-  \item \textbf{Action:} Prototype a deck variant and test for balance and educational clarity.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Decision recorded; deck files added or rejected with rationale.
-\end{itemize}
-
-\subsection{Queen rule and optional house rules (ISS-11)}
-\begin{itemize}
-  \item \textbf{Description:} Include Queen-rule and other house-rule toggles (e.g., 2-rule) as optional settings in the Rule Configurator.
-  \item \textbf{Stakeholders:} Players; Educators.
-  \item \textbf{Action:} Add to Stretch Goals / Rule Configurator and document expected behaviour and UI toggle locations.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Rule configurator UI/FRs added in a future sprint.
-\end{itemize}
-
-\subsection{Base-display and conversion policy (ISS-12)}
-\begin{itemize}
-  \item \textbf{Description:} Clarify whether UI will show both decimal and dozenal simultaneously or provide optional conversion toggles; Rapoport recommended making conversion optional.
-  \item \textbf{Stakeholders:} UX Designers; Educators.
-  \item \textbf{Action:} Add an options matrix in SRS: (A) Dozenal-only UI, (B) Dual-display (Dozenal+Decimal), (C) Optional conversion toggle. Select default.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} SRS updated and acceptance tests added verifying display modes.
-\end{itemize}
-
-\subsection{Mobile / phone responsiveness feasibility (ISS-13)}
-\begin{itemize}
-  \item \textbf{Description:} Rapoport doubts phone support is feasible; determine whether mobile support is stretch or omitted.
-  \item \textbf{Stakeholders:} Developers; Dr. Paul Rapoport.
-  \item \textbf{Action:} Classify “mobile” as stretch-goal or out-of-scope for MVP and document reasoning.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Decision and update to \S10.responsiveness and Release Notes.
-\end{itemize}
-
-\subsection{Language support clarification (ISS-14)}
-\begin{itemize}
-  \item \textbf{Description:} Rapoport advised English-only for now; confirm language scope and mark translations as stretch.
-  \item \textbf{Stakeholders:} Dr. Paul Rapoport; Course Instructor.
-  \item \textbf{Action:} Set default language list (English) and mark other languages as stretch goals in SRS.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} SRS updated; internationalization backlog item created if required.
-\end{itemize}
-
-\subsection{Capacity target re-evaluation (ISS-15)}
-\begin{itemize}
-  \item \textbf{Description:} Reassess the 200 concurrent users testing target; confirm whether this is practical within the budget and hosting constraints.
-  \item \textbf{Stakeholders:} Team Lead; DevOps; Dr. Paul Rapoport.
-  \item \textbf{Action:} Produce an estimate of server costs and a scaled test plan; consider lower initial target (e.g., 20--50) for MVP.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Update Capacity Requirements and CI load plan.
-\end{itemize}
-
-\subsection{Option A ambiguity (ISS-16)}
-\begin{itemize}
-  \item \textbf{Description:} Clarify “Option A: Local-first 2P hot-seat” — whether it implies two players on same device or AI opponent; Rapoport flagged confusion.
-  \item \textbf{Stakeholders:} Team; Course Instructor.
-  \item \textbf{Action:} Update Implementation Options with precise definitions and demo acceptance criteria for Option A and Option B.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Implementation Options section clarified and accepted.
-\end{itemize}
-
-\subsection{Animations and hand ordering requirement (ISS-17)}
-\begin{itemize}
-  \item \textbf{Description:} Define card ordering animation spec (how cards are sorted and animated) and ensure it is included in Look-and-Feel Requirements.
-  \item \textbf{Stakeholders:} UI/UX; Frontend Developers.
-  \item \textbf{Action:} Draft a brief spec and add to \S10 Style Requirements; include accessibility considerations for motion.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Animation spec committed and demoed in PoC.
-\end{itemize}
-
-\subsection{Reuse of existing domain and cost feasibility (ISS-18)}
-\begin{itemize}
-  \item \textbf{Description:} Investigate possibility of reusing existing dozenal-domain names or prior projects (Rapoport note) to reduce brand/setup costs.
-  \item \textbf{Stakeholders:} Team Liaison; Dr. Paul Rapoport.
-  \item \textbf{Action:} Research available domains and prior dozenal projects; report cost/availability and licensing constraints.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} Domain decision and purchase plan or deferral documented.
-\end{itemize}
-
-\subsection{Missing Fit Criteria and placeholder content (ISS-19)}
-\begin{itemize}
-  \item \textbf{Description:} Several sections still contain \verb|\lips| placeholders and lack explicit Fit Criteria (measurable acceptance criteria).
-  \item \textbf{Stakeholders:} All authors; Document Owner.
-  \item \textbf{Action:} Replace placeholders with substantive requirements and add Fit Criteria for each section before submission; track in issue tracker.
-  \item \textbf{Status:} Open.
-  \item \textbf{Target resolution:} All placeholders replaced and Fit Criteria added; document review pass.
-\end{itemize}
-  
-\subsection{Fit criterion:}
-  \begin{itemize}
-    \item Each open item has a GitHub Issue.
-    \item Each Issue lists owner, stakeholders explicit next-action, and a tentative resolution date or review milestone.
-    \item Closure requires documented decision, implementation plan, or formal deferral with rationale.
-  \end{itemize}
 
 \section{Off-the-Shelf Solutions}
 
@@ -1050,13 +875,6 @@ Not applicable.
 
 
 \subsection{User Documentation Requirements}
-\begin{itemize}
-  \item \textbf{In-app help}: Contextual tooltips for controls, hover help for Dozenal terms, and an always-available ``How to play'' panel.
-  \item \textbf{Quick Start}: Setup, start a match, play a turn, view scores. Written for first-time users.
-  \item \textbf{Rules and Dozenal guide}: Clear rules of Crazy Eights plus a simple Dozenal primer with examples for A and B, and conversions between base 10 and base 12.
-  \item \textbf{FAQ}: Troubleshooting (cannot play a card, reconnect flow, what counts as a valid move).
-\end{itemize}
-
 \begin{itemize}
   \item \textbf{In-app help}: Contextual tooltips for controls, hover help for Dozenal terms, and an always-available ``How to play'' panel.
   \item \textbf{Quick Start}: Setup, start a match, play a turn, view scores. Written for first-time users.
