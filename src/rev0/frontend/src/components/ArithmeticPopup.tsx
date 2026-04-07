@@ -56,6 +56,9 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
   const [wrongFlash, setWrongFlash] = useState(false);
   const [lockedOut, setLockedOut] = useState(false);
   const [countdown, setCountdown] = useState(60);
+  // Cache resolution data so message stays visible even after prop is cleared to null
+  const [resolutionReceived, setResolutionReceived] = useState(false);
+  const [cachedResolution, setCachedResolution] = useState<typeof challengeResolution>(null);
 
   const correctAnswer = useMemo(
     () => computeChallengeAnswer(challenge.type, challenge.op1, challenge.op2),
@@ -86,9 +89,9 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
   }, [challengeStartTime]);
 
   // When server says wrong answer, lock out the player (one attempt only)
-  // Guard: skip if already locked out or already flashed (prevents re-trigger from legacy events)
+  // Guard: skip if already locked out (prevents re-trigger from legacy events)
   useEffect(() => {
-    if (lockedOut) return; // already locked — ignore any new challengeResult events
+    if (lockedOut) return;
     if (challengeResult && !challengeResult.correct && !challengeResult.tooLate && submitted) {
       setWrongFlash(true);
       const timer = setTimeout(() => {
@@ -98,6 +101,14 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
       return () => clearTimeout(timer);
     }
   }, [challengeResult]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cache resolution data and mark as received — persists even after prop is cleared to null
+  useEffect(() => {
+    if (challengeResolution) {
+      setResolutionReceived(true);
+      setCachedResolution(challengeResolution);
+    }
+  }, [challengeResolution]);
 
   const handleSubmit = () => {
     if (submitted || lockedOut) return;
@@ -133,12 +144,15 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
   // Display value with proper dozenal symbols
   const displayInput = sanitizeDozenalDisplay(inputValue);
 
-  // Resolution state
-  const hasResolution = !!challengeResolution;
-  const iWon = challengeResolution?.winnerId === myId;
-  const opponentWon = hasResolution && challengeResolution?.winnerId && challengeResolution.winnerId !== myId;
-  const bothWrong = challengeResolution?.bothWrong;
-  const timedOut = challengeResolution?.timedOut;
+  // Use live resolution OR cached resolution — message stays visible even after prop is cleared
+  const effectiveResolution = challengeResolution ?? (resolutionReceived ? cachedResolution : null);
+
+  // Resolution state (all derived from effectiveResolution)
+  const hasResolution = !!effectiveResolution;
+  const iWon = effectiveResolution?.winnerId === myId;
+  const opponentWon = hasResolution && effectiveResolution?.winnerId && effectiveResolution.winnerId !== myId;
+  const bothWrong = effectiveResolution?.bothWrong;
+  const timedOut = effectiveResolution?.timedOut;
 
   // Legacy final result (fallback)
   const isFinalResult = challengeResult && (challengeResult.correct || challengeResult.tooLate);
@@ -148,7 +162,8 @@ export const ArithmeticPopup: React.FC<ArithmeticPopupProps> = ({
   // Determine what message to show
   const showResolutionMessage = hasResolution;
   const showLegacyResult = isFinalResult && !hasResolution;
-  const showNumpad = !submitted && !lockedOut && !hasResolution;
+  // Never show numpad after resolution (even if resolution prop is later cleared to null)
+  const showNumpad = !submitted && !lockedOut && !hasResolution && !resolutionReceived;
 
   return (
     <div className="arithmetic-overlay">

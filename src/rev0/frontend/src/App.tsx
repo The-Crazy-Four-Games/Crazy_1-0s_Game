@@ -182,6 +182,8 @@ export default function App() {
 
   // Challenge start timestamp (for countdown timer)
   const [challengeStartTime, setChallengeStartTime] = useState<number | null>(null);
+  // Tracks last challenge signature to avoid resetting timer on repeated GAME_STATE events
+  const prevChallengeRef = useRef<string | null>(null);
 
   // Toast notification
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'info' } | null>(null);
@@ -319,12 +321,20 @@ export default function App() {
 
     s.on(WS.GAME_STATE, (state: PublicState) => {
       setPs(state);
-      // Clear stale challenge result when a new challenge appears
       if (state.activeChallenge) {
-        setChallengeResult(null);
-        setChallengeResolution(null);
-        setChallengeStartTime(Date.now());
+        // Build a signature for this challenge to detect if it's truly new
+        const sig = `${state.activeChallenge.type}-${state.activeChallenge.op1}-${state.activeChallenge.op2}`;
+        if (prevChallengeRef.current !== sig) {
+          // Genuinely new challenge — reset everything
+          prevChallengeRef.current = sig;
+          setChallengeResult(null);
+          setChallengeResolution(null);
+          setChallengeStartTime(Date.now());
+        }
+        // If same challenge, don't reset timer or clear results
       } else {
+        // No active challenge
+        prevChallengeRef.current = null;
         setChallengeStartTime(null);
       }
       if (state.status === "GAME_OVER") {
