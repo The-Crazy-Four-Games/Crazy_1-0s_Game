@@ -2,7 +2,7 @@ import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import Card from './Card';
 import CardEffects from './CardEffects';
 import ArithmeticPopup from './ArithmeticPopup';
-import { SUIT_SYMBOLS, SUIT_COLORS, sanitizeDozenalDisplay, isSelectOpCard as checkSelectOpCard } from '../types/game';
+import { SUIT_SYMBOLS, SUIT_COLORS_DARK, sanitizeDozenalDisplay, isSelectOpCard as checkSelectOpCard } from '../types/game';
 import type { Suit, MathChallenge } from '../types/game';
 import { isFace, numericValueDec, parseInSystem, formatInSystem, DECIMAL_SYSTEM, DOZENAL_SYSTEM, OCTAL_SYSTEM } from '@rev0/shared';
 import type { NumeralSystem } from '@rev0/shared';
@@ -263,29 +263,38 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Snapshot of the challenge to keep popup alive after ps.activeChallenge clears
   const [activeChallengeCopy, setActiveChallengeCopy] = useState<MathChallenge | null>(null);
 
-  // When a new challenge appears, snapshot it; when it clears, auto-dismiss if no result
+  // Ref-based dismiss timer: won't be cancelled by React effect cleanups
+  const dismissTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleDismiss = React.useCallback((delayMs: number) => {
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    dismissTimerRef.current = setTimeout(() => {
+      setActiveChallengeCopy(null);
+      dismissTimerRef.current = null;
+    }, delayMs);
+  }, []);
+
+  // When a new challenge appears, snapshot it
   React.useEffect(() => {
     if (ps.activeChallenge) {
+      // New challenge — cancel any pending dismiss and snapshot
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+        dismissTimerRef.current = null;
+      }
       setActiveChallengeCopy(ps.activeChallenge);
-    } else if (activeChallengeCopy && !challengeResult) {
-      // Challenge cleared by server (opponent answered), but we didn't get a result
-      // Auto-dismiss after 2s
-      const timer = setTimeout(() => {
-        setActiveChallengeCopy(null);
-      }, 2000);
-      return () => clearTimeout(timer);
+    } else if (activeChallengeCopy) {
+      // Challenge cleared by server = challenge is definitively over
+      // Give user 3.5s to read the result, then dismiss
+      scheduleDismiss(3500);
     }
-  }, [ps.activeChallenge]);
+  }, [ps.activeChallenge]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-dismiss popup 2s after receiving our own challengeResult
+  // For correct answers: dismiss a bit faster (2s) since it's a positive result
   React.useEffect(() => {
-    if (challengeResult && activeChallengeCopy) {
-      const timer = setTimeout(() => {
-        setActiveChallengeCopy(null);
-      }, 2000);
-      return () => clearTimeout(timer);
+    if (challengeResult?.correct && activeChallengeCopy) {
+      scheduleDismiss(2500);
     }
-  }, [challengeResult]);
+  }, [challengeResult]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get opponent info
   const opponentId = useMemo(() => {
@@ -394,13 +403,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       setTimeout(() => setSortAnimating(false), 350);
     }, 300);
   };
-
-  // Suit picker color override: lighter colors for dark suits on dark background
-  const suitPickerColor = (suit: Suit): string => {
-    if (suit === 'S' || suit === 'C') return '#e0e0e0';
-    return SUIT_COLORS[suit];
-  };
-
 
 
   // Highlighted cards — filtered by active toggles
@@ -738,7 +740,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               />
             </div>
             {ps.forcedSuit && (
-              <div className="forced-suit" style={{ color: SUIT_COLORS[ps.forcedSuit] }}>
+              <div className="forced-suit" style={{ color: SUIT_COLORS_DARK[ps.forcedSuit] }}>
                 Suit: {SUIT_SYMBOLS[ps.forcedSuit]}
               </div>
             )}
@@ -891,8 +893,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 {(['S', 'H', 'D', 'C'] as Suit[]).map((suit) => (
                   <button
                     key={suit}
-                    className="suit-btn"
-                    style={{ color: suitPickerColor(suit) }}
+                    className={`suit-btn suit-btn-${suit}`}
                     onClick={() => handleSuitSelect(suit)}
                   >
                     {SUIT_SYMBOLS[suit]}
@@ -1140,6 +1141,33 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 </div>
               )}
               {hintsTab === 'addition' && (() => {
+                // Octal: digits 0-7, format in base-8
+                if (ps.baseId === 'oct') {
+                  const d = ['0','1','2','3','4','5','6','7'];
+                  const fmtOct = (n: number): string => {
+                    if (n === 0) return '0';
+                    let s = ''; let v = n;
+                    while (v > 0) { s = String(v % 8) + s; v = Math.floor(v / 8); }
+                    return s;
+                  };
+                  return (
+                    <div className="hints-table-wrapper">
+                      <div className="hints-table-title">Octal Addition Table (Base 8)</div>
+                      <table className="dozenal-table">
+                        <thead><tr><th>+</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr></thead>
+                        <tbody>
+                          {d.map((r, ri) => (
+                            <tr key={ri}>
+                              <th>{r}</th>
+                              {d.map((_, ci) => <td key={ci}>{fmtOct(ri + ci)}</td>)}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                }
+                // Dozenal: digits 0-↋
                 const d = ['0','1','2','3','4','5','6','7','8','9','↊','↋'];
                 const fmt = (n: number): string => {
                   if (n < 10) return String(n);
@@ -1152,9 +1180,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 return (
                   <div className="hints-table-wrapper">
                     <table className="dozenal-table">
-                      <thead>
-                        <tr><th>+</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr>
-                      </thead>
+                      <thead><tr><th>+</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr></thead>
                       <tbody>
                         {d.map((r, ri) => {
                           const rv = ri;
@@ -1171,6 +1197,38 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 );
               })()}
               {hintsTab === 'multiplication' && (() => {
+                // Octal: 1-7 × 1-7, results in octal
+                if (ps.baseId === 'oct') {
+                  const d = ['1','2','3','4','5','6','7'];
+                  const vals = [1,2,3,4,5,6,7];
+                  const fmtOct = (n: number): string => {
+                    if (n === 0) return '0';
+                    let s = ''; let v = n;
+                    while (v > 0) { s = String(v % 8) + s; v = Math.floor(v / 8); }
+                    return s;
+                  };
+                  return (
+                    <div className="hints-table-wrapper">
+                      <div className="hints-table-title">Octal Multiplication Table (Base 8)</div>
+                      <table className="dozenal-table">
+                        <thead><tr><th>×</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr></thead>
+                        <tbody>
+                          {vals.map((rv, ri) => (
+                            <tr key={ri}>
+                              <th>{d[ri]}</th>
+                              {vals.map((cv, ci) => (
+                                <td key={ci} className={ri === ci ? 'perfect-square' : ''}>
+                                  {fmtOct(rv * cv)}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                }
+                // Dozenal: 1-10 × 1-10
                 const d = ['1','2','3','4','5','6','7','8','9','↊','↋','10'];
                 const vals = [1,2,3,4,5,6,7,8,9,10,11,12];
                 const fmt = (n: number): string => {
@@ -1184,19 +1242,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                   }
                   return s;
                 };
-                const isPerfectSquare = (ri: number, ci: number) => ri === ci;
                 return (
                   <div className="hints-table-wrapper">
                     <table className="dozenal-table">
-                      <thead>
-                        <tr><th>×</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr>
-                      </thead>
+                      <thead><tr><th>×</th>{d.map((c,i) => <th key={i}>{c}</th>)}</tr></thead>
                       <tbody>
                         {vals.map((rv, ri) => (
                           <tr key={ri}>
                             <th>{d[ri]}</th>
                             {vals.map((cv, ci) => (
-                              <td key={ci} className={isPerfectSquare(ri, ci) ? 'perfect-square' : ''}>
+                              <td key={ci} className={ri === ci ? 'perfect-square' : ''}>
                                 {fmt(rv * cv)}
                               </td>
                             ))}

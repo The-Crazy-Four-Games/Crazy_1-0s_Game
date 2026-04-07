@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Card as CardType, Suit } from '../types/game';
-import { SUIT_SYMBOLS, SUIT_COLORS } from '../types/game';
+import { SUIT_SYMBOLS, SUIT_COLORS, SUIT_COLORS_DARK } from '../types/game';
 import Card from './Card';
 import './GameTable.css';
 
@@ -66,7 +66,7 @@ export const DiscardPile: React.FC<DiscardPileProps> = ({
       {forcedSuit && (
         <div
           className="wild-choice"
-          style={{ color: SUIT_COLORS[forcedSuit] }}
+          style={{ color: SUIT_COLORS_DARK[forcedSuit] }}
         >
           Current suit: {SUIT_SYMBOLS[forcedSuit]}
         </div>
