@@ -239,46 +239,87 @@ Stretch goals include extending the game to support more players, online multipl
 Stakeholder list and contact/role assignments exist in the project README and team Kanban; at least one named representative for each stakeholder category is recorded. Evidence: README / Team Roles section and meeting minutes indicating stakeholder reviews.
 
 
-\section{Mandated Constraints}
-\subsection{Solution Constraints}
-	\begin{itemize}
-		\item All source code must be managed using Github, with frequent commits and version control.
-		\item The system must be developed using React for frontend and Node.js for backend.
-	\end{itemize}
-\subsection{Implementation Environment of the Current System}
-\begin{itemize}
-		\item The backend must operate on Node.js (LTS version, e.g., 18+) with a relational database such as PostgreSQL or MySQL.
-		\item The application must be deployable on modern web browsers (Chrome, Firefox, Edge)
-	\end{itemize}
-\subsection{Partner or Collaborative Applications}
-	\begin{itemize}
-		\item The team must use GitHub for code collaboration and issue tracking.
-		\item  Discord are required for real-time communication and coordination.
-	\end{itemize}
-\subsection{Off-the-Shelf Software}
-	\begin{itemize}
-		\item The system must rely primarily on open-source libraries.
-		\item Proprietary software must not be required for end users to run the application.
-	\end{itemize}
-\subsection{Anticipated Workplace Environment}
-	\begin{itemize}
-		\item End users are expected to interact with the application primarily on web browsers.
-	\end{itemize}
-\subsection{Schedule Constraints}
-	\begin{itemize}
-		\item The project must be completed within the academic deadline.
-		\item Progress reports and milestone check-ins with the TA are mandatory.
-	\end{itemize}
-\subsection{Budget Constraints}
-	\begin{itemize}
-		\item Total financial budget is under 500 Canadian Dollars.
-		\item Open source and free tools are primary to be used.
-	\end{itemize}
-\subsection{Enterprise Constraints}
-	\begin{itemize}
-		\item The project must comply with academic integrity and university policies.
-		\item Data collection and storage must follow privacy, security, and ethical guidelines.
-	\end{itemize}
+\section{3. Mandated Constraints}
+
+\subsection{3a. Solution Constraints}
+\textbf{Description:} The system must be developed using a sound and scalable technology stack that supports web-based deployment.
+\textbf{Rationale:} Ensures the team gains proficiency in useful modern web development frameworks, aligning with the project's educational goals and contributing to long-term career growth. These technologies provide strong essential knowledge for building robust web applications.
+\textbf{Fit Criterion:} The frontend code is written in React (verified by package.json and component structure), and the backend is implemented in Node.js (verified by server files and runtime environment).
+
+\textbf{Description:} All source code must be managed using version control, with frequent commits, issue tracking and project management.
+\textbf{Rationale:} Version control is essential for collaborative development, and maintaining a history of changes, which is critical for team coordination and project traceability.
+\textbf{Fit Criterion:} All code is stored in a GitHub repository, with commits made for each significant change and pull requests used for code reviews.
+
+\subsection{3b. Implementation Environment of the Current System}
+
+\textbf{Server-hosting:} The backend must operate with a consistent server side connection.
+\textbf{Rationale:} A stable server environment is essential for hosting the game logic, managing user sessions, and ensuring real-time interactions between players.
+\textbf{Fit Criterion:} The application runs on Node.js LTS and connects to a relational database, as confirmed by deployment and testing in the specified environment.
+
+\textbf{Data Management:} The system must sustain user data and game statistics.
+\textbf{Rationale:} Persistent data storage is essential for tracking user progress, game history, and providing a personalized experience.
+\textbf{Fit Criterion:} Using a relational database such as PostgreSQL or MySQL with defined schemas for users, games, and scores.
+
+\textbf{Browser Compatibility:} The application must be deployable on modern web browsers (Chrome, Firefox, Edge).
+\textbf{Rationale:} Targeting modern browsers ensures broad accessibility and compatibility with standard web technologies.
+\textbf{Fit Criterion:} The application loads and functions correctly in Chrome, Firefox, and Edge, verified through cross-browser testing.
+
+\subsection{3c. Partner or Collaborative Applications}
+
+\textbf{Description:} The team must use GitHub for code collaboration and issue tracking.
+\textbf{Rationale:} GitHub facilitates distributed development and project management through its integrated tools.
+\textbf{Fit Criterion:} All team members use GitHub for code pushes, issue creation, and project tracking.
+
+\textbf{Description:} Discord is required for real-time communication and coordination.
+\textbf{Rationale:} Discord provides efficient channels for quick updates, discussions, and meetings, supporting remote collaboration.
+\textbf{Fit Criterion:} Team communications occur via Discord channels, with records of key decisions logged.
+
+\subsection{3d. Off-the-Shelf Software}
+
+\textbf{Description:} The system must rely primarily on open-source libraries.
+\textbf{Rationale:} Open-source libraries reduce costs and promote community-supported, reliable components.
+\textbf{Fit Criterion:} All third-party libraries used are open-source, as listed in package.json or equivalent dependency files.
+
+\textbf{Description:} Proprietary software must not be required for end users to run the application.
+\textbf{Rationale:} Ensuring no proprietary dependencies allows free access and broad usability.
+\textbf{Fit Criterion:} The application runs without requiring any proprietary software installations, verified by user testing.
+
+\subsection{3e. Anticipated Workplace Environment}
+
+\textbf{Description:} End users are expected to interact with the application primarily on web browsers.
+\textbf{Rationale:} Web-based deployment simplifies access and reduces platform-specific requirements.
+\textbf{Fit Criterion:} The application is fully functional within web browsers without additional software.
+
+\subsection{3f. Schedule Constraints}
+
+\textbf{Description:} The project must be completed within the academic deadline.
+\textbf{Rationale:} Academic timelines ensure timely delivery and alignment with course requirements.
+\textbf{Fit Criterion:} All deliverables are submitted by the specified deadlines, as per the project schedule.
+
+\textbf{Description:} Progress reports and milestone check-ins with the TA are mandatory.
+\textbf{Rationale:} Regular check-ins provide oversight and feedback to maintain project quality.
+\textbf{Fit Criterion:} Check-ins occur as scheduled, with documented progress and TA approvals.
+
+\subsection{3g. Budget Constraints}
+
+\textbf{Description:} Total financial budget is under 500 Canadian Dollars.
+\textbf{Rationale:} Limited budget enforces cost-effective development using free or low-cost tools.
+\textbf{Fit Criterion:} All project expenses remain under 500 CAD, tracked via receipts and logs.
+
+\textbf{Description:} Open-source and free tools are primarily to be used.
+\textbf{Rationale:} Free tools minimize costs and promote sustainable development practices.
+\textbf{Fit Criterion:} All development tools and services are free or open-source, confirmed by usage logs.
+
+\subsection{3h. Enterprise Constraints}
+
+\textbf{Description:} The project must comply with academic integrity and university policies.
+\textbf{Rationale:} Compliance ensures ethical development and avoids penalties.
+\textbf{Fit Criterion:} All work adheres to university policies, verified through self-assessment and TA review.
+
+\textbf{Description:} Data collection and storage must follow privacy, security, and ethical guidelines.
+\textbf{Rationale:} Protecting user data builds trust and meets legal standards.
+\textbf{Fit Criterion:} Data handling complies with privacy laws (e.g., no unauthorized data collection), audited via code review.
+
 
 \section{Naming Conventions and Terminology}
 \subsection{Glossary of All Terms, Including Acronyms, Used by Stakeholders
@@ -474,15 +515,15 @@ The following table summarizes the primary product use cases (PUCs):
     \hline
     PUC-2 & Player views their personal profile, including gameplay history, win/loss record, and achievements. \\
     \hline
-    PUC-3 & Player starts a new Crazy 8s game with Dozenal-enabled deck. \\
+    PUC-3 & Player starts a new Crazy 1-0's game with Dozenal deck. \\
     \hline
     PUC-4 & Player takes a turn by drawing or discarding a card. \\
     \hline
-    PUC-5 & System validates whether the played card is legal (same suit, same Dozenal value, or sum = 12). \\
+    PUC-5 & System validates whether the played card is legal (wild card, same suit, same Dozenal value, or sum = 12). \\
     \hline
-    PUC-6 & Player views scores and progress, displayed in both decimal and Dozenal. \\
+    PUC-6 & Player views scores and progress, displayed in Dozenal. \\
     \hline
-    PUC-7 & System provides hints or explanations to support Dozenal learning. \\
+    PUC-7 & System provides hints or resources to support Dozenal learning. \\
     \hline
     PUC-8 & Game ends when a player wins; final scores are calculated and displayed. \\
     \hline
@@ -513,7 +554,7 @@ The following table summarizes the primary product use cases (PUCs):
 \noindent\textbf{UC3: Start a New Game}
 \begin{enumerate}
     \item Player opens the application and selects ``New Game''.
-    \item The system initializes a Dozenal-enabled deck (0--B, 10).
+    \item The system initializes a Dozenal-enabled deck (0--9, \rotatebox{180}{2}, \rotatebox{180}{3}, 10, J, Q, K , C).
     \item The system shuffles the deck.
     \item The system deals cards to each player.
     \item The game state is displayed on the interface.
@@ -537,7 +578,8 @@ The following table summarizes the primary product use cases (PUCs):
     \begin{enumerate}
         \item same suit, or
         \item same Dozenal value, or
-        \item sum of the two values equals 12 (base-12).
+        \item sum of the two values equals 12, or 10\subscript{12}, or
+        \item the card is a wild card ``10'' (for suit change) or ``6'' (for skip turn).
     \end{enumerate}
     \item If the move is legal, the system accepts the card and updates the discard pile.
     \item If not, the system rejects the move and notifies the player.
@@ -547,7 +589,7 @@ The following table summarizes the primary product use cases (PUCs):
 \begin{enumerate}
     \item A round ends or the player requests to view scores.
     \item The system calculates points for each player.
-    \item The system converts the scores into both decimal and Dozenal.
+    \item The system displays and updates the scores in Dozenal.
     \item The system displays the results on screen.
 \end{enumerate}
 
@@ -555,7 +597,7 @@ The following table summarizes the primary product use cases (PUCs):
 \begin{enumerate}
     \item The player hovers over or selects a card.
     \item The system analyzes the current game state.
-    \item The system provides a hint (e.g., ``This card is valid because its sum with the top card equals 12 (base-12).'').
+    \item The system provides a hint (e.g., ``This card is valid because its sum with the top card equals 10\subscript{12}.'').
     \item The hint is displayed as text or a visual highlight.
 \end{enumerate}
 
@@ -564,7 +606,7 @@ The following table summarizes the primary product use cases (PUCs):
     \item A player discards their last card.
     \item The system checks if the game-ending condition is satisfied.
     \item If satisfied, the system declares the winner.
-    \item The system calculates final scores in both decimal and Dozenal.
+    \item The system calculates final scores in Dozenal.
     \item The results are displayed on the final game screen.
 \end{enumerate}
 
@@ -583,13 +625,26 @@ The following table summarizes the primary product use cases (PUCs):
     \textbf{Rationale:} Turn-taking enforces fairness and ensures consistent game flow. \\
     \textbf{Fit Criterion:} In 20 consecutive turns, the system enforces correct turn order with zero invalid transitions.
 
-    \item \textbf{Rule validation:} The system shall validate that each played card is legal under Dozenal rules. A valid move is defined as either: (a) same suit, (b) same Dozenal value, or (c) sum of the values equals 12 in Dozenal. (FR-3) \\
+    \item \textbf{Rule validation:} The system shall validate that each played card is legal under Dozenal rules. A valid move is defined as either: 
+    (a) same suit, (b) same Dozenal value, (c) sum of the values equals 10\subscript{12} in Dozenal, or (d) is a wild card ``10'' or ``6''. (FR-3) \\
     \textbf{Rationale:} Prevents illegal moves and integrates Dozenal arithmetic as a core learning mechanic. \\
     \textbf{Fit Criterion:} For 100 randomized test card pairs, the system correctly identifies valid/invalid moves with 100\% accuracy.
 
-    \item \textbf{Special cards:} The system shall implement special card effects (e.g., wild cards) and allow future extension for Dozenal-specific effects. (FR-4) \\
-    \textbf{Rationale:} Special cards improve gameplay depth and user engagement. \\
-    \textbf{Fit Criterion:} All 10 predefined special card scenarios behave correctly during system tests.
+    \item \textbf{Special cards:} The system shall implement special wild cards (``10'', ``6'') with all 4 of each being able to played anytime. 
+    Also the face cards (``J'', ``Q'', ``K'', ``C'') are special mini-game wild cards, though are subject to rule validation (a) and (b) from (FR-3).
+    The 6 wild cards can be played as such: \\
+    \begin{itemize}
+      \item ``10'' allows the player to declare a new suit.
+      \item ``6'' forces the next player to skip their turn.
+      \item The face cards (``J'', ``Q'', ``K'' and ``C'') trigger an arithmetic operation mini-game (called ``MATH RACES'') as follows:
+        \begin{itemize}
+          \item ``J'', ``Q'', ``K'' (of any suit) will trigger a RANDOM ``MATH RACE'' (random operation from - addition, subtraction, multiplication, division).
+          \item ``C'' (of any suit) will trigger a CHOICE ``MATH RACE'' (player chooses the operation from - addition, subtraction, multiplication, division).
+          \item All ``MATH RACES'' result in an arithmetic operation popping upon both players screens. Whoever answers first receives 10 points!
+        \end{itemize}
+    \end{itemize}
+    \textbf{Rationale:} Special cards improve gameplay depth, strategy, and user engagement. \\
+    \textbf{Fit Criterion:} All 6 predefined special cards (10, 6, J, Q, K, C) behave correctly during system tests.
 
     \item \textbf{End of game:} The system shall detect game-ending conditions (e.g., a player runs out of cards) and declare the winner. (FR-5) \\
     \textbf{Rationale:} A clear end condition is required for meaningful gameplay and learning outcomes. \\
@@ -599,11 +654,11 @@ The following table summarizes the primary product use cases (PUCs):
 \subsection{Score Manager}
 
 \begin{enumerate}
-    \item \textbf{Calculate score:} The system shall calculate scores for each round in both decimal and Dozenal. (FR-6) \\
+    \item \textbf{Calculate score:} The system shall calculate scores for each round for both Decimal and Dozenal games. (FR-6) \\
     \textbf{Rationale:} Displaying both formats reinforces learning through system comparison. \\
-    \textbf{Fit Criterion:} For 50 random hands, decimal and Dozenal score calculations show zero errors.
+    \textbf{Fit Criterion:} For 50 random hands, Decimal and Dozenal score calculations show zero errors.
 
-    \item \textbf{Display score:} The system shall display scores in both decimal and Dozenal. (FR-7) \\
+    \item \textbf{Display score:} The system shall display scores in both Decimal and Dozenal. (FR-7) \\
     \textbf{Rationale:} Visual feedback supports user understanding and helps internalize Dozenal values. \\
     \textbf{Fit Criterion:} Updated scores appear within 300ms of a scoring event and are identical across both formats.
 \end{enumerate}
