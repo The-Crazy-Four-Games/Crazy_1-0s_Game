@@ -1,38 +1,72 @@
-# Crazy 1-0's! Capstone Project
+# Crazy 1-0's! — Capstone Project
 
-Developer Names: Ruida Chen, Ammar Sharbat, Alvin Qian, Jiaming Li
+**Developers:** Ruida Chen, Ammar Sharbat, Alvin Qian, Jiaming Li
 
-Date of project start: 9/16/2025
+**Project Start:** September 16, 2025
 
-Play our game here! : http://thecrazy10.click/
+🎮 **Play the game live:** [thecrazy10.click](http://thecrazy10.click/)
 
-Crazy 1-0's! is a variant of the classic card game Crazy Eights that teaches players how to count in Dozenal (Base-12).
+---
 
-Crazy 1-0's! also teaches players to do addition, subtraction, multiplication and division in Base-12 and Base-10, and hopefully other number bases in the future!
+## About the Game
 
-Current version only supports 1v1 play.
+**Crazy 1-0's!** is a variant of the classic card game *Crazy Eights* that teaches players to count, add, subtract, multiply, and divide in alternative numeral systems — starting with **Dozenal (Base-12)** and expanding to **Decimal (Base-10)** and **Octal (Base-8, experimental)**.
 
-How to play:
-Players take turns dropping cards in discard pile that match either the rank, the suit, or add the previous card to "10" in the number base of play (e.g. Base-12).
-The "10" cards are special wild cards that allow the player to change the suit of play.
-Face cards like "J" / "Q" / "K" and "C" in Dozenal Deck trigger an arithmetic operation minigame (called "math races").
-The [10/2] card ("5" in Base-10, or "6" in Base-12) allow players to skip opponents' turn.
-The goal for each round is to be the first player to get rid of all your cards.
-The goal for a 1v1 match is to be the first player to get to "100" points.
+The name "1-0's" comes from the fact that `10` in any base represents that base's *target sum* — the core mechanic of the game.
 
-The folders and files for this project are as follows:
+---
 
-docs - Documentation for the project
+## How to Play
 
-refs - Reference material used for the project, including papers
+- Players take turns discarding cards from their hand onto a shared pile.
+- A card is legal to play if its rank **matches the suit** of the top card, or if the two ranks **sum to the base target** (e.g., `10` in Dozenal = 12 in decimal).
+- **Wildcard `"10"` cards** can be played on anything; the player then picks the next forced suit.
+- **Skip cards** (`[10/2]` — value `5` in decimal, `6` in dozenal, `4` in octal) grant an extra free-play turn.
+- **Face cards** (J, Q, K, and C in Dozenal) trigger **Arithmetic Challenge** mini-games — both players race to answer a math question in the current numeral base.
+- A **round** ends when one player empties their hand; that player earns points equal to the sum of cards left in the opponent's hand.
+- A **match** is won by the first player to reach the base's target score (`100` in the current base, e.g. 144 decimal in dozenal).
 
-Brief Introduction to the Dozenal Counting System (presents a case for why Dozenal is a better counting system than Decimal):
-https://dozenal.org/drupal/content/brief-introduction-dozenal-counting.html
+Current version supports **1v1 play** only.
 
-Fundamental Operations In The Duodecimal System - Jay Schiffman (Covers Addition, Subtraction, Multiplication, Division):
-https://dozenal.org/drupal/sites_bck/default/files/db31315_0.pdf
+---
 
-src - Source code
-POC Demo code: https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/commits/pocdemo/src
-Rev0 code: https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/tree/39dea941cb4f09fdf4bae406bef423574e82b811
-Rev1 (final code and docs): current repo. rev1 branch: https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/tree/rev1/src
+## Game Modes
+
+| Mode | Base | Target Sum | Win Score |
+| :--- | :--- | :--- | :--- |
+| Decimal | 10 | 10 | 100 |
+| Dozenal | 12 | `10` (= 12) | `100` (= 144) |
+| Octal 🧪 | 8 | `10` (= 8) | `100` (= 64) |
+
+---
+
+## Repository Structure
+
+```
+Crazy-Tens-Game/
+├── src/          ── Full-stack source code (React frontend, Express backend, shared game library)
+├── docs/         ── Project documentation (design, planning, analysis, testing, presentations)
+├── refs/         ── Reference materials and academic papers
+├── test/         ── Additional test artifacts
+├── INSTALL.md    ── Installation instructions
+├── CONTRIBUTING.md
+└── LICENSE
+```
+
+> 📂 **For source code details** — architecture, setup instructions, API reference, and component documentation — see [`src/README.md`](./src/README.md).
+
+> 📚 **For project documentation** — development plan, SRS, design docs, V&V plan, and more — see [`docs/README.md`](./docs/README.md).
+
+---
+
+## Reference Materials
+
+**Dozenal System:**
+
+- [Brief Introduction to the Dozenal Counting System](https://dozenal.org/drupal/content/brief-introduction-dozenal-counting.html) — Presents a case for why Dozenal is a better counting system than Decimal.
+- [Fundamental Operations In The Duodecimal System – Jay Schiffman](https://dozenal.org/drupal/sites_bck/default/files/db31315_0.pdf) — Covers Addition, Subtraction, Multiplication, and Division in Dozenal.
+
+**Source Code History:**
+
+- POC Demo: [pocdemo branch](https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/commits/pocdemo/src)
+- Rev0 Source: [main/src/rev0](https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/tree/main/src/rev0)

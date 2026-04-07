@@ -1,32 +1,28 @@
-<Please keep the folder structure as given in the template repo.  We will
-discuss each artifact as we get to it in the course.  In some cases, like for
-the SRS, you should have a file of the same name.  For other cases, like the
-design documentation, you are required to document your design, but it may not
-be via a module guide and module interface specification documents.>
+# Documentation (`docs/`)
 
-<The files and folders have been set-up with tex files that have external links
-so that cross-referencing is possible between documents.>
+This folder contains all project documentation for **Crazy 1-0's!**, organized by artifact type as required by the course template. Each sub-folder contains a `.tex` source file and a compiled `.pdf` for the corresponding document.
 
-<The tex files Common.tex so that they can share definitions.>
+Shared LaTeX utilities:
+- **`Common.tex`** — Shared definitions (authors, project title, macros) used across all documents.
+- **`Comments.tex`** — Loads the `comments` package; toggle comments on/off globally.
+- **`Makefile`** — Orchestrates building all LaTeX documents into PDFs.
 
-<The files use Comments.tex so that the comments package can be used to embed
-comments into the generated pdf.  Comments can be set to false so that they do
-not appear.>
+---
 
-<None of the files are complete templates.  You will need to add extra
-information.  They are just intended to be a starting point.>
+## Folder Overview
 
-<You should select an SRS template.  Three options are available in the repo, or
-you can introduce another template. You should delete any SRS options that you do
-not need. The folder SRS holds a template for Scientific Computing software;
-the folder SRS-Volere holds the Volere template in LaTeX; the folder SRS-Meyer holds
-the template that Dr. Mosser now uses in the third year requirements course.>
-
-<The Makefile assumes the SRS will be in a folder called SRS.  If you use the Makefile
-with a template other than the Scientific Computing template, you will have to delete
-the unnecessary folders and rename your folder to SRS.>
-# Documentation folders
-
-The folders and files for this folder are as follows:
-
-Describe ...
+| Folder | Document | Description |
+| :--- | :--- | :--- |
+| [`ProblemStatementAndGoals/`](./ProblemStatementAndGoals/README.md) | Problem Statement | Defines the problem being solved, project goals, and stretch goals. |
+| [`DevelopmentPlan/`](./DevelopmentPlan/README.md) | Development Plan | Team workflow, roles, milestones, and technology choices. |
+| [`SRS/`](./SRS/) | Software Requirements Specification | Functional and non-functional requirements for the system. |
+| [`HazardAnalysis/`](./HazardAnalysis/README.md) | Hazard Analysis | Identification and mitigation of potential project risks. |
+| [`Design/`](./Design/README.md) | Design Documentation | System architecture (Module Guide) and detailed module interface specifications (MIS). |
+| [`VnVPlan/`](./VnVPlan/README.md) | Verification & Validation Plan | Testing strategy, test cases, and validation methodology. |
+| [`VnVReport/`](./VnVReport/README.md) | Verification & Validation Report | Results of testing and validation activities. |
+| [`UserGuide/`](./UserGuide/README.md) | User Guide | End-user instructions for playing the game. |
+| [`ReflectAndTrace/`](./ReflectAndTrace/README.md) | Reflection & Traceability | Traceability matrix and team reflection on the project. |
+| [`Presentations/`](./Presentations/README.md) | Presentations | Slide decks and demo materials for all project milestones. |
+| [`Checklists/`](./Checklists/) | Review Checklists | Peer-review checklists for all major documentation artifacts. |
+| [`projMngmnt/`](./projMngmnt/) | Project Management | Team contribution records for POC, Rev0, and Final deliverables. |
+| [`Extras/`](./Extras/) | Extra Artifacts | Supplementary materials including design thinking and usability testing. |
