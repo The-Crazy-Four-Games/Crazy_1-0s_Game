@@ -348,27 +348,82 @@ involved in the Project}
 
 \subsection{Relevant Facts}
 \begin{itemize}
-  \item \textbf{Prevalence of decimal:} Users are overwhelmingly familiar with base-10; dozenal notation is novel for most.
-  \item \textbf{Educational effectiveness:} Game-based learning improves numeracy engagement (backed by pedagogical literature).
-  \item \textbf{Resource constraints:} Project budget is capped at 500 CAD and timeline is an academic term.
-  \item \textbf{Technology stack:} Planned stack is React (frontend), Node.js (backend), PostgreSQL (data).
-  \item \textbf{Browser target:} Modern desktop browsers (Chrome, Firefox, Edge) are the primary runtime environment.
+    \item \textbf{Institutional entrenchment of decimal:} Decimal dominance in education is historical and cultural, not due to mathematical superiority. Most education systems universally teach base-10, leaving learners unaware that alternative bases with better divisibility (such as base-12) exist.
+    
+    \item \textbf{Dozenal divisibility advantages:} Dozenal (base-12) has factors 2, 3, 4, and 6, allowing intuitive representation of halves, thirds, and quarters as terminating values (e.g., 1/3 = 0.4 in dozenal vs. 0.333... in decimal). This was historically recognized by traders and craftspeople who used dozens, grosses, and related units.
+    
+    \item \textbf{Multiple bases in professional practice:} Computer scientists and engineers routinely work with binary, octal, and hexadecimal bases for computation and hardware representation, demonstrating that professionals can adopt alternative bases when practical.
+    
+    \item \textbf{Game-based learning effectiveness:} Research in educational psychology shows that game-based learning increases student engagement and improves numeracy outcomes compared to traditional instruction, particularly when novel concepts are presented in interactive, low-stakes contexts.
+    
+    \item \textbf{Lack of engaging dozenal resources:} No widely available interactive or gamified educational tools currently exist to introduce dozenal counting to mainstream audiences; existing resources are primarily academic or niche.
+    
+    \item \textbf{Project timeline and resource constraints:} Development occurs within a single academic term with a budget capped at 500 CAD, limiting scope to an MVP that demonstrates core dozenal integration without comprehensive feature depth.
 \end{itemize}
 
 \subsection{Business Rules}
+
 \begin{itemize}
-  \item \textbf{Scoring rule:} Round score equals sum of opponents' remaining card values (displayed in both decimal and dozenal).
-  \item \textbf{Account rule:} Registered usernames must be unique; guest mode creates impermanent sessions.
-  \item \textbf{Open-source rule:} All deliverables must use appropriately licensed assets; avoid proprietary-only dependencies.
+    \item \textbf{Dual-Notation Score Calculation and Display}
+    \begin{itemize}
+        \item \textbf{Rule:} Round score shall equal the sum of opponents' remaining card values, calculated once per round, and displayed in both decimal and dozenal notation to the player.
+        \item \textbf{Reason:} Dual notation supports the pedagogical goal of building intuition about base-12 by allowing learners to directly compare how the same quantity appears in both systems. Displaying dozenal alongside decimal reinforces the equivalence and highlights structural differences (e.g., why halves, thirds, and quarters are cleaner in base-12).
+        \item \textbf{Authority:} Game design best practices for numerical cognition and comparative number systems education, which emphasize explicit side-by-side representation to facilitate conceptual transfer across bases.
+    \end{itemize}
+    
+    \item \textbf{User Account Identity and Session Management}
+    \begin{itemize}
+        \item \textbf{Rule:} Registered usernames across all accounts must be globally unique. Guest mode creates temporary, impermanent sessions that do not require registration and are not persisted after logout.
+        \item \textbf{Reason:} Unique usernames protect user identity and enable fair ranking/leaderboard systems if implemented. Guest mode lowers the barrier to entry for casual or exploratory players, supporting adoption among educators using the game in classroom settings without requiring account creation infrastructure.
+        \item \textbf{Authority:} User account management standards and inclusive design principles, which recommend optional registration to maximize accessibility while preserving identity guarantees for committed users.
+    \end{itemize}
+    
+    \item \textbf{Open-Source Licensing and Asset Compliance}
+    \begin{itemize}
+        \item \textbf{Rule:} All deliverables, source code, documentation, and external dependencies must use appropriately licensed open-source assets (e.g., MIT, GPL, Apache 2.0). Proprietary-only or closed-source dependencies are prohibited.
+        \item \textbf{Reason:} Open-source licensing ensures the product remains modifiable, transparent, and freely usable by educators and learners. It supports academic integrity, enables community contributions, and prevents vendor lock-in or licensing complications that could restrict adoption in educational institutions.
+        \item \textbf{Authority:} Open-source software community standards and academic software governance practices, which mandate transparent licensing to protect user rights, ensure long-term viability, and foster collaborative improvement.
+    \end{itemize}
 \end{itemize}
 
 \subsection{Assumptions}
+
 \begin{itemize}
-  \item \textbf{Connectivity:} Players typically have a stable internet connection for multiplayer sessions.
-  \item \textbf{Device:} Primary devices are desktop/laptop; mobile support is a stretch-goal.
-  \item \textbf{Play familiarity:} Players understand basic card game mechanics (matching suit or rank).
-  \item \textbf{Team availability:} Team members will perform peer review before merges as per Development Plan.
-  \item \textbf{Third-party components:} Standard open-source libraries (React, Socket.io, PG client) will be available and compatible.
+    \item \textbf{Player Familiarity with Card Game Mechanics}
+    \begin{itemize}
+        \item \textbf{Assumption:} Players understand basic card matching mechanics and are comfortable with standard deck concepts (suits, ranks), allowing them to focus cognitive effort on learning dozenal notation rather than game rules.
+        \item \textbf{Effect if false:} If players lack familiarity with card matching, they will experience cognitive overload attempting to learn game mechanics and number systems simultaneously. User engagement and learning outcomes will decline, and development effort must shift to onboarding tutorials or rule simplification. Reference: Development Plan, Section on ``Tutorials and Onboarding.''
+    \end{itemize}
+
+    \item \textbf{Dozenal Notation Unfamiliarity}
+    \begin{itemize}
+        \item \textbf{Assumption:} The majority of users will have zero prior exposure to dozenal notation and arithmetic; the game must introduce concepts intuitively without assuming mathematical background or pre-existing knowledge of base-12.
+        \item \textbf{Effect if false:} If players already understand dozenal, the pedagogical hook (introducing base-12 as novel and interesting) loses effectiveness, and gameplay may feel trivial. Alternatively, if players are miscalibrated to a lower knowledge level, explanations will seem patronizing and reduce engagement. Both outcomes reduce product appeal and competitive differentiation.
+    \end{itemize}
+    
+    \item \textbf{Target Device and Browser Capabilities}
+    \begin{itemize}
+        \item \textbf{Assumption:} Primary target devices are modern desktop and laptop computers running contemporary browsers (Chrome, Firefox, Edge); mobile devices and legacy browsers are not supported in the MVP.
+        \item \textbf{Effect if false:} If target users primarily access the game via mobile devices or legacy browsers, the product will be effectively unusable for the majority audience. Development must pivot to mobile optimization and backward compatibility, substantially increasing effort and delaying release. Reference: Development Plan, Section on ``Technology Stack and Browser Targets.''
+    \end{itemize}
+    
+    \item \textbf{Educator Skepticism and Market Reception}
+    \begin{itemize}
+        \item \textbf{Assumption:} Educators and institutional stakeholders will approach dozenal education with initial skepticism; the product must demonstrate concrete value through gameplay and learning outcomes without requiring formal curriculum adoption or institutional endorsement.
+        \item \textbf{Effect if false:} If educators are not skeptical but remain indifferent or dismissive after exposure, the product may fail to achieve adoption despite meeting technical requirements. Insufficient learning data or endorsement will limit classroom integration, reducing impact on the target user base and requiring pivot to different markets (e.g., hobbyists, mathematicians).
+    \end{itemize}
+    
+    \item \textbf{Team Availability and Code Review Discipline}
+    \begin{itemize}
+        \item \textbf{Assumption:} All team members will maintain consistent involvement in the project and will perform rigorous peer review before code integration, as outlined in the Development Plan.
+        \item \textbf{Effect if false:} If team members become unavailable or skip peer review, code quality will degrade, technical debt will accumulate, and integration failures will cascade. Schedule delays and quality defects will spike, potentially preventing MVP completion. Reference: Development Plan, Section on ``Team Roles, Responsibilities, and Coordination.''
+    \end{itemize}
+    
+    \item \textbf{Open-Source Library Availability and Compatibility}
+    \begin{itemize}
+        \item \textbf{Assumption:} Common open-source libraries and frameworks for web development (React, Node.js, supporting packages) will remain available, maintained, and mutually compatible throughout the project timeline (September 2025 to April 2026).
+        \item \textbf{Effect if false:} If critical dependencies are abandoned, deprecated, or introduce breaking changes, development velocity will stall as the team scrambles to migrate to alternatives or implement workarounds. Major version conflicts could render large portions of the codebase non-functional, requiring rewrites and delaying release.
+    \end{itemize}
 \end{itemize}
 
 \section{The Scope of the Work}
