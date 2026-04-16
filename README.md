@@ -6,7 +6,7 @@
 
 🎮 **Play the game live:** [thecrazy10.click](http://thecrazy10.click/)
 
-📝 **For Capstone Grading:** [Crazy 1-0's! Rev1 Version](http://18.118.25.152:8080/)
+📝 **For Capstone Grading:** [Crazy 1-0's! Capstone EXPO Version](http://18.118.25.152:8080/)
 
 ---
 
