@@ -6,13 +6,17 @@
 
 🎮 **Play the game live:** [thecrazy10.click](http://thecrazy10.click/)
 
+📝 **For Capstone Grading:** [Crazy 1-0's! Rev1 Version](http://18.118.25.152:8080/)
+
 ---
 
 ## About the Game
 
 **Crazy 1-0's!** is a variant of the classic card game *Crazy Eights* that teaches players to count, add, subtract, multiply, and divide in alternative numeral systems — starting with **Dozenal (Base-12)** and expanding to **Decimal (Base-10)** and **Octal (Base-8, experimental)**.
 
-The name "1-0's" comes from the fact that `10` in any base represents that base's *target sum* — the core mechanic of the game.
+The name "1-0's" comes from the fact that `10` in any base represents the base itself (e.g. `10` in Base-10 is Ten, `10` in Base-12 is a Dozen, `10` in Base-8 is Eight).
+
+In our card game, `10` also represents the *target sum* — a core mechanic of the game.
 
 ---
 
@@ -70,3 +74,4 @@ Crazy-Tens-Game/
 
 - POC Demo: [pocdemo branch](https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/commits/pocdemo/src)
 - Rev0 Source: [main/src/rev0](https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/tree/main/src/rev0)
+- Rev1 Source: [main branch @ 2026-04-10](https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/tree/HEAD@{2026-04-10})
