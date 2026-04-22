@@ -386,22 +386,64 @@ technology you planned on using?}
 
 We largely followed the Development Plan, with some deviations:
 
+\begin{itemize}
+  \item \textbf{Team Meeting Plan:} The Development Plan had ``as required/appropriate'' with one or two meetings before major deliverables. In practice, we held very few formal team meetings (3 before POC, 2 between POC and Rev0, 2 between Rev0 and Final). Most coordination happened asynchronously through Discord, which was far more frequent than planned MS~Teams sessions. However, the Development Plan did anticipate that ``most work will be done and delegated through GitHub project management and via Discord server,'' so our actual practice was broadly consistent with the plan.
 
+  \item \textbf{Team Communication Plan:} We used all five planned channels (GitHub, Discord, Email, MS~Teams, In-Person), but the balance shifted heavily toward Discord and GitHub Issues. MS~Teams was used sparingly, and most design discussions occurred in Discord voice channels rather than scheduled MS~Teams calls. Email was used only for supervisor correspondence. Overall, the asynchronous-first communication style worked well for our team's schedules.
+
+  \item \textbf{Workflow Plan:} We followed the planned Git workflow (feature branches, pull requests, at least one reviewer approval before merging) for the majority of the project. GitHub Issues and the Kanban board were used consistently throughout. However, the branch discipline was not perfect: there were occasional direct pushes to shared branches, particularly close to deadlines.
+
+  \item \textbf{Technology:} We used nearly all the planned technologies: React (frontend), Node.js (backend), PostgreSQL (database), Socket.io (real-time networking), GitHub Actions (CI/CD), and LaTeX (documentation). The main deviation was switching from Jest to Vitest as our testing framework, as Vitest integrates more naturally with the Vite build tool we adopted. We also used Docker for deployment, which was not originally listed but became essential for hosting on AWS~EC2.
+\end{itemize}
 
 \subsection{What Went Well?}
 
 \plt{What went well for your project management in terms of processes and 
 technology?}
 
+\begin{itemize}
+  \item \textbf{GitHub Issues and Kanban Board:} Our use of GitHub Issues for tracking every task from lectures and meetings to feature implementation and bug fixes provided excellent traceability. By the end of the project, the team had authored and closed hundreds of issues across all phases. The Kanban board (Backlog / In Progress / Review / Done) gave the team a clear visual of project status at any time.
 
+  \item \textbf{Supervisor Engagement:} Having Ammar as a dedicated Team Liaison ensured regular, productive meetings with Prof.\ Rapoport. We held 8 supervisor meetings before the POC, 5 between POC and Rev0, and 3 between Rev0 and the Final Demo. Each meeting produced concrete, actionable feedback (documented in GitHub Issues), and the team implemented the vast majority of suggestions. Prof.\ Rapoport's final email noted that ``the game has made many excellent advances, especially recently,'' validating this feedback loop.
+
+  \item \textbf{CI/CD Pipeline:} The GitHub Actions pipeline (automated builds, Vitest test execution, and LaTeX compilation on every PR) caught integration issues early and enforced a baseline of code quality. This was a direct response to instructor feedback at the POC that CI/CD should be implemented, and it served the team well from Rev0 onward.
+
+  \item \textbf{Discord for Asynchronous Coordination:} While informal, Discord proved to be our most effective communication tool. Quick questions, design debates, and status updates happened in near real-time without the overhead of scheduling formal meetings. This flexibility was critical given that three of the four team members had packed course schedules.
+
+  \item \textbf{Iterative Development:} The project naturally followed an iterative cycle (POC $\rightarrow$ Rev0 $\rightarrow$ Rev1 $\rightarrow$ Final), with each iteration incorporating feedback from the previous demo. This structure kept the scope manageable and ensured continuous improvement.
+\end{itemize}
 
 \subsection{What Went Wrong?}
 
+\begin{itemize}
+  \item \textbf{Uneven Workload Distribution:} Commit and issue data across all three team contribution reports reveal a persistent imbalance. For example, between POC and Rev0, Ruida had 25 commits while Jiaming had 2. Between Rev0 and the Final, Jiaming had 13 commits while Ammar had 1. While commit counts do not perfectly reflect effort (different members used different commit styles, and some work like game design or stakeholder meetings does not generate commits), the imbalance was real and occasionally led to bottlenecks when key contributors were unavailable.
 
+  \item \textbf{Insufficient Formal Team Meetings:} We held very few structured team meetings throughout the project. While Discord filled the gap for day-to-day coordination, the lack of regular synchronous check-ins contributed to the ``Team Communication'' score of only 1/3 at the Rev0 Demo. Important design decisions were sometimes made in fragmented Discord conversations rather than deliberate, documented discussions.
+
+  \item \textbf{Late Integration and Incomplete Rev0:} The Rev0 demo was intended to be a ``complete implementation'' per the instructor's expectations, but we delivered a product with no authentication, no deployment, missing card art, and visible development logs. This gap between expectations and delivery reflected insufficient planning for the Rev0 milestone and underestimation of the integration effort required to combine separately developed frontend and backend components.
+
+  \item \textbf{Documentation Feedback Not Addressed Promptly:} Some feedback from TA document discussions (SRS peer review comments, Design Document Rev$-1$ feedback) was not incorporated until much later, sometimes only when the next revision's deadline forced the changes. A more disciplined approach to addressing feedback within a fixed window would have improved document quality earlier.
+
+  \item \textbf{Branch Discipline Lapses:} Despite the workflow plan requiring all changes to go through pull requests with at least one approval, there were instances of direct pushes to shared branches near deadlines. These bypassed the review process and occasionally introduced bugs that had to be fixed later.
+\end{itemize}
 
 \subsection{What Would you Do Differently Next Time?}
 
 \plt{What will you do differently for your next project?}
+
+\begin{itemize}
+  \item \textbf{Establish a Fixed Weekly Meeting:} Rather than meeting ``as required,'' we would schedule a mandatory 30-minute weekly stand-up (even if virtual). This would provide a regular synchronization point, catch miscommunications early, and demonstrate consistent team communication to evaluators.
+
+  \item \textbf{Define Explicit Per-Sprint Ownership:} Instead of allowing specialization to emerge organically, we would assign balanced workloads at the start of each sprint (two-week iterations), including cross-functional tasks (a backend-focused developer takes a frontend task). This would reduce bus-factor risk and ensure all members gain experience across the full stack.
+
+  \item \textbf{Set Internal Deadlines Before External Ones:} We would establish internal ``code freeze'' and ``feature complete'' deadlines at least one week before the actual demo or submission date. This buffer would allow time for integration testing, documentation updates, and rehearsal --- all of which were rushed in this project.
+
+  \item \textbf{Create a Feedback Backlog with SLAs:} Each item of feedback (from TAs, instructor, supervisor, or peers) would be logged as a GitHub Issue immediately, assigned an owner, and given a target resolution date (within two weeks of receipt). This would prevent feedback from being lost or deferred indefinitely.
+
+  \item \textbf{Invest More in Automated Testing Early:} Our test suite grew mostly after Rev0. Writing tests alongside feature development from the POC stage onward would have caught bugs earlier (the decimal-vs-dozenal arithmetic bug) and built confidence in refactoring.
+
+  \item \textbf{Rehearse Demos:} Both the Rev0 and Final Demo received presentation-related feedback (low energy, too much time on roadmap, insufficient rehearsal). We would schedule at least one full mock demo with timing and feedback before each evaluation.
+\end{itemize}
 
 
 
