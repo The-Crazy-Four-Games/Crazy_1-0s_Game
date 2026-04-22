@@ -2,6 +2,9 @@
 
 \usepackage{tabularx}
 \usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{enumitem}
 
 \title{Reflection and Traceability Report on \progname}
 
@@ -63,9 +66,91 @@ low.}
 
 \subsection{SRS and Hazard Analysis}
 
+
 \subsection{Design and Design Documentation}
 
+The Design Document received two rounds of feedback: Rev $-1$ (Dec 8, 2025, 77.27\%) and Rev 0 (Mar 5, 2026, 67.86\%). The Rev 0 Demo (Feb 13, 2026) also produced significant design feedback from the instructor.
+
+\begin{longtable}{p{0.08\textwidth} p{0.15\textwidth} p{0.34\textwidth} p{0.37\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Source} & \textbf{Feedback} & \textbf{Response / Change} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+D1 & TA Chris (Rev $-1$, Dec 8) & ``No anticipated or likely changes listed. No uses hierarchy.'' MG quality scored 2/3. & Added anticipated and likely changes sections. Added uses hierarchy DAG diagram. Ruida expanded the timeline section . \\
+\midrule
+
+D2 & TA Chris (Rev $-1$) & ``Should not mention things like `React' in the design --- that is an implementation detail.'' & Revised MG and MIS to use implementation-independent language. References to React, Express, PostgreSQL were abstracted to generic module descriptions. \\
+\midrule
+
+D3 & TA Chris (Rev $-1$) & M20, M21, M22 feel too low-level (process scheduling, DOM rendering, physical storage). M21/M22 are software hiding, not hardware hiding. & Those modules were removed, the whole MIS were re-designed. \\
+\midrule
+
+
+
+D4 & TA Chris (DesDoc, Mar 5) & ``Timeline is not detailed. Should have information about when each module will be implemented by.'' Timeline scored 0.5/3. & Ruida expanded the timeline to per-module granularity with owner assignments and target dates (commit \texttt{aa3a601}). \\
+\midrule
+
+D5 & TA Chris (DesDoc, Mar 5) & ``UCs are not labeled.'' Several SW decision modules misclassified (matchmaking, lobby view, game board view). & Labeled all Unlikely Changes with unique identifiers (UC1--UC$n$). Reclassified application-specific modules out of the generic software decision category. \\
+\midrule
+
+D6 & TA Chris (MIS) & MIS too low-level in places: ``socket'' in 12.4.1, ``JSX'' in 13.4.4, use \texttt{out :=} and \texttt{exc :=} notation, \texttt{void} is not mathematical. & Revised MIS semantics to use descriptive specification with \texttt{out :=} / \texttt{exc :=} notation. Removed JSX, socket, and void references. Fixed notation table (commit \texttt{64538fe}). \\
+\midrule
+
+
+\end{longtable}
+
+
 \subsection{VnV Plan and Report}
+
+\subsection{POC Demo, Rev 0 Demo and Final Demo}
+
+The POC Demo scored 73.33\% (Nov 28, 2025). The Rev 0 Demo scored 14/21 (Feb 13, 2026). The Final Demo scored 18.5/27 (Apr 1, 2026).
+
+\begin{longtable}{p{0.08\textwidth} p{0.15\textwidth} p{0.34\textwidth} p{0.37\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Source} & \textbf{Feedback} & \textbf{Response / Change} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+P1 & Instructor (POC, Nov 28) & ``I have concerns that the team is divided in two sets \{Ammar, Dr.\ Rapoport\} and \{Ammar, Ruida, Jiaming, Alvin\}, with Ammar as the only intersection. Going forward, everyone on the team should engage with Dr.\ Rapoport.'' & All team members participated in subsequent supervisor meetings. The Jan 22 in-person session and Feb 12 demo both had full attendance. \\
+\midrule
+
+P2 & Instructor (POC) & ``The report makes it sound like CI/CD is implemented, but it is not. The CI/CD infrastructure should be built soon.'' & GitHub Actions CI/CD pipeline was implemented: automated builds, Vitest test execution, and LaTeX compilation on every PR. \\
+\midrule
+
+P3 & Instructor (POC) & ``The team should have more team meetings to make sure you are on the same page.'' Team Communication score was mediocre. & Increased meeting frequency between POC and Rev0. Created GitHub Issues for future team meetings as suggested (Issue \#262). \\
+\midrule
+
+P4 & Instructor (POC) & ``A usability report should ask about more than whether the game is fun. The usability report should measure whether the game is effective at teaching different numerical bases.'' & Our usability study included tasks specifically measuring dozenal learning effectiveness (T14, T15) and custom Likert questions about educational value (Q1--Q5). \\
+\midrule
+
+P5 & Instructor (Rev0, Feb 13) & Rev0 difficulty scored 1.5/3. Team Communication scored 1/3. ``The implementation should be further for Rev0 --- authentication not set up, remove web socket connection, use actual cards, some unicode not displaying correctly.'' & Implemented authentication, concurrent games, actual card art, and full deployment for Rev1. Improved team coordination for Final Demo. \\
+\midrule
+
+P6 & Prof.\ Rapoport (post-POC, Nov 26, Issue \#133) & Features to implement: arithmetic problem on wildcard, bonus points for correct answers, timer on turns (possibly using the active number base), and multiplication operations. & Wildcard arithmetic system implemented in Rev1 per these suggestions. Suit-based operation triggers finalized in the Feb 12 meeting. \\
+\midrule
+
+P7 & Prof.\ Rapoport (Feb 12 meeting) & Detailed list of changes: starting deck 7 cards not 5, 10 card is wild (not Dek), arithmetic answers typed not selected, both players compete on challenges, goal 50 $\rightarrow$ 100, remove manual pass button, fix score displayed in decimal instead of dozenal, reshuffle discard pile when draw pile is depleted. & All items were implemented in Rev1. \\
+\midrule
+
+P8 & Prof.\ Rapoport (Apr 3 email) & Post-final feedback: only 7 cards dealt instead of 8, auxiliary tables use X/E instead of rotated 2/3, hand count in decimal not dozenal, missing round prompt after round 2, suit icons nearly invisible after wildcard, game didn't end at 100 dozenal points. & Hand size updated to 8. Hint tables rewritten with proper dozenal symbols. Hand count now in dozenal. Round prompt bug fixed. Suit visibility improved. Win condition fixed.  \\
+\midrule
+
+P9 & Instructor (Final, Apr 1) & ``Show a demo at the start. Rather than present MVP and stretch goals, show what you built. Too much time on project roadmap. If you are excited, the audience will be excited --- convey more energy.'' Presentation scored 1.5/3. & Noted for future presentations. The team acknowledged insufficient rehearsal and energy. \\
+\midrule
+
+P10 & Users from Usability Testing Report (Final) & ``The illegal-move doesn't have a clear feedback such as a pop-up window', the error messages only appear in the collapsible activity logs, normal users wouldn't mention it. & Implemented error message pop-up windows, enhance user feedbacks.\\
+\midrule
+
+P11 & Instructor (Final) & ``I like the instruction manual and the addition table. Deployment and devops are good.'' Final Demo scored 18.5/27. & Positive feedback confirming the rulebook and deployment infrastructure met expectations. Dr.\ Rapoport separately noted: ``The game has made good progress, especially recently!'' \\
+
+\end{longtable}
+
 
 \section{Extras}
 
@@ -74,21 +159,140 @@ can include usability testing, code walkthroughs, user documentation, formal
 proof, GenderMag personas, Design Thinking, etc.  Extras should have already
 been approved by the course instructor as included in your problem statement.}
 
+Our team completed two extras, both approved by Dr.\ Spencer Smith as part of our problem statement (see ProblemStatement.tex, Section 4):
+
+\begin{enumerate}
+  \item \textbf{Usability Testing.} We conducted a formal usability study with 5 participants (P1--P5) across 16 tasks covering account management, lobby interaction, core gameplay in both decimal and dozenal modes, scoring comprehension, and auxiliary features. We collected quantitative metrics (task completion rates, time on task, error counts, SUS scores) and qualitative data (think-aloud transcripts, debrief notes). The mean SUS score was 66.5, slightly below the industry average of 68, primarily due to participants with no prior non-decimal experience. Key findings included the need for visible illegal-move feedback (Q3 scored 2.20/5.00), dozenal onboarding tutorials, and increased rulebook discoverability. Seven prioritized recommendations were produced. Full details are in \url{https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/blob/main/docs/Extras/UsabilityTesting/UsabilityReport.pdf}{Usability Report}.
+\end{enumerate}
+
+
 \section{Design Iteration (LO11 (PrototypeIterate))}
 
-\plt{Explain how you arrived at your final design and implementation.  How did
-the design evolve from the first version to the final version?} 
 
-\plt{Don't just say what you changed, say why you changed it.  The needs of the
-client should be part of the explanation.  For example, if you made changes in
-response to usability testing, explain what the testing found and what changes
-it led to.}
+Our design evolved through four major iterations: Proof of Concept (POC), Revision~0 (Rev0), Revision~1 (Rev1), and the Final update. Each iteration represented a fundamental shift in scope and quality, driven by feedback from the instructor, our supervisor Prof.\ Rapoport, and our own usability testing.
+
+\subsection{POC: Command-Line Prototype}
+
+The POC was a purely text-based prototype with no graphical user interface. It ran entirely in command-line windows: two local terminal instances served as the two players. Players typed commands such as \texttt{play 7H} (7 of Hearts) to play a card, and the game state was rendered as text output in the console. The POC supported only the decimal numeral system and had no animations, no card graphics, and no networked multiplayer.
+
+The purpose of the POC was to validate the core risk identified in our Development Plan: whether the sum-rule mechanic (two card ranks must sum to ``10'' in the active base) could be correctly implemented and whether the turn-based game loop was sound. The POC successfully demonstrated that the fundamental game logic worked, and the instructor confirmed that the risk was adequately addressed (POC scored 73.33\%, Nov 28, 2025).
+
+Prior to the POC, we held our first supervisor meeting with Prof.\ Rapoport on October 11, 2025 (Issue \#43), where we discussed SRS and Hazard Analysis drafts, proposed counting rules (bonus points for correct arithmetic answers vs.\ penalties vs.\ game-stopping until correct), and explored what a dozenal playing deck would look like. Prof.\ Rapoport noted that virtual card assets were available, suggested we play the game in person to evaluate it, and confirmed that modifying the original Crazy Eights rules was acceptable since the primary goal was teaching dozenal arithmetic.
+
+After the POC demo, we met Prof.\ Rapoport again on November 26, 2025 (Issue \#133). He identified four features to prioritize: (1) arithmetic problems triggered by wildcards, (2) bonus points to encourage counting, (3) a timer on turns (potentially displayed in the active number base), and (4) multiplication operations. These priorities shaped the Rev0 and Rev1 feature roadmap.
+
+\subsection{Rev0: Ground-Up GUI Rewrite}
+
+Rev0 was a complete rewrite that shared no code with the POC. The decision to start from scratch was deliberate: the POC's command-line architecture had no path to a web-based GUI, and the technology stack (React, Node.js, Socket.io) required an entirely different project structure.
+
+On January 22, 2026, we held an in-person supervisor meeting (Issue \#182) where Ammar and Prof.\ Rapoport played 1--2 rounds of the game using a physical dozenal card deck. Prof.\ Rapoport reviewed the GUI design sketches and the Design Document Rev0. The meeting confirmed that the new gameplay features ``work fine and make the game more interesting'' and that a base conversion module should be planned, though only dozenal would be implemented initially.
+
+Rev0 introduced a graphical card game interface, but it was still rough in many respects:
+
+\begin{itemize}
+  \item The GUI was primitive with no transition animations and numerous visual bugs.
+  \item The game only supported local play; there was no deployment to an external server.
+  \item There was no real database, no user authentication or login system, and no persistent data.
+  \item The lobby flow was unclear and confusing, making it difficult for players to start a match.
+  \item Many core features were incomplete or missing entirely.
+\end{itemize}
+
+The instructor's Rev0 Demo feedback (Feb 13, 2026, scored 14/21) was critical. The feedback stated that ``Rev0 is intended to be a complete implementation'' and identified specific gaps: authentication not set up, Unicode not displaying correctly, development logs visible, actual card art missing, and no support for concurrent games. The difficulty score of 1.5/3 indicated the project was perceived as too easy at that stage. Team Communication scored only 1/3, highlighting coordination problems.
+
+On February 5, Prof.\ Rapoport provided feedback via Discord: ``The most important thing is to get the game to complete in dozenal, including the arithmetic questions. Leave the timer out for now.'' He also asked whether card sorting should be automatic or user-controlled, and requested weekly progress updates.
+
+The pivotal meeting was on February 12, 2026, where all four team members demoed the Rev0 updates to Prof.\ Rapoport. After playing a full round of dozenal, the meeting produced a detailed list of 14 changes (documented by Ammar in Issue \#263). Key items included: starting hand should be 7 cards not 5, the ``10'' card (not Dek) should be the wildcard, arithmetic operations should be triggered by face cards with suits determining the operation (in dozenal, face card J,Q,K trigger random arithmetic operation, C triggers the options to choose specific operation), answers should be typed not selected from multiple-choice, both players should compete on challenges simultaneously, the goal should increase from 50 to 100, the pass button should be removed (automatic pass instead), and the score bug (displaying in decimal during dozenal games) must be fixed.
+
+\subsection{Rev1: Infrastructure and Feature Overhaul}
+
+Rev1 was the most substantial update, addressing nearly all of the Rev0 feedback and adding major new subsystems:
+
+\textbf{Infrastructure and deployment:}
+\begin{itemize}
+  \item Deployed the game on AWS EC2 instances, making it publicly accessible for the first time.
+  \item Implemented a full PostgreSQL database system for persistent data storage.
+  \item Built a complete login system with registration, authentication, and session management.
+  \item Added a guest mode allowing users to play without creating an account.
+  \item Implemented user profiles with match history, win rate tracking, recent 5 game histories, password changes, and nickname customization (separate from username).
+\end{itemize}
+
+\textbf{Gameplay and logic improvements:}
+\begin{itemize}
+  \item Simplified and optimized lobby behavior: players can now view a list of all game rooms created by other players and join directly by clicking. Players can freely leave rooms before a match begins, and empty rooms are deleted automatically.
+  \item Added a collapsible in-game chat system for player communication during matches.
+  \item Added an admin mode accessible via admin credentials, allowing administrators to search for users and game rooms, change passwords, clear match histories, delete game rooms, and force logout.
+  \item Implemented the arithmetic challenge system per Prof.\ Rapoport's feedback: suits determine operations (spades $\rightarrow$ addition, hearts $\rightarrow$ subtraction, diamonds $\rightarrow$ multiplication, clubs $\rightarrow$ division) with typed answers.
+\end{itemize}
+
+\textbf{Bug fixes:}
+\begin{itemize}
+  \item Fixed a bug where the frontend username state reverted on page reload despite having a valid authentication token.
+  \item Fixed server-side session clearing on manual logout.
+  \item Fixed the arithmetic operation function, which was incorrectly calculating results in decimal even during dozenal games.
+  \item Fixed incorrect bonus point awards from arithmetic challenges.
+  \item Fixed the win condition goal being displayed as 100 in decimal rather than in the active base.
+\end{itemize}
+
+\subsection{Final Update: Polish and User Experience}
+
+The final update was driven by three sources: usability testing findings, remaining instructor feedback from the Final Demo (Apr 1), and a detailed email from Prof.\ Rapoport on April 3 after he played the game independently. Prof.\ Rapoport noted that ``the game has made many excellent advances, especially in the implementation of the arithmetic questions in dozenal'' but identified several remaining issues: only 7 cards dealt instead of the required 8, auxiliary tables using X and E instead of the rotated 2 and 3 symbols, hand count displayed in decimal, missing round transition prompt, nearly invisible suit icons after wildcard plays, and the game not ending when a player's score exceeded 100 dozenal. 
+
+\textbf{Core gameplay changes:}
+\begin{itemize}
+  \item Initial hand size increased from 7 to 8 cards. Hand count displayed in dozenal during dozenal games.
+  \item Win condition changed from ``empty your hand'' to ``reach 100 points first'' (displayed in the active base).
+  \item Implemented hand card sorting by suit and rank for better organization.
+  \item Added a manual pass button (\textsf{$\Rightarrow$ PASS}), replacing the previous auto-pass-after-3-draws mechanic, giving players more control.
+  \item Implemented hand card sorting function with smooth animation. (by suit/rank)
+  \item User input for arithmetic operation challenge changed from typing to clicking numpad on screen. (Rotated 2 and 3 can not be typed directly, using X or E as alternatives may cause inconsistency)
+\end{itemize}
+
+\textbf{Error feedback and UX improvements (driven by usability testing):}
+Our usability study found that illegal-move feedback was effectively invisible (only shown in a collapsible activity log). The custom Likert question on error feedback (Q3) scored only 2.20/5.00, the lowest of all questions. In direct response:
+\begin{itemize}
+  \item Implemented toast notifications that slide in from the top of the screen for all errors (login failures, illegal moves, connection issues, etc.).
+  \item Added a hand-shake animation on invalid card plays, providing immediate visual feedback.
+  \item Moved activity logs to a small button in the top-right corner, de-emphasizing them in favor of the new toast system.
+  \item Improved the algorithm for generating arithmetic challegenge questions ( previous multiplication/division such as 82x78 in decimal was too hard )
+\end{itemize}
+
+\textbf{Arithmetic challenge overhaul:}
+\begin{itemize}
+  \item Added a 60-second countdown timer for arithmetic operations.
+  \item Changed to a one-attempt lockout system with dual-player competition format.
+  \item Added a challenge history panel for reviewing past results.
+\end{itemize}
+
+\textbf{Visual and animation improvements:}
+\begin{itemize}
+  \item Added animated game background with 12 floating card suit symbols.
+  \item Enhanced turn indicator: the active player's turn now displays a glowing green border with animated glow pulse and sweeping shimmer effect; the opponent's turn is muted and dimmed.
+  \item Made the wildcard chosen-suit color more visible.
+  \item Added a prominent mode selector for switching between Decimal, Dozenal, and Octal.
+  \item Lobby expanded to fullscreen on desktop.
+  \item Added show/hide toggle button for password fields.
+\end{itemize}
+
+\textbf{Educational content improvements:}
+\begin{itemize}
+  \item Hint tables rewritten in HTML with proper dozenal turned-digit symbols instead of image-based fallback characters, improving accessibility and load times.
+  \item Added experimental Octal mode (base-8), expanding the educational scope beyond decimal and dozenal, proved the potential of supporting different number bases.
+\end{itemize}
+
+\textbf{Known remaining limitations:}
+\begin{itemize}
+  \item Sound effects are not implemented.
+  \item Customizable card back themes were not implemented, only several built-in themes can be selected.
+  \item Password encryption uses basic hashing rather than a production-grade algorithm.
+  \item Network security hardening is incomplete.
+\end{itemize}
 
 \section{Design Decisions (LO12)}
 
 \plt{Reflect and justify your design decisions.  How did limitations,
  assumptions, and constraints influence your decisions?  Discuss each of these
  separately.}
+
 
 \section{Economic Considerations (LO23)}
 
@@ -98,6 +302,7 @@ sell?  What would you charge for your product?  How many units would you have to
 sell to make money? If your product isn't something that would be sold, like an 
 open source project, how would you go about attracting users?  How many potential 
 users currently exist?}
+
 
 \section{Reflection on Project Management (LO24)}
 
@@ -109,35 +314,67 @@ users currently exist?}
 team communication plan, team member roles and workflow plan.  Did you use the 
 technology you planned on using?}
 
+We largely followed the Development Plan, with some deviations:
+
+
+
 \subsection{What Went Well?}
 
 \plt{What went well for your project management in terms of processes and 
 technology?}
 
+
+
 \subsection{What Went Wrong?}
 
-\plt{What went wrong in terms of processes and technology?}
+
 
 \subsection{What Would you Do Differently Next Time?}
 
 \plt{What will you do differently for your next project?}
+
+
 
 \section{Ethics and Equity (LO18)}
 
 \plt{Describe how your team applied the principle of equity and universal design
 to ensure equitable treatment of all stakeholders.}
 
+Our team applied equity and universal design principles in several ways:
+
+
+
 \section{Reflection on Capstone}
 
-\plt{This question focuses on what you learned during the course of the capstone project.}
 
 \subsection{Which Courses Were Relevant}
 
-\plt{Which of the courses you have taken were relevant for the capstone project?}
+
+\begin{itemize}
+  \item \textbf{SFWRENG 2AA4 --- Software Design I:} Git workflow, Kanban board management, object-oriented design patterns. These were foundational for our project's version control strategy and modular architecture.
+  \item \textbf{SFWRENG 3A04 --- Software Design III (Large System Design):} UML diagrams, software architecture documentation, module decomposition. Directly applicable to our MG and MIS documents, and the 20-module architecture.
+  \item \textbf{SFWRENG 3RA3 --- Software Requirements:} Requirements elicitation, SRS writing, GitHub Issues for tracking. Essential for our SRS document and the systematic approach to requirements traceability.
+  \item \textbf{SFWRENG 3S03 --- Software Testing:} Test case design, automated testing frameworks, coverage analysis. Applied directly in our Vitest unit test suite and V\&V process.
+  \item \textbf{SFWRENG 4HC3 --- Human Computer Interfaces:} User-centered design, usability testing methodology, SUS questionnaire design. Critical for our two extras (Usability Testing and Design Thinking) and for designing an interface that balances education with gameplay.
+  \item \textbf{SFWRENG 4C03 --- Computer Networks and Security:} Network protocols, WebSocket fundamentals, security best practices. Applied in our real-time multiplayer architecture (Socket.io), TLS configuration, and authentication system.
+\end{itemize}
 
 \subsection{Knowledge/Skills Outside of Courses}
 
-\plt{What skills/knowledge did you need to acquire for your capstone project
-that was outside of the courses you took?}
+\begin{itemize}
+  \item  Deepened understanding of React component architecture, state management, and CSS animation design for card interactions. Learned through official React documentation and iterative prototyping.
+
+  \item Gained hands-on experience with Node.js, Express, and PostgreSQL database management. Built the API layer and repository module from scratch, learning through online tutorials and course project repositories.
+
+  \item  Learned game state machine patterns, turn-based engine architecture, and real-time synchronization techniques. These were not covered in coursework and required independent research into game development best practices.
+
+  \item  Acquired domain knowledge in dozenal arithmetic, its history, and pedagogical approaches to teaching alternative bases. Also developed skills in stakeholder communication through regular meetings with Prof.\ Rapoport and in preparing demonstration presentations.
+
+  \item  While some members had prior exposure, producing the volume of documentation required for this capstone (SRS, MG, MIS, VnV Plan/Report, Hazard Analysis, Usability Report, Design Thinking Report, and this Reflection) required significant LaTeX proficiency that went beyond course expectations. Collaborative LaTeX editing and resolving merge conflicts in .tex files were learned on the job.
+  
+  \item Learned web deployment and devops, docker container techniques for web hosting.
+
+  \item  Building a real-time multiplayer game with Socket.io required understanding WebSocket lifecycle management, room-based event routing, server-authoritative state synchronization, and reconnection handling. None of our courses covered real-time web application development in depth.
+\end{itemize}
 
 \end{document}
