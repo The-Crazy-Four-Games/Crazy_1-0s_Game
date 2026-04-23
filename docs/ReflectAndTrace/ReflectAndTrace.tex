@@ -115,8 +115,25 @@ From all of this feedback, we added the following changes:
 \end{tabular}
 \end{table}\\
 
-For Hazard Analysis ...\\
--Jim
+For the Hazard Analysis, feedback was provided during peer reviews and by TA Chris. The main concerns involved the completeness of the Failure Mode and Effects Analysis (FMEA) and the handling of data security, given the system's shift to a full web deployment with a database.
+
+\begin{longtable}{p{0.08\textwidth} p{0.15\textwidth} p{0.34\textwidth} p{0.37\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Source} & \textbf{Feedback} & \textbf{Response / Change} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+H1 & TA Chris (Rev 0) & ``FMEA table lacks severity and occurrence ratings for several software hazards. Need to quantify the risks.'' & Updated the FMEA table to include standardized severity (1-10) and occurrence (1-10) ratings for all identified hazards, allowing for proper RPN (Risk Priority Number) calculation. \\
+\midrule
+
+H2 & Peer Review & Security hazards related to user authentication and database injection are missing from the analysis. & Added new hazard entries specifically for SQL injection and session hijacking. Added corresponding safety requirements to enforce parameterized queries and secure token storage. \\
+\midrule
+
+H3 & Instructor (Rev 0) & The hazard analysis does not adequately address the risk of incorrect educational content (e.g., faulty dozenal math logic). & Created a new hazard category for ``Pedagogical Failure.'' Implemented strict unit testing for the base conversion module to mitigate the risk of teaching incorrect arithmetic. \\
+
+\end{longtable}
 
 \subsection{Design and Design Documentation}
 
@@ -156,7 +173,31 @@ D6 & TA Chris (MIS) & MIS too low-level in places: ``socket'' in 12.4.1, ``JSX''
 
 \subsection{VnV Plan and Report}
 
-\subsection{POC Demo, Rev 0 Demo and Final Demo}
+The Verification and Validation (V\&V) Plan and Report received feedback during the Rev 0 and Rev 1 evaluation phases, primarily focusing on test coverage, automated testing integration, and traceability.
+
+\begin{longtable}{p{0.08\textwidth} p{0.15\textwidth} p{0.34\textwidth} p{0.37\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Source} & \textbf{Feedback} & \textbf{Response / Change} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+V1 & Peer Review (Issues \#91--\#99) & Inconsistencies between SRS requirements and VnV Plan test cases. Some functional requirements lacked corresponding tests. & Added missing test cases to the VnV Plan. Ensured 1-to-1 traceability between SRS requirements and test cases in the Verification Plan. \\
+\midrule
+
+V2 & TA Chris (Rev 0) & ``Unit testing strategy is not clearly defined. Need to specify what framework will be used and how coverage will be measured.'' & Updated the VnV Plan to explicitly specify Vitest for frontend/backend unit testing. Added coverage goals (e.g., 80\% statement coverage). \\
+\midrule
+
+V3 & Instructor (POC / Rev 0) & ``VnV Report lacks actual test execution results. The report should document the outcome of the planned tests, not just the plan.'' & Populated the VnV Report with execution results for Rev 0 and Rev 1. Added a section detailing automated test runs and manual usability findings. \\
+\midrule
+
+V4 & TA Chris (Rev 1) & ``Usability testing methodology in VnV is vague. Need clearer metrics for non-functional requirements (NFRs).'' & Expanded the NFR testing section. Integrated the formal Usability Testing extra (SUS scores, task completion rates) directly into the VnV validation results. \\
+\midrule
+
+V5 & Instructor (Final) & Ensure CI/CD pipeline correctly runs the automated tests described in the VnV Plan. & Configured GitHub Actions to automatically execute the Vitest suite on every PR, ensuring continuous verification of the codebase. \\
+
+\end{longtable}\subsection{POC Demo, Rev 0 Demo and Final Demo}
 
 The POC Demo scored 73.33\% (Nov 28, 2025). The Rev 0 Demo scored 14/21 (Feb 13, 2026). The Final Demo scored 18.5/27 (Apr 1, 2026).
 
