@@ -162,10 +162,177 @@ There is also more feedback and changes that were made after the POC Demo,
 after the Rev0 Demo (again) and after the Final Demo in section 1.4 
 of this document.
 
-\subsection{SRS and Hazard Analysis}
-For SRS, there was not any instructor feedback on Avenue.
-The feedback we received was mostly from our peer review team.
-The issues which were closed for SRS were the following, and have been mapped to their resolving commits:
+\subsection{SRS Feedback and Changes}
+
+For SRS, I just realized today (April 28, 2026) that there was detailed instuctor feedback for our SRS as well. Not just peer review feedback .. (facepalm).
+Instructor feedback for the SRS is visible here \href{https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/blob/reflect/docs/ReflectAndTrace/Traceability%20Aids/Feedback/SRS%20Feedback%20for%20SRS%20-%20SFWRENG%204G06A%3ASoftware%20Design%20IV%20-%20Capstone%20Design%20Project%20-%20McMaster%20University.pdf}{/docs/ReflectAndTrace/Traceability Aids/Feedback/SRS Feedback}.\\
+
+\textbf{Below are the traceability tables for the SRS feedback from instructors.}\\\\
+This includes a feedback ID, the feedback itself, whether or not the SRS was changed in response to the feedback, and if possible, the commit number where the change was made.
+
+\subsubsection{Document Content and Quality (DCQ)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+DCQ1 & Score 2/3. Document contains most of the required elements listed in the Exceeds category. & & \\ \hline
+DCQ2 & Why are React, Node.js, relational databases, etc required constraints? Did your supervisor say so? & & \\ \hline
+DCQ3 & A fully explanation of the rules of Crazy 8s, or a reference to one, would help the reader. Or if this is in a business case, refer to that earlier in the document when you first introduce Crazy 8s.& & \\ \hline
+DCQ4 & Resource constraints: Capstone is obviously not just one academic term. Did you use ChatGPT to generate this? These bullet points seem to be speaking in very general terms. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Document Organization (DO)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+DO1 & Score 2/3. Identifies template; Mostly follows it, but there are undocumented changes. Document is written to follow the 4 items under Exceeds most of the time. & & \\ \hline
+DO2 & NFRs are not labeled with identifiers. & & \\ \hline
+DO3 & Some sections like constraints, assumptions, business rules, etc, should have labels too, so you can refer to them in other places. & & \\ \hline
+DO4 & Sections should not consist of just bullet point lists, particularly when you only have one bullet point. Some bullet points are fine, but the documents should be primarily prose. Otherwise the onus is on the reader to piece together all the facts being presented. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Formatting and Style (FS)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+FS1 & Score 1.5/3. Document has a number of formatting issues with the items listed under Exceeds mostly not being achieved. Clearly a student document produced in a rush. & & \\ \hline
+FS2 & Remember to have a sentence/paragraph introducing each section/subsection there shouldn't just be a heading under another heading. & & \\ \hline
+FS3 & Some weird wording/grammar (e.g. the sentence "i.e. 10 in base-10 is a decimal is...") & & \\ \hline
+FS4 & Look up how to use non-breaking space for things like Dr. in LaTeX. & & \\ \hline
+FS5 & Make sure to properly stylize company names like GitHub - important in a professional context to get partners' names right. & & \\ \hline
+FS6 & Page xxvi: OnboardingA & & \\ \hline
+FS7 & Bolding of names is inconsistent. [cite: 44] & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Notations and Conventions (NC)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+NC1 & Score 3/3. All notations and terms are precisely defined. All figures have legends as needed and/or notation section clearly define all graphical notations used. For instance, the meaning of every arrow in a diagram is made clear. Conventiosn used in the document are described and followed consistently. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{What, Not How (Abstract) (WNH)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+WNH1 & Score 2/3. Requirements are mostly free from design choices. If design decisions are externally imposed, they are usually documented as constraints, usually accompanied by a rationale. & & \\ \hline
+WNH2 & Rationale not always included, especially for NFRs and constraints. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Complete, Correct and Unambiguous (CCU)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+CCU1 & Score 3/3. Requirements are complete and correct. Wording is clear and precise. All requirements are unambiguous and provide domain coverage (say what needs to be done for all possible inputs). The TA can brainstorm a handful of obvious requirements and find them all in the document. A sample requirement to look for is a nonfunctional requirement related to installability. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Traceable Requirements (TR)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+TR1 & Score 0/3. Navigation is very difficult. Traceability information is often lacking. No diagram or table to show traceability. & & \\ \hline
+TR2 & No table/matrix for traceability. No hyperlinks in the document (which can be done easily with LaTeX). & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Verifiable Requirements (VR)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+VR1 & Score 1.5/3. Some requirements are verifiable. A few requirements are verifiable, but most are not. & & \\ \hline
+VR2 & As stated, many requirements and other pieces of information are not labeled; e.g., fit criteria. NFRs do not have sufficient detail to be verifiable. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Rationale (RA)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+RA1 & Score 2/3. Rationale provided for the majority of requirements that need it. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Focus On Users - Part of Enterprise Design Thinking (FoU)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+FoU1 & Score 2/3. User characteristics are mostly documented: Most stakeholders are identified and documented; The requirements mostly enable the users; The requirements mostly show specific and differentiable value (compared to other available options). The thoughts, needs and feelings of the users were mostly taken into account when drafting the requirements & & \\ \hline
+FoU2 & Personas are supposed to be more detailed than what you have given. At least a paragraph describing them and their characteristics (even though they are made up). You have not used the personas anywhere else in the document. They should have a bigger purpose than "filling out the section". & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Phase in Plan (PiP)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+PiP1 & Score 1/3. Priority of requirements information is lacking. No plan for phasing in requirements. & & \\ \hline
+PiP2 & "Will follow the deliverable outline" is not detailed enough. No priorities for requirements are given. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Basis for Design (BD)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+BD1 & Score 2/3. Could give to someone outside of the team the document and they could mostly design, build and test the system; however, they would need some interaction with the team. Most likely and unlikely changes are documented; Rationale for unlikely changes is usually given. Inputs and outputs are mostly obvious. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Issues Created for Another Team (IC)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+IC1 & Score 1/3. Issues are created, but most aren't high quality. The issues focus on shallow details like formatting and typos. & & \\ \hline
+IC2 & Only 3 issues created for SRS document. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Participation in Informal TA Presentation (PTP)}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|p{8cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Feedback} & \textbf{SRS Changed?} & \textbf{Commit \#} \\ \hline
+PTP1 & Score 2/2. Full team in attendance. Actively engaged in conversation. Come prepared with questions. Eagerly accept feedback. & & \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Peer Review Feedback}
+
+In addition to this, we also received peer review feedback in the form of 
+\href{https://github.com/The-Crazy-Four-Games/Crazy_1-0s_Game/issues?q=is%3Aissue%20peer%20review%20srs%20milestone%3AD11-Rev1}{Github issues}.\\
+The peer review issues which were closed for SRS were the following, and have been mapped to their resolving commits:
 
 \begin{longtable}{p{0.08\textwidth} p{0.15\textwidth} p{0.34\textwidth} p{0.37\textwidth}}
 \toprule
@@ -215,6 +382,8 @@ S13 & Peer Review & Remove unused SRS \newline \href{https://github.com/The-Craz
 
 \end{longtable}\\\\
 
+\section{Hazard Analysis Feedback and Changes}
+
 For the Hazard Analysis, feedback was provided during peer reviews and by TA Chris. The main concerns involved the completeness of the Failure Mode and Effects Analysis (FMEA) and the handling of data security, given the system's shift to a full web deployment with a database.
 
 \begin{longtable}{p{0.08\textwidth} p{0.15\textwidth} p{0.34\textwidth} p{0.37\textwidth}}
@@ -235,7 +404,7 @@ H3 & Instructor (Rev 0) & The hazard analysis does not adequately address the ri
 
 \end{longtable}
 
-\subsection{Design and Design Documentation}
+\subsection{Design and Design Documentation Feedback and Changes}
 
 The Design Document received two rounds of feedback: Rev $-1$ (Dec 8, 2025, 77.27\%) and Rev 0 (Mar 5, 2026, 67.86\%). The Rev 0 Demo (Feb 13, 2026) also produced significant design feedback from the instructor.
 
@@ -271,7 +440,7 @@ D6 & TA Chris (MIS) & MIS too low-level in places: ``socket'' in 12.4.1, ``JSX''
 \end{longtable}
 
 
-\subsection{VnV Plan and Report}
+\subsection{VnV Plan and Report Feedback and Changes}
 
 The Verification and Validation (V\&V) Plan and Report received feedback during the Rev 0 and Rev 1 evaluation phases, primarily focusing on test coverage, automated testing integration, and traceability.
 
@@ -297,7 +466,7 @@ V4 & TA Chris (Rev 1) & ``Usability testing methodology in VnV is vague. Need cl
 
 V5 & Instructor (Final) & Ensure CI/CD pipeline correctly runs the automated tests described in the VnV Plan. & Configured GitHub Actions to automatically execute the Vitest suite on every PR, ensuring continuous verification of the codebase. \\
 
-\end{longtable}\subsection{POC Demo, Rev 0 Demo and Final Demo}
+\end{longtable}\subsection{POC Demo, Rev 0 Demo and Final Demo Feedback and Changes}
 
 The POC Demo scored 73.33\% (Nov 28, 2025). The Rev 0 Demo scored 14/21 (Feb 13, 2026). The Final Demo scored 18.5/27 (Apr 1, 2026).
 
